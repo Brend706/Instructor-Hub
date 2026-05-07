@@ -18,6 +18,10 @@
     --text-soft:     #475569;
     --topbar-h:      56px;
     --transition:    .22s cubic-bezier(.4, 0, .2, 1);
+    --sidebar-w:     240px;
+    --sidebar-w-col: 64px;
+    --topbar-h:      56px;
+    --transition:    .22s cubic-bezier(.4, 0, .2, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
