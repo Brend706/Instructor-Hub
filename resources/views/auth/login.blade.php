@@ -1,69 +1,165 @@
 @extends('layouts.app')
 
-@section('title', 'Iniciar sesión')
+@section('title', 'Iniciar sesión — Instructor Hub')
 
-@section('content')
-    <div class="mx-auto max-w-md rounded-xl border border-zinc-200 bg-white p-8 shadow-sm">
-        <h1 class="mb-1 text-xl font-semibold text-zinc-900">Iniciar sesión</h1>
-        <p class="mb-6 text-sm text-zinc-600">Ingresa con el correo y la contraseña registrados en el sistema.</p>
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/auth/login.css') }}">
+@endpush
 
-        @if ($errors->any())
-            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-                {{ $errors->first() }}
-            </div>
-        @endif
+@section('fullpage')
 
-        <form method="POST" action="{{ route('login') }}" class="flex flex-col gap-4">
-            @csrf
-            <div class="flex flex-col gap-1">
-                <label for="email" class="text-sm font-medium text-zinc-700">Correo electrónico</label>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value="{{ old('email') }}"
-                    required
-                    autocomplete="username"
-                    class="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none ring-zinc-400 focus:border-zinc-500 focus:ring-2"
-                >
+<div class="login-grid">
+
+    {{-- ═══════════════════════════════════
+         PANEL IZQUIERDO — Presentación
+    ═══════════════════════════════════ --}}
+    <div class="login-left">
+        <div class="login-left-top">
+
+            {{-- Marca --}}
+            <div class="brand">
+                <div class="brand-mark">IH</div>
+                <div>
+                    <div class="brand-name">Instructor Hub</div>
+                    <div class="brand-sub">Sistema de gestión de instructorías</div>
+                </div>
             </div>
-            <div class="flex flex-col gap-1">
-                <label for="password" class="text-sm font-medium text-zinc-700">Contraseña</label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    autocomplete="current-password"
-                    class="rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none ring-zinc-400 focus:border-zinc-500 focus:ring-2"
-                >
-                <label class="mt-1 flex cursor-pointer items-center gap-2 text-sm text-zinc-600 select-none">
-                    <input
-                        type="checkbox"
-                        id="show-password"
-                        class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
-                    >
-                    Ver contraseña
-                </label>
+
+            {{-- Titular --}}
+            <h1 class="left-headline">
+                Bienvenido al<br>sistema de <span>instructorías</span>
+            </h1>
+            <p class="left-desc">
+                Gestiona instructores, coordina sesiones y da seguimiento
+                a la asistencia desde un solo lugar.
+            </p>
+
+            {{-- Features --}}
+            <div class="features">
+                <div class="feat">
+                    <div class="feat-icon">
+                        <i class="ti ti-user-check" aria-hidden="true"></i>
+                    </div>
+                    <span class="feat-text">Registro y gestión de instructores</span>
+                </div>
+                <div class="feat">
+                    <div class="feat-icon">
+                        <i class="ti ti-calendar-event" aria-hidden="true"></i>
+                    </div>
+                    <span class="feat-text">Control de sesiones presenciales y en línea</span>
+                </div>
+                <div class="feat">
+                    <div class="feat-icon">
+                        <i class="ti ti-clipboard-check" aria-hidden="true"></i>
+                    </div>
+                    <span class="feat-text">Registro de asistencia en tiempo real</span>
+                </div>
+                <div class="feat">
+                    <div class="feat-icon">
+                        <i class="ti ti-chart-bar" aria-hidden="true"></i>
+                    </div>
+                    <span class="feat-text">Reportes y estadísticas para administración</span>
+                </div>
             </div>
-            <label class="flex items-center gap-2 text-sm text-zinc-700">
-                <input type="checkbox" name="remember" value="1" class="rounded border-zinc-300" @checked(old('remember'))>
-                Recordarme en este equipo
-            </label>
-            <button
-                type="submit"
-                class="mt-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
-            >
-                Entrar
-            </button>
-        </form>
+        </div>
+
+        <div class="login-left-bottom">
+            <div class="faculty-badge">
+                <i class="ti ti-building" aria-hidden="true"></i>
+                Facultad de Informática y Ciencias Aplicadas
+            </div>
+        </div>
     </div>
-    <script>
-        document.getElementById('show-password')?.addEventListener('change', function () {
-            const input = document.getElementById('password');
-            if (input) {
-                input.type = this.checked ? 'text' : 'password';
-            }
-        });
-    </script>
+
+    {{-- ═══════════════════════════════════
+         PANEL DERECHO — Formulario
+    ═══════════════════════════════════ --}}
+    <div class="login-right">
+        <div class="form-wrap">
+
+            <div class="form-header">
+                <h2 class="form-title">Iniciar sesión</h2>
+                <p class="form-sub">
+                    Ingresa con el correo y contraseña<br>registrados en el sistema.
+                </p>
+            </div>
+
+            {{-- Error --}}
+            @if ($errors->any())
+                <div class="error-box" role="alert">
+                    <i class="ti ti-alert-circle" aria-hidden="true"></i>
+                    <span>{{ $errors->first() }}</span>
+                </div>
+            @endif
+
+            {{-- Formulario --}}
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
+
+                {{-- Email --}}
+                <div class="field">
+                    <label class="field-label" for="email">Correo electrónico</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value="{{ old('email') }}"
+                        placeholder="usuario@fica.edu.sv"
+                        required
+                        autocomplete="username"
+                        class="input @error('email') input-error @enderror"
+                    >
+                </div>
+
+                {{-- Contraseña --}}
+                <div class="field">
+                    <label class="field-label" for="password">Contraseña</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="••••••••"
+                        required
+                        autocomplete="current-password"
+                        class="input @error('password') input-error @enderror"
+                    >
+                    <label class="show-pass" for="showPassword">
+                        <input type="checkbox" id="showPassword"> Mostrar contraseña
+                    </label>
+                </div>
+
+                {{-- Recordarme --}}
+                <label class="remember">
+                    <input type="checkbox" name="remember" value="1" @checked(old('remember'))>
+                    Recordarme en este equipo
+                </label>
+
+                {{-- Botón --}}
+                <button type="submit" class="btn-submit">
+                    <i class="ti ti-login" aria-hidden="true"></i>
+                    Entrar al sistema
+                </button>
+
+            </form>
+
+            {{-- Footer --}}
+            <div class="footer-form">
+                <strong>Instructor Hub</strong> · Desarrollado por <strong>Grupo CBA</strong><br>
+                Facultad de Informática y Ciencias Aplicadas
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('showPassword')?.addEventListener('change', function () {
+        const input = document.getElementById('password');
+        if (input) input.type = this.checked ? 'text' : 'password';
+    });
+</script>
+@endpush

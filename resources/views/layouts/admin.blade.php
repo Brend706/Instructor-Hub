@@ -177,7 +177,7 @@
                             <i class="ti ti-user" style="font-size:15px"></i> Mi perfil
                         </a>
                         <div style="height:1px;background:var(--border)"></div>
-                        <form method="POST" action="">
+                        <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" style="
                                 display:flex;align-items:center;gap:8px;width:100%;

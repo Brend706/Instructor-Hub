@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\CoordinatorController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -54,17 +55,40 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     Route::middleware('role:admin')->group(function () {
-        Route::get('/admin/panel', function () {
-            return view('dashboard.admin');
+        Route::get('/admin/dashboard', function () {
+            // Datos de ejemplo para el dashboard que despues seran enviados desde el backend
+            return view('admin.dashboard', [
+                'totalInstructoriasmes' => 48,
+                'pctInstructorias'      => 12,
+                'totalInstructores'     => 23,
+                'nuevosInstructores'    => 3,
+                'totalCoordinadores'    => 4,
+                'asistenciaPromedio'    => 87,
+                'pctAsistencia'         => -2,
+                'pctPresencial'         => 62,
+                'pctEnLinea'            => 38,
+                'totalPresencial'       => 30,
+                'totalEnLinea'          => 18,
+                'semanas'               => [6,9,7,12,10,8,11,13],
+                'semanasLabels'         => ['S1','S2','S3','S4','S5','S6','S7','S8'],
+                'instructoresRecientes' => collect([]),
+                'coordinadores'         => collect([]),
+                'actividad'             => [],
+            ]);
         })->name('admin.dashboard');
     });
 
+    Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+        Route::resource('coordinadores', CoordinatorController::class);
+    });
+
+    //proximamente redirigiran a los dashboard reales de cada rol
     Route::middleware('role:coordinator')->group(function () {
         Route::get('/coordinator/panel', function () {
             return view('dashboard.coordinator');
         })->name('coordinator.dashboard');
     });
-
     Route::middleware('role:instructor')->group(function () {
         Route::get('/instructor/panel', function () {
             return view('dashboard.instructor');
@@ -72,8 +96,10 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-//rutas temporales para visualizar solo frontend
+//ruta temporal del index de coordinadores
+Route::get('/admin/coordinadores', fn() => view('admin.coordinators.index'))->name('admin.coordinators.index');
 
+//rutas temporales para el frontend
 Route::get('/admin/dashboard', function () {
     // Datos de ejemplo para el dashboard que despues seran enviados desde el backend
     return view('admin.dashboard', [
@@ -95,6 +121,6 @@ Route::get('/admin/dashboard', function () {
         'actividad'             => [],
     ]);
 })->name('admin.dashboard');
-Route::get('/admin/coordinadores', fn() => view('admin.coordinadores.index'))->name('admin.coordinadores.index');
-Route::get('/coordinador/dashboard', fn() => view('coordinador.dashboard'))->name('coordinador.dashboard');
+Route::get('/admin/coordinadores', fn() => view('admin.coordinators.index'))->name('admin.coordinators.index');
+Route::get('/coordinator/dashboard', fn() => view('coordinator.dashboard'))->name('coordinator.dashboard');
 Route::get('/instructor/dashboard', fn() => view('instructor.dashboard'))->name('instructor.dashboard');

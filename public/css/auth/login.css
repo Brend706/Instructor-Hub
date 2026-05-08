@@ -1,0 +1,256 @@
+/* Grid principal de dos columnas */
+.login-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+/* ─────────────────────────────────────────
+   PANEL IZQUIERDO
+───────────────────────────────────────── */
+.login-left {
+    background: var(--primary);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Círculos decorativos */
+.login-left::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .04);
+    pointer-events: none;
+}
+.login-left::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -60px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .04);
+    pointer-events: none;
+}
+
+.login-left-top  { position: relative; z-index: 1; }
+.login-left-bottom { position: relative; z-index: 1; }
+
+/* Marca */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+}
+.brand-mark {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+}
+.brand-name { font-size: 18px; font-weight: 600; color: #fff; }
+.brand-sub  { font-size: 11px; color: rgba(255, 255, 255, .5); margin-top: 1px; }
+
+/* Titular */
+.left-headline {
+    font-size: 32px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 16px;
+}
+.left-headline span { color: #5DD5E3; }
+
+.left-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, .6);
+    line-height: 1.7;
+    max-width: 320px;
+}
+
+/* Features */
+.features {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.feat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.feat-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: rgba(255, 255, 255, .8);
+    flex-shrink: 0;
+}
+.feat-text { font-size: 13px; color: rgba(255, 255, 255, .65); }
+
+/* Badge facultad */
+.faculty-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, .7);
+}
+.faculty-badge i { font-size: 14px; }
+
+/* ─────────────────────────────────────────
+   PANEL DERECHO
+───────────────────────────────────────── */
+.login-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px 56px;
+    background: var(--surface);
+}
+
+.form-wrap {
+    width: 100%;
+    max-width: 360px;
+}
+
+/* Encabezado del form */
+.form-header  { margin-bottom: 28px; }
+.form-title   { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.form-sub     { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* Error */
+.error-box {
+    background: #FEE2E2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #991B1B;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.error-box i { font-size: 15px; flex-shrink: 0; }
+
+/* Campos */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 16px;
+}
+.field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-soft);
+}
+.input {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border .15s, box-shadow .15s;
+    font-family: inherit;
+    width: 100%;
+    background: var(--surface);
+}
+.input:focus {
+    border-color: var(--primary-400);
+    box-shadow: 0 0 0 3px var(--primary-50);
+}
+.input::placeholder { color: var(--text-muted); }
+.input-error {
+    border-color: #FECACA;
+    box-shadow: 0 0 0 3px #FEE2E2;
+}
+
+/* Mostrar contraseña */
+.show-pass {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-muted);
+    user-select: none;
+}
+.show-pass input { accent-color: var(--primary); }
+
+/* Recordarme */
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-soft);
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+.remember input { accent-color: var(--primary); }
+
+/* Botón submit */
+.btn-submit {
+    width: 100%;
+    padding: 11px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s, transform .1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-submit:hover  { background: var(--primary-700); }
+.btn-submit:active { transform: scale(.98); }
+
+/* Footer */
+.footer-form {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 32px;
+    line-height: 1.8;
+}
+.footer-form strong { color: var(--text-soft); }
+
+/* ─────────────────────────────────────────
+   RESPONSIVE — tablet / móvil
+───────────────────────────────────────── */
+@media (max-width: 768px) {
+    .login-grid {
+        grid-template-columns: 1fr;
+    }
+    .login-left {
+        padding: 32px 24px;
+        min-height: auto;
+    }
+    .left-headline { font-size: 24px; }
+    .features      { display: none; }
+    .login-right   { padding: 40px 24px; }
+}
