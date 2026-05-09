@@ -49,7 +49,7 @@
 
             <div class="nav-section">
                 <p class="nav-label">Gestión</p>
-                <a href=""
+                <a href="{{ route('admin.coordinadores.index') }}"
                    class="nav-item {{ request()->routeIs('admin.coordinadores.*') ? 'active' : '' }}"
                    data-label="Coordinadores">
                     <i class="ti ti-users nav-icon" aria-hidden="true"></i>
