@@ -124,3 +124,7 @@ Route::get('/admin/dashboard', function () {
 Route::get('/admin/coordinadores', fn() => view('admin.coordinators.index'))->name('admin.coordinators.index');
 Route::get('/coordinator/dashboard', fn() => view('coordinator.dashboard'))->name('coordinator.dashboard');
 Route::get('/instructor/dashboard', fn() => view('instructor.dashboard'))->name('instructor.dashboard');
+
+Route::get('/mi-perfil', function () {
+    return view('profile.index');
+})->name('profile.index');
