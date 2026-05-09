@@ -16,6 +16,8 @@ class CoordinatorSeeder extends Seeder
         DB::table('coordinators')->insert([
             [
                 'user_id' => 2, // coordinator@test.com
+                'coordination_name' => 'Sistemas Informaticos',
+                // compat con columna antigua
                 'name' => 'Sistemas Informaticos',
                 'created_at' => now(),
                 'updated_at' => now()
