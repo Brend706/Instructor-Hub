@@ -1,33 +1,35 @@
-@extends('layouts.admin', ['title' => 'Coordinadores'])
+@extends('layouts.admin', ['title' => 'Instructores'])
 
 @push('styles')
+    //usa los mismos estilos del crud de coordinadores
     <link rel="stylesheet" href="{{ asset('css/admin/coordinators.css') }}">
 @endpush
 
-@section('content')
+@php
+    // ── Datos ficticios para desarrollo frontend ──
+    // Reemplazar con $coordinators desde el controller cuando el backend esté listo
+    $coordinators = [
+        ['id' => 1, 'name' => 'Ana Mejía', 'email' => 'a.mejia@fica.edu.sv', 'career' => 'Ing. Sistemas', 'since' => 'Ene 2024', 'status' => 'Activo'],
+        ['id' => 2, 'name' => 'Carlos Rivas', 'email' => 'c.rivas@fica.edu.sv', 'career' => 'Arquitectura', 'since' => 'Feb 2024', 'status' => 'Activo'],
+        ['id' => 3, 'name' => 'Luisa Pérez', 'email' => 'l.perez@fica.edu.sv', 'career' => 'Diseño Gráfico', 'since' => 'Mar 2024', 'status' => 'Inactivo'],
+        ['id' => 4, 'name' => 'Miguel García', 'email' => 'm.garcia@fica.edu.sv', 'career' => 'Ing. Civil', 'since' => 'Abr 2024', 'status' => 'Activo'],
+        ['id' => 5, 'name' => 'Rosa Torres', 'email' => 'r.torres@fica.edu.sv', 'career' => 'Ing. Sistemas', 'since' => 'May 2024', 'status' => 'Activo'],
+    ];
+    $coordinaciones = ['Ing. Sistemas', 'Arquitectura', 'Diseño Gráfico', 'Ing. Industrial'];
+@endphp
 
-{{-- 
-    Esta vista ya está conectada al backend:
-    - El controller envía `$coordinators` (paginado) con `user` cargado.
-    - El modal usa rutas resource:
-      - POST   /admin/coordinadores  (crear)
-      - PUT    /admin/coordinadores/{id} (editar)
-      - DELETE /admin/coordinadores/{id} (eliminar)
-    - En modo compatibilidad, la coordinación puede venir de:
-      - `coordinators.coordination_name` (si existe la columna)
-      - o `coordinators.name` (columna antigua)
---}}
+@section('content')
 
 {{-- ═══════════════════════════════════
      HEADER
 ═══════════════════════════════════ --}}
 <div class="page-header">
     <div>
-        <h1 class="page-title">Coordinadores</h1>
-        <p class="page-sub">Gestión de coordinadores registrados en el sistema</p>
+        <h1 class="page-title">Instructores</h1>
+        <p class="page-sub">Gestión de instructores registrados en el sistema</p>
     </div>
     <button class="btn btn-primary" onclick="openModal('modalForm')">
-        <i class="ti ti-plus" aria-hidden="true"></i> Nuevo coordinador
+        <i class="ti ti-plus" aria-hidden="true"></i> Nuevo instructor
     </button>
 </div>
 
@@ -55,7 +57,7 @@
     </div>
     <select class="filter-select" id="filterCoordination" onchange="filterTable()">
         <option value="">Todas las coordinaciones</option>
-        @foreach(($coordinaciones ?? []) as $coord)
+        @foreach($coordinaciones as $coord)
             <option value="{{ $coord }}">{{ $coord }}</option>
         @endforeach
     </select>
@@ -66,60 +68,61 @@
 ═══════════════════════════════════ --}}
 <div class="table-card">
     <div class="table-wrap">
-        <table id="coordinatorsTable">
+        <table id="instructorsTable">
             <thead>
                 <tr>
-                    <th>Coordinador</th>
+                    <th>Instructor</th>
                     <th>Correo</th>
-                    <th>Coordinación</th>
+                    <th>Carrera</th>
+                    <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($coordinators as $coordinator)
-                    @php
-                        $user = $coordinator->user;
-                        $coordination = $coordinator->coordination_name ?? $coordinator->name ?? '';
-                        $since = optional($coordinator->created_at)->format('M Y');
-                    @endphp
                     <tr
-                        data-id="{{ $coordinator->id }}"
-                        data-name="{{ strtolower($user?->name ?? '') }}"
-                        data-email="{{ strtolower($user?->email ?? '') }}"
-                        data-coordination="{{ $coordination }}"
-                        data-since="{{ $since }}"
+                        data-name="{{ strtolower($coordinator['name']) }}"
+                        data-email="{{ strtolower($coordinator['email']) }}"
                     >
                         <td>
                             <div style="display:flex;align-items:center;gap:10px">
                                 <div class="avatar" style="background:var(--primary)">
-                                    {{ strtoupper(substr($user?->name ?? 'CO', 0, 2)) }}
+                                    {{ strtoupper(substr($coordinator['name'], 0, 2)) }}
                                 </div>
                                 <div>
-                                    <div class="td-main">{{ $user?->name ?? '—' }}</div>
+                                    <div class="td-main">{{ $coordinator['name'] }}</div>
                                     <div style="font-size:11px;color:var(--text-muted)">
-                                        Desde {{ $since }}
+                                        Desde {{ $coordinator['since'] }}
                                     </div>
                                 </div>
                             </div>
                         </td>
-                        <td>{{ $user?->email ?? '—' }}</td>
-                        <td>{{ $coordination }}</td>
+                        <td>{{ $coordinator['email'] }}</td>
+                        <td>{{ $coordinator['career'] }}</td>
+                        <td>
+                            <span class="badge {{ $coordinator['status'] === 'Activo' ? 'badge-success' : 'badge-warning' }}"
+                                style="display:inline-flex;align-items:center;gap:5px">
+                                <span style="width:6px;height:6px;border-radius:50%;
+                                            background:{{ $coordinator['status'] === 'Activo' ? '#166534' : '#854D0E' }};
+                                            flex-shrink:0"></span>
+                                {{ $coordinator['status'] }}
+                            </span>
+                        </td>
                         <td>
                             <div class="actions">
                                 {{-- Ver detalle --}}
-                                <button
-                                    type="button"
-                                    class="btn btn-ghost btn-sm"
-                                    title="Ver detalle"
-                                    onclick="openView({{ $coordinator->id }})"
-                                >
+                                <a href="#" class="btn btn-ghost btn-sm" title="Ver detalle">
                                     <i class="ti ti-eye" aria-hidden="true"></i>
-                                </button>
+                                </a>
                                 {{-- Editar --}}
                                 <button
                                     class="btn btn-ghost btn-sm"
                                     title="Editar"
-                                    onclick="openEdit({{ $coordinator->id }})"
+                                    onclick="openEdit(
+                                        {{ $coordinator['id'] }},
+                                        '{{ $coordinator['name'] }}',
+                                        '{{ $coordinator['email'] }}',
+                                    )"
                                 >
                                     <i class="ti ti-pencil" aria-hidden="true"></i>
                                 </button>
@@ -127,7 +130,7 @@
                                 <button
                                     class="btn btn-danger btn-sm"
                                     title="Eliminar"
-                                    onclick="openDelete({{ $coordinator->id }})"
+                                    onclick="openDelete({{ $coordinator['id'] }}, '{{ $coordinator['name'] }}')"
                                 >
                                     <i class="ti ti-trash" aria-hidden="true"></i>
                                 </button>
@@ -138,7 +141,7 @@
                     <tr>
                         <td colspan="4" class="empty-state">
                             <i class="ti ti-users-off" aria-hidden="true"></i>
-                            <p>No hay coordinadores registrados aún</p>
+                            <p>No hay instructores registrados aún</p>
                             <button class="btn btn-primary" onclick="openModal('modalForm')" style="margin-top:10px">
                                 <i class="ti ti-plus"></i> Agregar el primero
                             </button>
@@ -151,58 +154,21 @@
 </div>
 
 {{-- ═══════════════════════════════════
-     MODAL VER DETALLE
-═══════════════════════════════════ --}}
-<div class="modal-overlay" id="modalView" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title" id="viewTitle">Detalle del coordinador</div>
-            <button class="modal-close" onclick="closeModal('modalView')" aria-label="Cerrar">
-                <i class="ti ti-x" aria-hidden="true"></i>
-            </button>
-        </div>
-
-        <div class="modal-body">
-            <div class="field">
-                <label class="field-label">Nombre completo</label>
-                <div class="input" id="viewName" style="display:flex;align-items:center"></div>
-            </div>
-            <div class="field">
-                <label class="field-label">Correo electrónico</label>
-                <div class="input" id="viewEmail" style="display:flex;align-items:center"></div>
-            </div>
-            <div class="field">
-                <label class="field-label">Coordinación</label>
-                <div class="input" id="viewCoordination" style="display:flex;align-items:center"></div>
-            </div>
-            <div class="field">
-                <label class="field-label">Registrado</label>
-                <div class="input" id="viewSince" style="display:flex;align-items:center"></div>
-            </div>
-        </div>
-
-        <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" onclick="closeModal('modalView')">Cerrar</button>
-        </div>
-    </div>
-</div>
-
-{{-- ═══════════════════════════════════
      MODAL CREAR / EDITAR
 ═══════════════════════════════════ --}}
 <div class="modal-overlay" id="modalForm" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal">
         <div class="modal-header">
-            <div class="modal-title" id="modalTitle">Nuevo coordinador</div>
+            <div class="modal-title" id="modalTitle">Nuevo instructor</div>
             <button class="modal-close" onclick="closeModal('modalForm')" aria-label="Cerrar">
                 <i class="ti ti-x" aria-hidden="true"></i>
             </button>
         </div>
 
-        <form method="POST" id="coordinatorForm" action="{{ route('admin.coordinadores.store') }}">
+        {{-- Al integrar backend: action="{{ route('admin.instructors.store') }}" --}}
+        <form method="POST" id="instructorForm" action="#">
             @csrf
             <input type="hidden" name="_method" id="formMethod" value="POST">
-            <input type="hidden" id="coordinatorId" value="">
 
             <div class="modal-body">
 
@@ -234,7 +200,7 @@
                     <label class="field-label" for="coordination_name">Coordinación</label>
                     <select class="input" id="coordination_name" name="coordination_name" required>
                         <option value="">Seleccionar...</option>
-                        @foreach(($coordinaciones ?? []) as $coord)
+                        @foreach($coordinaciones as $coord)
                             <option value="{{ $coord }}">{{ $coord }}</option>
                         @endforeach
                     </select>
@@ -276,14 +242,15 @@
             <div class="confirm-icon">
                 <i class="ti ti-trash" aria-hidden="true"></i>
             </div>
-            <div class="confirm-title">¿Eliminar coordinador?</div>
+            <div class="confirm-title">¿Eliminar instructor?</div>
             <p class="confirm-desc">
-                Esta acción no se puede deshacer. El coordinador será eliminado permanentemente del sistema.
+                Esta acción no se puede deshacer. ¿Deseas continuar eliminando a <strong id="deleteName"></strong>?
             </p>
         </div>
         <div class="modal-footer">
             <button class="btn btn-ghost" onclick="closeModal('modalDelete')">Cancelar</button>
-            <form method="POST" id="deleteForm" action="">
+            {{-- Al integrar backend: action="{{ route('admin.instructors.destroy', $id) }}" --}}
+            <form method="POST" id="deleteForm" action="#">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger">
@@ -298,12 +265,6 @@
 
 @push('scripts')
 <script>
-    const BASE_URL = @json(url('/admin/coordinadores'));
-
-    // La UI abre un mismo modal para crear/editar.
-    // - Crear: action = route(admin.coordinadores.store) y method = POST
-    // - Editar: action = `${BASE_URL}/{id}` y method spoofed = PUT
-
     // ── Abrir / cerrar ─────────────────────────────────────
     function openModal(id) {
         document.getElementById(id).classList.add('open');
@@ -322,30 +283,10 @@
         });
     });
 
-    // ── Ver detalle (solo lectura) ─────────────────────────
-    function openView(id) {
-        const row = document.querySelector(`#coordinatorsTable tbody tr[data-id="${id}"]`);
-        if (!row) return;
-
-        const name = row.querySelector('.td-main')?.textContent?.trim() || '—';
-        const email = row.dataset.email || '—';
-        const coordination = row.dataset.coordination || '—';
-        const since = row.dataset.since || '—';
-
-        document.getElementById('viewName').textContent = name;
-        document.getElementById('viewEmail').textContent = email;
-        document.getElementById('viewCoordination').textContent = coordination;
-        document.getElementById('viewSince').textContent = since;
-
-        openModal('modalView');
-    }
-
     // ── Reset formulario ───────────────────────────────────
     function resetForm() {
         document.getElementById('coordinatorForm').reset();
         document.getElementById('formMethod').value = 'POST';
-        document.getElementById('coordinatorId').value = '';
-        document.getElementById('coordinatorForm').action = @json(route('admin.coordinadores.store'));
         document.getElementById('modalTitle').textContent = 'Nuevo coordinador';
         document.getElementById('btnText').textContent = 'Guardar';
         document.getElementById('password').required = true;
@@ -353,19 +294,14 @@
     }
 
     // ── Abrir editar ───────────────────────────────────────
-    function openEdit(id) {
-        const row = document.querySelector(`#coordinatorsTable tbody tr[data-id="${id}"]`);
-        if (!row) return;
-
+    function openEdit(id, name, email, coordination) {
         document.getElementById('modalTitle').textContent = 'Editar coordinador';
         document.getElementById('btnText').textContent = 'Actualizar';
         document.getElementById('formMethod').value = 'PUT';
-        document.getElementById('coordinatorId').value = String(id);
-        document.getElementById('coordinatorForm').action = `${BASE_URL}/${id}`;
 
-        document.getElementById('name').value = row.dataset.name || '';
-        document.getElementById('email').value = row.dataset.email || '';
-        document.getElementById('coordination_name').value = row.dataset.coordination || '';
+        document.getElementById('name').value = name;
+        document.getElementById('email').value = email;
+        document.getElementById('coordination_name').value = coordination;
 
         // Contraseña opcional al editar
         document.getElementById('password').required = false;
@@ -375,12 +311,8 @@
     }
 
     // ── Abrir eliminar ─────────────────────────────────────
-    function openDelete(id) {
-        const row = document.querySelector(`#coordinatorsTable tbody tr[data-id="${id}"]`);
-        const name = row?.querySelector('.td-main')?.textContent?.trim() || 'este coordinador';
-
+    function openDelete(id, name) {
         document.getElementById('deleteName').textContent = name;
-        document.getElementById('deleteForm').action = `${BASE_URL}/${id}`;
         openModal('modalDelete');
     }
 

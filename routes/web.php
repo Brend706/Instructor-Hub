@@ -78,10 +78,14 @@ Route::middleware('auth')->group(function () {
         })->name('admin.dashboard');
     });
 
+    //ruta al crud de coordinadores accesible solo para admins
     Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
         Route::resource('coordinadores', CoordinatorController::class);
     });
+
+    //ruta al crud de instructores accesible solo para admins
+
 
     //proximamente redirigiran a los dashboard reales de cada rol
     Route::middleware('role:coordinator')->group(function () {
@@ -97,3 +101,5 @@ Route::middleware('auth')->group(function () {
 });
 
 // (Se removieron rutas temporales duplicadas fuera de auth)
+//ruta durecta al crud de instructores sin acceso reestingido, ruta temporal
+Route::get('/admin/instructores', fn() => view('admin.instructors.index'))->name('admin.instructors.index');
