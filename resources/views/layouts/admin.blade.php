@@ -56,7 +56,7 @@
                     <span class="nav-text">Coordinadores</span>
                     <span class="nav-badge">{{ $totalCoordinadores ?? '' }}</span>
                 </a>
-                <a href=""
+                <a href="{{ route('admin.instructores.index') }}"
                    class="nav-item {{ request()->routeIs('admin.instructores.*') ? 'active' : '' }}"
                    data-label="Instructores">
                     <i class="ti ti-user-check nav-icon" aria-hidden="true"></i>

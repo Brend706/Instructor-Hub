@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class InstructorSeeder extends Seeder
 {
@@ -13,13 +13,15 @@ class InstructorSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('instructors')->insert([
-            [
-                'user_id' => 3, // instructor@test.com
-                'major' => 'Programación',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]
-        ]);
+        $row = [
+            'user_id' => 3,
+            'major' => 'Programación',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+        if (Schema::hasColumn('instructors', 'status')) {
+            $row['status'] = 'Activo';
+        }
+        DB::table('instructors')->insert([$row]);
     }
 }

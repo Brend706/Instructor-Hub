@@ -1,39 +1,21 @@
 @extends('layouts.admin', ['title' => 'Instructores'])
 
 @push('styles')
-    //usa los mismos estilos del crud de coordinadores
     <link rel="stylesheet" href="{{ asset('css/admin/coordinators.css') }}">
 @endpush
 
-@php
-    // ── Datos ficticios para desarrollo frontend ──
-    // Reemplazar con $coordinators desde el controller cuando el backend esté listo
-    $coordinators = [
-        ['id' => 1, 'name' => 'Ana Mejía', 'email' => 'a.mejia@fica.edu.sv', 'career' => 'Ing. Sistemas', 'since' => 'Ene 2024', 'status' => 'Activo'],
-        ['id' => 2, 'name' => 'Carlos Rivas', 'email' => 'c.rivas@fica.edu.sv', 'career' => 'Arquitectura', 'since' => 'Feb 2024', 'status' => 'Activo'],
-        ['id' => 3, 'name' => 'Luisa Pérez', 'email' => 'l.perez@fica.edu.sv', 'career' => 'Diseño Gráfico', 'since' => 'Mar 2024', 'status' => 'Inactivo'],
-        ['id' => 4, 'name' => 'Miguel García', 'email' => 'm.garcia@fica.edu.sv', 'career' => 'Ing. Civil', 'since' => 'Abr 2024', 'status' => 'Activo'],
-        ['id' => 5, 'name' => 'Rosa Torres', 'email' => 'r.torres@fica.edu.sv', 'career' => 'Ing. Sistemas', 'since' => 'May 2024', 'status' => 'Activo'],
-    ];
-    $coordinaciones = ['Ing. Sistemas', 'Arquitectura', 'Diseño Gráfico', 'Ing. Industrial'];
-@endphp
-
 @section('content')
 
-{{-- ═══════════════════════════════════
-     HEADER
-═══════════════════════════════════ --}}
 <div class="page-header">
     <div>
         <h1 class="page-title">Instructores</h1>
         <p class="page-sub">Gestión de instructores registrados en el sistema</p>
     </div>
-    <button class="btn btn-primary" onclick="openModal('modalForm')">
+    <button type="button" class="btn btn-primary" onclick="openNewInstructorModal()">
         <i class="ti ti-plus" aria-hidden="true"></i> Nuevo instructor
     </button>
 </div>
 
-{{-- Mensaje de éxito --}}
 @if(session('success'))
     <div class="alert-success" role="alert">
         <i class="ti ti-circle-check" aria-hidden="true"></i>
@@ -41,9 +23,6 @@
     </div>
 @endif
 
-{{-- ═══════════════════════════════════
-     TOOLBAR
-═══════════════════════════════════ --}}
 <div class="toolbar">
     <div class="search-wrap">
         <i class="ti ti-search" aria-hidden="true"></i>
@@ -55,17 +34,14 @@
             oninput="filterTable()"
         >
     </div>
-    <select class="filter-select" id="filterCoordination" onchange="filterTable()">
+    <select class="filter-select" id="filterMajor" onchange="filterTable()">
         <option value="">Todas las coordinaciones</option>
-        @foreach($coordinaciones as $coord)
-            <option value="{{ $coord }}">{{ $coord }}</option>
+        @foreach(($carreras ?? []) as $c)
+            <option value="{{ $c }}">{{ $c }}</option>
         @endforeach
     </select>
 </div>
 
-{{-- ═══════════════════════════════════
-     TABLA
-═══════════════════════════════════ --}}
 <div class="table-card">
     <div class="table-wrap">
         <table id="instructorsTable">
@@ -79,58 +55,70 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($coordinators as $coordinator)
+                @forelse($instructors as $instructor)
+                    @php
+                        $user = $instructor->user;
+                        $since = optional($instructor->created_at)->format('M Y');
+                        $statusLabel = ($hasStatusColumn ?? false) ? ($instructor->status ?? 'Activo') : 'Activo';
+                        $isActive = $statusLabel === 'Activo';
+                    @endphp
                     <tr
-                        data-name="{{ strtolower($coordinator['name']) }}"
-                        data-email="{{ strtolower($coordinator['email']) }}"
+                        data-id="{{ $instructor->id }}"
+                        data-name="{{ strtolower($user?->name ?? '') }}"
+                        data-email="{{ strtolower($user?->email ?? '') }}"
+                        data-user-name="{{ $user?->name ?? '' }}"
+                        data-user-email="{{ $user?->email ?? '' }}"
+                        data-major="{{ $instructor->major }}"
+                        data-status="{{ $statusLabel }}"
+                        data-since="{{ $since }}"
                     >
                         <td>
                             <div style="display:flex;align-items:center;gap:10px">
                                 <div class="avatar" style="background:var(--primary)">
-                                    {{ strtoupper(substr($coordinator['name'], 0, 2)) }}
+                                    {{ strtoupper(substr($user?->name ?? 'IN', 0, 2)) }}
                                 </div>
                                 <div>
-                                    <div class="td-main">{{ $coordinator['name'] }}</div>
+                                    <div class="td-main">{{ $user?->name ?? '—' }}</div>
                                     <div style="font-size:11px;color:var(--text-muted)">
-                                        Desde {{ $coordinator['since'] }}
+                                        Desde {{ $since }}
                                     </div>
                                 </div>
                             </div>
                         </td>
-                        <td>{{ $coordinator['email'] }}</td>
-                        <td>{{ $coordinator['career'] }}</td>
+                        <td>{{ $user?->email ?? '—' }}</td>
+                        <td>{{ $instructor->major }}</td>
                         <td>
-                            <span class="badge {{ $coordinator['status'] === 'Activo' ? 'badge-success' : 'badge-warning' }}"
+                            <span class="badge {{ $isActive ? 'badge-success' : 'badge-warning' }}"
                                 style="display:inline-flex;align-items:center;gap:5px">
                                 <span style="width:6px;height:6px;border-radius:50%;
-                                            background:{{ $coordinator['status'] === 'Activo' ? '#166534' : '#854D0E' }};
+                                            background:{{ $isActive ? '#166534' : '#854D0E' }};
                                             flex-shrink:0"></span>
-                                {{ $coordinator['status'] }}
+                                {{ $statusLabel }}
                             </span>
                         </td>
                         <td>
                             <div class="actions">
-                                {{-- Ver detalle --}}
-                                <a href="#" class="btn btn-ghost btn-sm" title="Ver detalle">
-                                    <i class="ti ti-eye" aria-hidden="true"></i>
-                                </a>
-                                {{-- Editar --}}
                                 <button
+                                    type="button"
+                                    class="btn btn-ghost btn-sm"
+                                    title="Ver detalle"
+                                    onclick="openView({{ $instructor->id }})"
+                                >
+                                    <i class="ti ti-eye" aria-hidden="true"></i>
+                                </button>
+                                <button
+                                    type="button"
                                     class="btn btn-ghost btn-sm"
                                     title="Editar"
-                                    onclick="openEdit(
-                                        {{ $coordinator['id'] }},
-                                        '{{ $coordinator['name'] }}',
-                                        '{{ $coordinator['email'] }}',
-                                    )"
+                                    onclick="openEdit({{ $instructor->id }})"
                                 >
                                     <i class="ti ti-pencil" aria-hidden="true"></i>
                                 </button>
-                                {{-- Eliminar --}}
                                 <button
+                                    type="button"
                                     class="btn btn-danger btn-sm"
                                     title="Eliminar"
-                                    onclick="openDelete({{ $coordinator['id'] }}, '{{ $coordinator['name'] }}')"
+                                    onclick="openDelete({{ $instructor->id }})"
                                 >
                                     <i class="ti ti-trash" aria-hidden="true"></i>
                                 </button>
@@ -139,10 +127,10 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="empty-state">
+                        <td colspan="5" class="empty-state">
                             <i class="ti ti-users-off" aria-hidden="true"></i>
                             <p>No hay instructores registrados aún</p>
-                            <button class="btn btn-primary" onclick="openModal('modalForm')" style="margin-top:10px">
+                            <button type="button" class="btn btn-primary" onclick="openNewInstructorModal()" style="margin-top:10px">
                                 <i class="ti ti-plus"></i> Agregar el primero
                             </button>
                         </td>
@@ -153,58 +141,134 @@
     </div>
 </div>
 
-{{-- ═══════════════════════════════════
-     MODAL CREAR / EDITAR
-═══════════════════════════════════ --}}
+@if($instructors->hasPages())
+    <div style="margin-top:16px">
+        {{ $instructors->links() }}
+    </div>
+@endif
+
+{{-- MODAL VER DETALLE --}}
+<div class="modal-overlay" id="modalView" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="viewTitle">Detalle del instructor</div>
+            <button type="button" class="modal-close" onclick="closeModal('modalView')" aria-label="Cerrar">
+                <i class="ti ti-x" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="field">
+                <label class="field-label">Nombre completo</label>
+                <div class="input" id="viewName" style="display:flex;align-items:center"></div>
+            </div>
+            <div class="field">
+                <label class="field-label">Correo electrónico</label>
+                <div class="input" id="viewEmail" style="display:flex;align-items:center"></div>
+            </div>
+            <div class="field">
+                <label class="field-label">Carrera</label>
+                <div class="input" id="viewMajor" style="display:flex;align-items:center"></div>
+            </div>
+            <div class="field" id="viewStatusWrap">
+                <label class="field-label">Estado</label>
+                <div class="input" id="viewStatus" style="display:flex;align-items:center"></div>
+            </div>
+            <div class="field">
+                <label class="field-label">Registrado</label>
+                <div class="input" id="viewSince" style="display:flex;align-items:center"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" onclick="closeModal('modalView')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL CREAR / EDITAR --}}
 <div class="modal-overlay" id="modalForm" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal">
         <div class="modal-header">
             <div class="modal-title" id="modalTitle">Nuevo instructor</div>
-            <button class="modal-close" onclick="closeModal('modalForm')" aria-label="Cerrar">
+            <button type="button" class="modal-close" onclick="closeModal('modalForm')" aria-label="Cerrar">
                 <i class="ti ti-x" aria-hidden="true"></i>
             </button>
         </div>
 
-        {{-- Al integrar backend: action="{{ route('admin.instructors.store') }}" --}}
-        <form method="POST" id="instructorForm" action="#">
+        <form method="POST" id="instructorForm" action="{{ route('admin.instructores.store') }}" novalidate>
             @csrf
             <input type="hidden" name="_method" id="formMethod" value="POST">
+            <input type="hidden" id="instructorId" value="">
 
             <div class="modal-body">
+
+                @if ($errors->any())
+                    <div class="alert-success" style="border-color:#fecaca;background:#fef2f2;color:#991b1b" role="alert">
+                        <i class="ti ti-alert-circle" aria-hidden="true"></i>
+                        Corrige los campos marcados antes de continuar.
+                    </div>
+                @endif
 
                 <div class="field">
                     <label class="field-label" for="name">Nombre completo</label>
                     <input
-                        class="input"
+                        class="input @error('name') is-invalid @enderror"
                         id="name"
                         name="name"
                         type="text"
-                        placeholder="Ej. María López"
-                        required
+                        placeholder="Ej. Ana Mejía"
+                        value="{{ old('name') }}"
+                        autocomplete="name"
                     >
+                    <span class="field-msg field-msg--error" id="nameClientError" aria-live="polite"></span>
+                    @error('name')
+                        <span class="field-msg field-msg--error">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <div class="field">
                     <label class="field-label" for="email">Correo electrónico</label>
                     <input
-                        class="input"
+                        class="input @error('email') is-invalid @enderror"
                         id="email"
                         name="email"
                         type="email"
                         placeholder="correo@fica.edu.sv"
-                        required
+                        value="{{ old('email') }}"
+                        autocomplete="email"
                     >
+                    <span class="field-msg field-msg--error" id="emailClientError" aria-live="polite"></span>
+                    @error('email')
+                        <span class="field-msg field-msg--error">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <div class="field">
-                    <label class="field-label" for="coordination_name">Coordinación</label>
-                    <select class="input" id="coordination_name" name="coordination_name" required>
+                    <label class="field-label" for="major">Carrera</label>
+                    <select class="input @error('major') is-invalid @enderror" id="major" name="major">
                         <option value="">Seleccionar...</option>
-                        @foreach($coordinaciones as $coord)
-                            <option value="{{ $coord }}">{{ $coord }}</option>
+                        @foreach(($carreras ?? []) as $c)
+                            <option value="{{ $c }}" @selected(old('major') === $c)>{{ $c }}</option>
                         @endforeach
                     </select>
+                    <span class="field-msg field-msg--error" id="majorClientError" aria-live="polite"></span>
+                    @error('major')
+                        <span class="field-msg field-msg--error">{{ $message }}</span>
+                    @enderror
                 </div>
+
+                @if($hasStatusColumn ?? false)
+                    <div class="field">
+                        <label class="field-label" for="status">Estado</label>
+                        <select class="input @error('status') is-invalid @enderror" id="status" name="status">
+                            <option value="Activo" @selected(old('status', 'Activo') === 'Activo')>Activo</option>
+                            <option value="Inactivo" @selected(old('status') === 'Inactivo')>Inactivo</option>
+                        </select>
+                        <span class="field-msg field-msg--error" id="statusClientError" aria-live="polite"></span>
+                        @error('status')
+                            <span class="field-msg field-msg--error">{{ $message }}</span>
+                        @enderror
+                    </div>
+                @endif
 
                 <div class="field" id="passwordField">
                     <label class="field-label" for="password">
@@ -212,14 +276,24 @@
                         <span id="passwordHint" style="font-weight:400;color:var(--text-muted)"></span>
                     </label>
                     <input
-                        class="input"
+                        class="input @error('password') is-invalid @enderror"
                         id="password"
                         name="password"
                         type="password"
                         placeholder="Mínimo 8 caracteres"
+                        autocomplete="new-password"
+                        minlength="8"
+                        maxlength="255"
                     >
+                    <label class="show-password-toggle" for="showInstructorPassword">
+                        <input type="checkbox" id="showInstructorPassword" class="show-password-checkbox">
+                        Ver contraseña
+                    </label>
+                    <span class="field-msg field-msg--error" id="passwordClientError" aria-live="polite"></span>
+                    @error('password')
+                        <span class="field-msg field-msg--error">{{ $message }}</span>
+                    @enderror
                 </div>
-
             </div>
 
             <div class="modal-footer">
@@ -233,9 +307,7 @@
     </div>
 </div>
 
-{{-- ═══════════════════════════════════
-     MODAL CONFIRMAR ELIMINAR
-═══════════════════════════════════ --}}
+{{-- MODAL ELIMINAR --}}
 <div class="modal-overlay" id="modalDelete" role="dialog" aria-modal="true">
     <div class="modal modal-sm">
         <div class="modal-body" style="padding:28px 24px;text-align:center">
@@ -244,13 +316,12 @@
             </div>
             <div class="confirm-title">¿Eliminar instructor?</div>
             <p class="confirm-desc">
-                Esta acción no se puede deshacer. ¿Deseas continuar eliminando a <strong id="deleteName"></strong>?
+                Esta acción no se puede deshacer. Se eliminará a <strong id="deleteName"></strong> del sistema.
             </p>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-ghost" onclick="closeModal('modalDelete')">Cancelar</button>
-            {{-- Al integrar backend: action="{{ route('admin.instructors.destroy', $id) }}" --}}
-            <form method="POST" id="deleteForm" action="#">
+            <button type="button" class="btn btn-ghost" onclick="closeModal('modalDelete')">Cancelar</button>
+            <form method="POST" id="deleteForm" action="">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger">
@@ -265,68 +336,220 @@
 
 @push('scripts')
 <script>
-    // ── Abrir / cerrar ─────────────────────────────────────
+    const BASE_URL = @json(url('/admin/instructores'));
+    const HAS_STATUS = @json($hasStatusColumn ?? false);
+
+    function clearInstructorClientErrors() {
+        ['name', 'email', 'major', 'status', 'password'].forEach((key) => {
+            const id = key + 'ClientError';
+            const el = document.getElementById(id);
+            if (el) el.textContent = '';
+        });
+        document.querySelectorAll('#instructorForm .input.is-invalid').forEach((el) => el.classList.remove('is-invalid'));
+    }
+
+    function setInstructorClientError(fieldId, message) {
+        const input = document.getElementById(fieldId);
+        let errId = fieldId + 'ClientError';
+        if (fieldId === 'major') errId = 'majorClientError';
+        const err = document.getElementById(errId);
+        if (input) input.classList.add('is-invalid');
+        if (err) err.textContent = message;
+    }
+
+    function openNewInstructorModal() {
+        resetForm();
+        openModal('modalForm');
+    }
+
     function openModal(id) {
         document.getElementById(id).classList.add('open');
         document.body.style.overflow = 'hidden';
     }
+
     function closeModal(id) {
         document.getElementById(id).classList.remove('open');
         document.body.style.overflow = '';
         if (id === 'modalForm') resetForm();
     }
 
-    // Cerrar al hacer clic fuera
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', e => {
             if (e.target === overlay) closeModal(overlay.id);
         });
     });
 
-    // ── Reset formulario ───────────────────────────────────
-    function resetForm() {
-        document.getElementById('coordinatorForm').reset();
-        document.getElementById('formMethod').value = 'POST';
-        document.getElementById('modalTitle').textContent = 'Nuevo coordinador';
-        document.getElementById('btnText').textContent = 'Guardar';
-        document.getElementById('password').required = true;
-        document.getElementById('passwordHint').textContent = '';
+    function openView(id) {
+        const row = document.querySelector(`#instructorsTable tbody tr[data-id="${id}"]`);
+        if (!row) return;
+
+        document.getElementById('viewName').textContent = row.querySelector('.td-main')?.textContent?.trim() || '—';
+        document.getElementById('viewEmail').textContent = row.dataset.userEmail || '—';
+        document.getElementById('viewMajor').textContent = row.dataset.major || '—';
+        document.getElementById('viewSince').textContent = row.dataset.since || '—';
+        const wrap = document.getElementById('viewStatusWrap');
+        const st = document.getElementById('viewStatus');
+        if (HAS_STATUS && wrap && st) {
+            wrap.style.display = '';
+            st.textContent = row.dataset.status || '—';
+        } else if (wrap) {
+            wrap.style.display = 'none';
+        }
+
+        openModal('modalView');
     }
 
-    // ── Abrir editar ───────────────────────────────────────
-    function openEdit(id, name, email, coordination) {
-        document.getElementById('modalTitle').textContent = 'Editar coordinador';
+    function resetForm() {
+        document.getElementById('instructorForm').reset();
+        clearInstructorClientErrors();
+        document.getElementById('formMethod').value = 'POST';
+        document.getElementById('instructorId').value = '';
+        document.getElementById('instructorForm').action = @json(route('admin.instructores.store'));
+        document.getElementById('modalTitle').textContent = 'Nuevo instructor';
+        document.getElementById('btnText').textContent = 'Guardar';
+        const pwd = document.getElementById('password');
+        pwd.required = true;
+        pwd.minLength = 8;
+        pwd.type = 'password';
+        const showPwd = document.getElementById('showInstructorPassword');
+        if (showPwd) showPwd.checked = false;
+        document.getElementById('passwordHint').textContent = '';
+        const statusEl = document.getElementById('status');
+        if (statusEl) statusEl.value = 'Activo';
+    }
+
+    function openEdit(id) {
+        const row = document.querySelector(`#instructorsTable tbody tr[data-id="${id}"]`);
+        if (!row) return;
+
+        clearInstructorClientErrors();
+
+        document.getElementById('modalTitle').textContent = 'Editar instructor';
         document.getElementById('btnText').textContent = 'Actualizar';
         document.getElementById('formMethod').value = 'PUT';
+        document.getElementById('instructorId').value = String(id);
+        document.getElementById('instructorForm').action = `${BASE_URL}/${id}`;
 
-        document.getElementById('name').value = name;
-        document.getElementById('email').value = email;
-        document.getElementById('coordination_name').value = coordination;
+        document.getElementById('name').value = row.dataset.userName || '';
+        document.getElementById('email').value = row.dataset.userEmail || '';
+        document.getElementById('major').value = row.dataset.major || '';
 
-        // Contraseña opcional al editar
-        document.getElementById('password').required = false;
+        const statusEl = document.getElementById('status');
+        if (statusEl && HAS_STATUS) {
+            statusEl.value = row.dataset.status === 'Inactivo' ? 'Inactivo' : 'Activo';
+        }
+
+        const pwd = document.getElementById('password');
+        pwd.required = false;
+        pwd.value = '';
+        pwd.minLength = 8;
+        pwd.type = 'password';
+        const showPwd = document.getElementById('showInstructorPassword');
+        if (showPwd) showPwd.checked = false;
         document.getElementById('passwordHint').textContent = '(dejar vacío para no cambiar)';
 
         openModal('modalForm');
     }
 
-    // ── Abrir eliminar ─────────────────────────────────────
-    function openDelete(id, name) {
-        document.getElementById('deleteName').textContent = name;
+    function openDelete(id) {
+        const form = document.getElementById('deleteForm');
+        if (form) form.action = `${BASE_URL}/${String(id)}`;
+
+        const row = document.querySelector(`#instructorsTable tbody tr[data-id="${id}"]`);
+        const name = row?.querySelector('.td-main')?.textContent?.trim() || 'este instructor';
+        const deleteNameEl = document.getElementById('deleteName');
+        if (deleteNameEl) deleteNameEl.textContent = name;
+
         openModal('modalDelete');
     }
 
-    // ── Filtro en tiempo real ──────────────────────────────
     function filterTable() {
         const search = document.getElementById('searchInput').value.toLowerCase();
-        const coord  = document.getElementById('filterCoordination').value;
-        const rows   = document.querySelectorAll('#coordinatorsTable tbody tr[data-name]');
+        const major = document.getElementById('filterMajor').value;
+        const rows = document.querySelectorAll('#instructorsTable tbody tr[data-name]');
 
         rows.forEach(row => {
             const matchSearch = row.dataset.name.includes(search) || row.dataset.email.includes(search);
-            const matchCoord  = !coord || row.dataset.coordination === coord;
-            row.style.display = matchSearch && matchCoord ? '' : 'none';
+            const matchMajor = !major || row.dataset.major === major;
+            row.style.display = matchSearch && matchMajor ? '' : 'none';
         });
     }
+
+    document.getElementById('instructorForm')?.addEventListener('submit', function (e) {
+        clearInstructorClientErrors();
+
+        const method = document.getElementById('formMethod').value;
+        const isCreate = method === 'POST';
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const major = document.getElementById('major').value;
+        const password = document.getElementById('password').value;
+
+        let ok = true;
+
+        if (!name) {
+            setInstructorClientError('name', 'Debe ingresar el nombre completo.');
+            ok = false;
+        }
+        if (!email) {
+            setInstructorClientError('email', 'Debe ingresar el correo electrónico.');
+            ok = false;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setInstructorClientError('email', 'El correo electrónico no es válido.');
+            ok = false;
+        }
+        if (!major) {
+            setInstructorClientError('major', 'Debe seleccionar la carrera.');
+            ok = false;
+        }
+
+        const statusEl = document.getElementById('status');
+        if (HAS_STATUS && statusEl && !statusEl.value) {
+            setInstructorClientError('status', 'Debe seleccionar el estado.');
+            ok = false;
+        }
+
+        if (isCreate) {
+            if (!password) {
+                setInstructorClientError('password', 'Debe ingresar una contraseña.');
+                ok = false;
+            } else if (password.length < 8) {
+                setInstructorClientError('password', 'La contraseña debe tener al menos 8 caracteres.');
+                ok = false;
+            }
+        } else if (password && password.length < 8) {
+            setInstructorClientError('password', 'La contraseña debe tener al menos 8 caracteres.');
+            ok = false;
+        }
+
+        if (!ok) e.preventDefault();
+    });
+
+    ['name', 'email', 'major', 'password'].forEach((id) => {
+        document.getElementById(id)?.addEventListener('input', () => {
+            const input = document.getElementById(id);
+            const err = document.getElementById(id + 'ClientError');
+            if (input) input.classList.remove('is-invalid');
+            if (err) err.textContent = '';
+        });
+    });
+    document.getElementById('status')?.addEventListener('change', () => {
+        const input = document.getElementById('status');
+        const err = document.getElementById('statusClientError');
+        if (input) input.classList.remove('is-invalid');
+        if (err) err.textContent = '';
+    });
+
+    document.getElementById('showInstructorPassword')?.addEventListener('change', function () {
+        const input = document.getElementById('password');
+        if (input) input.type = this.checked ? 'text' : 'password';
+    });
+
+    @if ($errors->any())
+    document.addEventListener('DOMContentLoaded', function () {
+        openModal('modalForm');
+    });
+    @endif
 </script>
 @endpush

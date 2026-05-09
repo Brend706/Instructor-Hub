@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\CoordinatorController;
+use App\Http\Controllers\Admin\InstructorController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -59,35 +60,33 @@ Route::middleware('auth')->group(function () {
             // Datos de ejemplo para el dashboard que despues seran enviados desde el backend
             return view('admin.dashboard', [
                 'totalInstructoriasmes' => 48,
-                'pctInstructorias'      => 12,
-                'totalInstructores'     => 23,
-                'nuevosInstructores'    => 3,
-                'totalCoordinadores'    => 4,
-                'asistenciaPromedio'    => 87,
-                'pctAsistencia'         => -2,
-                'pctPresencial'         => 62,
-                'pctEnLinea'            => 38,
-                'totalPresencial'       => 30,
-                'totalEnLinea'          => 18,
-                'semanas'               => [6,9,7,12,10,8,11,13],
-                'semanasLabels'         => ['S1','S2','S3','S4','S5','S6','S7','S8'],
+                'pctInstructorias' => 12,
+                'totalInstructores' => 23,
+                'nuevosInstructores' => 3,
+                'totalCoordinadores' => 4,
+                'asistenciaPromedio' => 87,
+                'pctAsistencia' => -2,
+                'pctPresencial' => 62,
+                'pctEnLinea' => 38,
+                'totalPresencial' => 30,
+                'totalEnLinea' => 18,
+                'semanas' => [6, 9, 7, 12, 10, 8, 11, 13],
+                'semanasLabels' => ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'],
                 'instructoresRecientes' => collect([]),
-                'coordinadores'         => collect([]),
-                'actividad'             => [],
+                'coordinadores' => collect([]),
+                'actividad' => [],
             ]);
         })->name('admin.dashboard');
     });
 
-    //ruta al crud de coordinadores accesible solo para admins
+    // ruta al crud de coordinadores accesible solo para admins
     Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+        Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
         Route::resource('coordinadores', CoordinatorController::class);
+        Route::resource('instructores', InstructorController::class)->except(['create', 'show', 'edit']);
     });
 
-    //ruta al crud de instructores accesible solo para admins
-
-
-    //proximamente redirigiran a los dashboard reales de cada rol
+    // proximamente redirigiran a los dashboard reales de cada rol
     Route::middleware('role:coordinator')->group(function () {
         Route::get('/coordinator/panel', function () {
             return view('dashboard.coordinator');
@@ -101,5 +100,3 @@ Route::middleware('auth')->group(function () {
 });
 
 // (Se removieron rutas temporales duplicadas fuera de auth)
-//ruta durecta al crud de instructores sin acceso reestingido, ruta temporal
-Route::get('/admin/instructores', fn() => view('admin.instructors.index'))->name('admin.instructors.index');

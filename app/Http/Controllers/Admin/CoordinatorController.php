@@ -42,8 +42,8 @@ class CoordinatorController extends Controller
 
         // Lista de coordinaciones para el filtro del select en la UI.
         $coordinaciones = Coordinator::query()
-            ->selectRaw($coordinationExpr . ' as coordination')
-            ->whereRaw($coordinationExpr . ' IS NOT NULL')
+            ->selectRaw($coordinationExpr.' as coordination')
+            ->whereRaw($coordinationExpr.' IS NOT NULL')
             ->distinct()
             ->orderBy('coordination')
             ->pluck('coordination')
@@ -74,6 +74,14 @@ class CoordinatorController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'max:255'],
             'coordination_name' => ['required', 'string', 'max:255'],
+        ], [
+            'name.required' => 'Debe ingresar el nombre completo.',
+            'email.required' => 'Debe ingresar el correo electrónico.',
+            'email.email' => 'El correo electrónico no es válido.',
+            'email.unique' => 'Ese correo ya está registrado.',
+            'password.required' => 'Debe ingresar una contraseña.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'coordination_name.required' => 'Debe seleccionar o indicar la coordinación.',
         ]);
 
         /**
@@ -146,6 +154,13 @@ class CoordinatorController extends Controller
             ],
             'password' => ['nullable', 'string', 'min:8', 'max:255'],
             'coordination_name' => ['required', 'string', 'max:255'],
+        ], [
+            'name.required' => 'Debe ingresar el nombre completo.',
+            'email.required' => 'Debe ingresar el correo electrónico.',
+            'email.email' => 'El correo electrónico no es válido.',
+            'email.unique' => 'Ese correo ya está registrado.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'coordination_name.required' => 'Debe seleccionar o indicar la coordinación.',
         ]);
 
         DB::transaction(function () use ($coordinator, $validated) {
@@ -155,7 +170,7 @@ class CoordinatorController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
             ]);
-            if (!empty($validated['password'])) {
+            if (! empty($validated['password'])) {
                 // Password es opcional al editar (si viene vacío, no se cambia).
                 $coordinator->user->password = $validated['password'];
             }
@@ -186,9 +201,12 @@ class CoordinatorController extends Controller
         $coordinator = Coordinator::query()->with('user')->findOrFail($id);
 
         DB::transaction(function () use ($coordinator) {
-            // Eliminamos el user: por la FK `coordinators.user_id` con cascadeOnDelete,
-            // el registro en coordinators se borra automáticamente.
-            $coordinator->user->delete();
+            if ($coordinator->user) {
+                // Borrar el usuario; la FK en `coordinators` suele eliminar el registro del coordinador en cascada.
+                $coordinator->user->delete();
+            } else {
+                $coordinator->delete();
+            }
         });
 
         return redirect()
