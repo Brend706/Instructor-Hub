@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Coordinator;
+use App\Models\Instructor;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        View::composer('layouts.admin', function ($view): void {
+            $view->with([
+                'totalCoordinadores' => Coordinator::query()->count(),
+                'totalInstructores' => Instructor::query()->count(),
+            ]);
+        });
     }
 }
