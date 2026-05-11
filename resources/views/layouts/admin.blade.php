@@ -89,8 +89,9 @@
 
             <div class="nav-section">
                 <p class="nav-label">Sistema</p>
-                <a href=""
-                   class="nav-item {{ request()->routeIs('admin.perfil') ? 'active' : '' }}"
+                {{-- Perfil del usuario autenticado (rutas profile.*); mismo destino en footer y menú superior --}}
+                <a href="{{ route('profile.index') }}"
+                   class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}"
                    data-label="Mi perfil">
                     <i class="ti ti-user-circle nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Mi perfil</span>
@@ -99,13 +100,14 @@
         </nav>
 
         <div class="sidebar-footer">
-            <a href="" class="user-card">
+            {{-- Tarjeta inferior: enlace al perfil; rol legible vía User::roleDisplayLabel() --}}
+            <a href="{{ route('profile.index') }}" class="user-card">
                 <div class="avatar" aria-hidden="true">
                     {{ strtoupper(substr(auth()->user()->name ?? 'Admin Demo', 0, 2)) }}
                 </div>
                 <div class="user-info">
                     <div class="user-name">{{ auth()->user()->name ?? 'Admin Demo'}}</div>
-                    <div class="user-role">Administrador</div>
+                    <div class="user-role">{{ auth()->user()?->roleDisplayLabel() ?? 'Usuario' }}</div>
                 </div>
             </a>
         </div>
@@ -169,7 +171,8 @@
                         background:var(--surface); border:1px solid var(--border);
                         border-radius:10px; min-width:160px; overflow:hidden; z-index:200;
                     ">
-                        <a href="" style="
+                        {{-- Acceso rápido al mismo perfil que la ruta profile.index --}}
+                        <a href="{{ route('profile.index') }}" style="
                             display:flex;align-items:center;gap:8px;
                             padding:10px 14px;font-size:13px;color:var(--text);
                             text-decoration:none;transition:background .15s;

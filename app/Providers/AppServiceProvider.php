@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer('layouts.admin', function ($view): void {
+            // Rol cargado para etiquetas en sidebar (p. ej. `roleDisplayLabel()`) sin repetir en cada vista.
+            auth()->user()?->loadMissing('role');
+
             $view->with([
                 'totalCoordinadores' => Coordinator::query()->count(),
                 'totalInstructores' => Instructor::query()->count(),

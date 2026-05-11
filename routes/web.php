@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CoordinatorController;
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ProfileController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -96,6 +97,11 @@ Route::middleware('auth')->group(function () {
             return view('dashboard.instructor');
         })->name('instructor.dashboard');
     });
+
+    // Perfil: requiere sesión; cualquier rol autenticado puede ver y editar su propio `users`.
+    Route::get('/mi-perfil', [ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/mi-perfil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/mi-perfil/contrasena', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });
 
 //ruta temporal al perfil de usuario que ha iniciado sesion
@@ -108,4 +114,6 @@ Route::get('/coordinator/dashboard', fn() => view('coordinator.dashboard'))->nam
 Route::get('/coordinator/groups', fn() => view('coordinator.groups.index'))->name('coordinator.groups.index');
 Route::get('/coordinator/instructors', fn() => view('coordinator.instructors.index'))->name('coordinator.instructors.index');
 Route::get('/coordinator/instructorias', fn() => view('coordinator.instructorias.index'))->name('coordinator.instructorias.index');
+
+// (Se removieron rutas temporales duplicadas fuera de auth)
 
