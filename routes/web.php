@@ -83,14 +83,13 @@ Route::middleware('auth')->group(function () {
         Route::resource('coordinadores', CoordinatorController::class);
     });
 
-    //proximamente redirigiran a los dashboard reales de cada rol
     Route::middleware('role:coordinator')->group(function () {
-        Route::get('/coordinator/panel', function () {
+        Route::get('/coordinator/dashboard', function () {
             return view('dashboard.coordinator');
         })->name('coordinator.dashboard');
     });
     Route::middleware('role:instructor')->group(function () {
-        Route::get('/instructor/panel', function () {
+        Route::get('/instructor/dashboard', function () {
             return view('dashboard.instructor');
         })->name('instructor.dashboard');
     });
@@ -128,3 +127,10 @@ Route::get('/instructor/dashboard', fn() => view('instructor.dashboard'))->name(
 Route::get('/mi-perfil', function () {
     return view('profile.index');
 })->name('profile.index');
+
+
+//rutas temporales para el frontend de coordinadores// Rutas temporales coordinador — solo frontend
+Route::get('/coordinator/dashboard', fn() => view('coordinator.dashboard'))->name('coordinator.dashboard');
+Route::get('/coordinator/groups', fn() => view('coordinator.groups.index'))->name('coordinator.groups.index');
+Route::get('/coordinator/instructors', fn() => view('coordinator.instructors.index'))->name('coordinator.instructors.index');
+Route::get('/coordinator/instructorias', fn() => view('coordinator.instructorias.index'))->name('coordinator.instructorias.index');
