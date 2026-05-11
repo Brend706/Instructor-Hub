@@ -56,6 +56,9 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    /**
+     * Nombre de ruta Laravel del panel principal según el rol (login, admin, coordinador, instructor).
+     */
     public function dashboardRouteName(): string
     {
         return match ($this->role?->name) {
@@ -64,5 +67,39 @@ class User extends Authenticatable
             'instructor' => 'instructor.dashboard',
             default => 'login',
         };
+    }
+
+    /**
+     * Etiqueta del rol en español para la UI (perfil, sidebar admin, etc.).
+     */
+    public function roleDisplayLabel(): string
+    {
+        return match ($this->role?->name) {
+            'admin' => 'Administrador',
+            'coordinator' => 'Coordinador',
+            'instructor' => 'Instructor',
+            default => 'Usuario',
+        };
+    }
+
+    /**
+     * Iniciales para avatar (primera letra del primer y último nombre, o dos letras del nombre).
+     */
+    public function initials(): string
+    {
+        $name = trim($this->name);
+        if ($name === '') {
+            return '??';
+        }
+
+        $parts = preg_split('/\s+/u', $name, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($parts) >= 2) {
+            $first = mb_substr($parts[0], 0, 1);
+            $last = mb_substr($parts[count($parts) - 1], 0, 1);
+
+            return mb_strtoupper($first.$last);
+        }
+
+        return mb_strtoupper(mb_substr($name, 0, min(2, mb_strlen($name))));
     }
 }

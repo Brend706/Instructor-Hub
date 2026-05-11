@@ -1,3 +1,7 @@
+{{--
+  Vista "Mi perfil": datos del usuario autenticado ($user, $memberSince, $lastUpdate, $breadcrumbs)
+  desde ProfileController@index. Formularios envían a profile.update y profile.password (PUT).
+--}}
 @extends('layouts.admin', ['title' => 'Mi perfil'])
 
 @push('styles')
@@ -36,15 +40,16 @@
         <div class="profile-banner"></div>
 
         <div class="profile-avatar-wrap">
-            <div class="profile-avatar">JM</div>
+            {{-- Iniciales derivadas del nombre en User::initials() --}}
+            <div class="profile-avatar">{{ $user->initials() }}</div>
         </div>
 
         <div class="profile-info">
-            <div class="profile-name">José Martínez</div>
-            <div class="profile-email">j.martinez@fica.edu.sv</div>
+            <div class="profile-name">{{ $user->name }}</div>
+            <div class="profile-email">{{ $user->email }}</div>
             <span class="profile-role">
                 <i class="ti ti-shield" style="font-size:12px" aria-hidden="true"></i>
-                Administrador
+                {{ $user->roleDisplayLabel() }}
             </span>
         </div>
 
@@ -55,7 +60,8 @@
                 </div>
                 <div>
                     <div class="detail-label">Miembro desde</div>
-                    <div class="detail-value">Enero 2024</div>
+                    {{-- Texto generado desde users.created_at en el controlador --}}
+                    <div class="detail-value">{{ $memberSince }}</div>
                 </div>
             </div>
             <div class="detail-row">
@@ -63,9 +69,9 @@
                     <i class="ti ti-clock" aria-hidden="true"></i>
                 </div>
                 <div>
-                    <div class="detail-label">Ultimo actualizacion</div>
-                    <!-- esta fecha y hora seria el valor de updated_at de la tabla de usuarios -->
-                    <div class="detail-value">Hoy, 9:42 AM</div>
+                    <div class="detail-label">Última actualización</div>
+                    {{-- Texto generado desde users.updated_at en el controlador --}}
+                    <div class="detail-value">{{ $lastUpdate }}</div>
                 </div>
             </div>
         </div>
@@ -87,8 +93,8 @@
                 </div>
             </div>
 
-            {{-- Al integrar backend: action="{{ route('admin.profile.update') }}" --}}
-            <form method="POST" action="#">
+            {{-- Solo actualiza users.name; el correo no se envía ni se edita --}}
+            <form method="POST" action="{{ route('profile.update') }}">
                 @csrf
                 @method('PUT')
 
@@ -100,7 +106,7 @@
                             id="name"
                             name="name"
                             type="text"
-                            value="{{ old('name', auth()->user()->name ?? '') }}"
+                            value="{{ old('name', $user->name) }}"
                             placeholder="Tu nombre completo"
                             required
                         >
@@ -111,12 +117,15 @@
 
                     <div class="field">
                         <label class="field-label" for="email">Correo electronico</label>
+                        {{-- Solo lectura: el cambio de correo no está expuesto en este formulario --}}
                         <input
                             class="input"
                             id="email"
                             type="email"
-                            value="{{ auth()->user()->email ?? '' }}"
+                            value="{{ $user->email }}"
                             disabled
+                            readonly
+                            autocomplete="email"
                         >
                         <span class="field-hint">
                             El correo no puede ser modificado. Contacta al administrador si necesitas cambiarlo.
@@ -140,43 +149,43 @@
                     <i class="ti ti-lock" aria-hidden="true"></i>
                 </div>
                 <div>
-                    <div class="panel-header-title">Cambiar contrasena</div>
-                    <div class="panel-header-sub">Usa una contrasena segura de al menos 8 caracteres</div>
+                    <div class="panel-header-title">Cambiar contraseña</div>
+                    <div class="panel-header-sub">Usa una contraseña segura de al menos 8 caracteres</div>
                 </div>
             </div>
 
-            {{-- Al integrar backend: action="{{ route('admin.profile.password') }}" --}}
-            <form method="POST" action="#">
+            {{-- Errores de validación se muestran con @error bajo cada campo; el envío no se bloquea en el cliente --}}
+            <form method="POST" action="{{ route('profile.password') }}">
                 @csrf
                 @method('PUT')
 
                 <div class="panel-body">
                     <div class="field">
-                        <label class="field-label" for="current_password">Contrasena actual</label>
+                        <label class="field-label" for="current_password">Contraseña actual</label>
                         <input
                             class="input @error('current_password') input-error @enderror"
                             id="current_password"
                             name="current_password"
                             type="password"
-                            placeholder="Tu contrasena actual"
-                            required
+                            placeholder="Tu contraseña actual"
+                            autocomplete="current-password"
                         >
                         @error('current_password')
                             <span class="field-error">{{ $message }}</span>
                         @enderror
                     </div>
 
-                    <div class="pass-divider">Nueva contrasena</div>
+                    <div class="pass-divider">Nueva contraseña</div>
 
                     <div class="field">
-                        <label class="field-label" for="password">Nueva contrasena</label>
+                        <label class="field-label" for="password">Nueva contraseña</label>
                         <input
                             class="input @error('password') input-error @enderror"
                             id="password"
                             name="password"
                             type="password"
-                            placeholder="Minimo 8 caracteres"
-                            required
+                            placeholder="Mínimo 8 caracteres"
+                            autocomplete="new-password"
                         >
                         @error('password')
                             <span class="field-error">{{ $message }}</span>
@@ -184,22 +193,25 @@
                     </div>
 
                     <div class="field" style="margin-bottom:0">
-                        <label class="field-label" for="password_confirmation">Confirmar nueva contrasena</label>
+                        <label class="field-label" for="password_confirmation">Confirmar nueva contraseña</label>
                         <input
-                            class="input"
+                            class="input @error('password_confirmation') input-error @enderror"
                             id="password_confirmation"
                             name="password_confirmation"
                             type="password"
-                            placeholder="Repite la nueva contrasena"
-                            required
+                            placeholder="Repite la nueva contraseña"
+                            autocomplete="new-password"
                         >
+                        @error('password_confirmation')
+                            <span class="field-error">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
 
                 <div class="panel-footer">
                     <button type="submit" class="btn btn-primary">
                         <i class="ti ti-lock-check" aria-hidden="true"></i>
-                        Actualizar contrasena
+                        Actualizar contraseña
                     </button>
                 </div>
             </form>

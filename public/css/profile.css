@@ -1,7 +1,7 @@
-/* ─────────────────────────────────────────
-   PERFIL — Admin
-   public/css/admin/profile.css
-───────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────────────────────────
+   Estilos de la página "Mi perfil" (layout en profile/index.blade.php):
+   rejilla tarjeta lateral + paneles de formulario, alertas, campos y botones.
+────────────────────────────────────────────────────────────────────────── */
 
 .page-header  { margin-bottom: 24px; }
 .page-title   { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
