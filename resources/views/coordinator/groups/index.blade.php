@@ -4,16 +4,7 @@
     <link rel="stylesheet" href="{{ asset('css/coordinator/groups.css') }}">
 @endpush
 
-@php
-    // ── Datos ficticios — reemplazar con $groups del controller
-    $groups = [
-        ['id' => 1, 'subject' => 'Programación I',  'teacher' => 'Ing. R. Chávez',  'cycle' => '01-2026', 'schedule' => 'Lun y Mié 7-9am',  'modality' => 'Presencial', 'classroom' => 'Aula 204',            'instructor' => 'Ana Mejía',   'students' => 28],
-        ['id' => 2, 'subject' => 'Cálculo I',        'teacher' => 'Lic. M. Fuentes', 'cycle' => '01-2026', 'schedule' => 'Mar y Jue 9-11am', 'modality' => 'En línea',   'classroom' => 'meet.google.com/xyz', 'instructor' => null,          'students' => 35],
-        ['id' => 3, 'subject' => 'Física I',         'teacher' => 'Dr. L. Gómez',    'cycle' => '02-2025', 'schedule' => 'Lun y Mié 11am-1pm','modality' => 'Presencial', 'classroom' => 'Aula 101',            'instructor' => 'Carlos Rivas', 'students' => 22],
-        ['id' => 4, 'subject' => 'Química General',  'teacher' => 'Dra. S. López',   'cycle' => '02-2025', 'schedule' => 'Mar y Jue 2-4pm',  'modality' => 'En línea',   'classroom' => 'meet.google.com/abc', 'instructor' => null,          'students' => 30],
-    ];
-    $cycles = ['01-2026', '02-2026', '01-2025', '02-2025'];
-@endphp
+{{-- $groups, $cycles, $instructors y $filters vienen de ClassGroupController@index --}}
 
 @section('content')
 
@@ -23,7 +14,7 @@
         <h1 class="page-title">Grupos de clase</h1>
         <p class="page-sub">Gestión de grupos, instructores y estudiantes</p>
     </div>
-    <button class="btn btn-primary" onclick="openModal('modalForm')">
+    <button type="button" class="btn btn-primary" onclick="openCreateModal()">
         <i class="ti ti-plus" aria-hidden="true"></i> Nuevo grupo
     </button>
 </div>
@@ -35,24 +26,26 @@
     </div>
 @endif
 
-{{-- TOOLBAR --}}
-<div class="toolbar">
+{{-- Filtros por GET (columnas `name`, `professor`, `semester`, `modality`) --}}
+<form method="GET" action="{{ route('coordinator.groups.index') }}" class="toolbar" id="filterForm">
     <div class="search-wrap">
         <i class="ti ti-search" aria-hidden="true"></i>
-        <input class="search-input" type="search" placeholder="Buscar por materia, docente..." id="searchInput" oninput="filterTable()">
+        <input class="search-input" type="search" name="search" placeholder="Buscar por materia, docente..."
+               value="{{ $filters['search'] }}" id="searchInput">
     </div>
-    <select class="filter-select" id="filterCycle" onchange="filterTable()">
+    <button type="submit" class="btn btn-ghost" style="font-size:13px;padding:8px 12px">Filtrar</button>
+    <select class="filter-select" name="cycle" id="filterCycle" onchange="this.form.submit()">
         <option value="">Todos los ciclos</option>
         @foreach($cycles as $cycle)
-            <option value="{{ $cycle }}">{{ $cycle }}</option>
+            <option value="{{ $cycle }}" @selected($filters['cycle'] === $cycle)>{{ $cycle }}</option>
         @endforeach
     </select>
-    <select class="filter-select" id="filterModality" onchange="filterTable()">
+    <select class="filter-select" name="modality" id="filterModality" onchange="this.form.submit()">
         <option value="">Todas las modalidades</option>
-        <option value="Presencial">Presencial</option>
-        <option value="En línea">En línea</option>
+        <option value="Presencial" @selected($filters['modality'] === 'Presencial')>Presencial</option>
+        <option value="En línea" @selected($filters['modality'] === 'En línea')>En línea</option>
     </select>
-</div>
+</form>
 
 {{-- TABLA --}}
 <div class="table-card">
@@ -117,8 +110,8 @@
                                     Acciones <i class="ti ti-chevron-down" style="font-size:12px" aria-hidden="true"></i>
                                 </button>
                                 <div class="dropdown-menu">
-                                    <button class="dropdown-item"
-                                        onclick="openInstructor('{{ $group['subject'] }}', '{{ $group['cycle'] }}')">
+                                    <button type="button" class="dropdown-item"
+                                        onclick="openInstructorModal({{ $group['id'] }})">
                                         <i class="ti ti-user-check" style="color:var(--primary)" aria-hidden="true"></i>
                                         Asignar instructor
                                     </button>
@@ -128,13 +121,13 @@
                                         Agregar estudiantes
                                     </a>
                                     <div class="dropdown-divider"></div>
-                                    <button class="dropdown-item"
-                                        onclick="openEdit({{ $group['id'] }}, '{{ $group['subject'] }}', '{{ $group['teacher'] }}', '{{ $group['cycle'] }}', '{{ $group['modality'] }}', '{{ $group['schedule'] }}', '{{ $group['classroom'] }}')">
+                                    <button type="button" class="dropdown-item"
+                                        onclick="openEditModal({{ $group['id'] }})">
                                         <i class="ti ti-pencil" aria-hidden="true"></i>
                                         Editar grupo
                                     </button>
-                                    <button class="dropdown-item danger"
-                                        onclick="openDelete({{ $group['id'] }}, '{{ $group['subject'] }}')">
+                                    <button type="button" class="dropdown-item danger"
+                                        onclick="openDeleteModal({{ $group['id'] }})">
                                         <i class="ti ti-trash" aria-hidden="true"></i>
                                         Eliminar grupo
                                     </button>
@@ -147,7 +140,7 @@
                         <td colspan="8" class="empty-state">
                             <i class="ti ti-books-off" aria-hidden="true"></i>
                             <p>No hay grupos registrados aún</p>
-                            <button class="btn btn-primary" onclick="openModal('modalForm')" style="margin-top:10px">
+                            <button type="button" class="btn btn-primary" onclick="openCreateModal()" style="margin-top:10px">
                                 <i class="ti ti-plus"></i> Crear el primero
                             </button>
                         </td>
@@ -167,49 +160,65 @@
                 <i class="ti ti-x" aria-hidden="true"></i>
             </button>
         </div>
-        <form method="POST" id="groupForm" action="#">
+        <form method="POST" id="groupForm" action="{{ route('coordinator.groups.store') }}">
             @csrf
-            <input type="hidden" name="_method" id="formMethod" value="POST">
+            <span id="methodSpoof"></span>
             <div class="modal-body">
+
+                @if ($errors->any())
+                    <div class="alert-error" role="alert" style="margin-bottom:12px">
+                        <ul style="margin:0;padding-left:18px;font-size:13px">
+                            @foreach ($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 <div class="field">
                     <label class="field-label" for="subject">Materia</label>
-                    <input class="input" id="subject" name="subject" type="text" placeholder="Ej. Programación I" required>
+                    <input class="input" id="subject" name="subject" type="text" placeholder="Ej. Programación I" required
+                           value="{{ old('subject') }}">
                 </div>
 
                 <div class="field">
                     <label class="field-label" for="teacher">Docente</label>
-                    <input class="input" id="teacher" name="teacher" type="text" placeholder="Ej. Ing. Roberto Chávez" required>
+                    <input class="input" id="teacher" name="teacher" type="text" placeholder="Ej. Ing. Roberto Chávez" required
+                           value="{{ old('teacher') }}">
                 </div>
 
                 <div class="field-row">
                     <div class="field">
                         <label class="field-label" for="cycle">Ciclo</label>
-                        <input class="input" id="cycle" name="cycle" type="text" placeholder="Ej. 01-2026" required>
+                        <input class="input" id="cycle" name="cycle" type="text" placeholder="Ej. 01-2026" required
+                               value="{{ old('cycle') }}">
                     </div>
                     <div class="field">
                         <label class="field-label" for="modality">Modalidad</label>
                         <select class="input" id="modality" name="modality" onchange="toggleClassroom()" required>
                             <option value="">Seleccionar...</option>
-                            <option value="Presencial">Presencial</option>
-                            <option value="En línea">En línea</option>
+                            <option value="Presencial" @selected(old('modality') === 'Presencial')>Presencial</option>
+                            <option value="En línea" @selected(old('modality') === 'En línea')>En línea</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="field">
                     <label class="field-label" for="schedule">Horario</label>
-                    <input class="input" id="schedule" name="schedule" type="text" placeholder="Ej. Lunes y Mié 7:00 - 9:00am" required>
+                    <input class="input" id="schedule" name="schedule" type="text" placeholder="Ej. Lunes y Mié 7:00 - 9:00am" required
+                           value="{{ old('schedule') }}">
                 </div>
 
                 <div class="field" id="fieldClassroom" style="display:none">
                     <label class="field-label" for="classroom" id="classroomLabel">Aula física</label>
-                    <input class="input" id="classroom" name="classroom" type="text" placeholder="Ej. Aula 204 — Edificio A">
+                    <input class="input" id="classroom" name="classroom" type="text" placeholder="Ej. Aula 204 — Edificio A"
+                           value="{{ old('classroom') }}">
                 </div>
 
                 <div class="field" id="fieldLink" style="display:none">
                     <label class="field-label" for="link">Enlace virtual</label>
-                    <input class="input" id="link" name="link" type="url" placeholder="Ej. https://meet.google.com/abc-xyz">
+                    <input class="input" id="link" name="link" type="url" placeholder="Ej. https://meet.google.com/abc-xyz"
+                           value="{{ old('link') }}">
                     <span class="field-hint">El enlace será visible para el instructor al iniciar la sesión.</span>
                 </div>
 
@@ -237,36 +246,40 @@
                 <i class="ti ti-x" aria-hidden="true"></i>
             </button>
         </div>
-        <div class="modal-body">
-            <div class="field" style="margin-bottom:14px">
-                <label class="field-label">Buscar instructor</label>
-                <input class="input" type="search" placeholder="Nombre del instructor...">
+        <form method="POST" id="assignInstructorForm" action="">
+            @csrf
+            <div class="modal-body">
+                <div class="field" style="margin-bottom:14px">
+                    <label class="field-label">Elegir instructor</label>
+                    <p class="field-hint" style="margin-top:0">Lista desde la tabla <code>instructors</code> (usuarios con rol instructor).</p>
+                </div>
+                <div id="instructorList">
+                    @forelse($instructors as $instructor)
+                        @php
+                            $u = $instructor->user;
+                            $label = $u?->name ?? 'Sin usuario';
+                            $initials = strtoupper(mb_substr($label, 0, 2));
+                        @endphp
+                        <label class="instructor-option" style="cursor:pointer;display:flex">
+                            <input type="radio" name="instructor_id" value="{{ $instructor->id }}" class="inst-radio" style="margin-right:10px" @if($loop->first && $instructors->isNotEmpty()) required @endif>
+                            <div class="inst-avatar">{{ $initials }}</div>
+                            <div style="flex:1">
+                                <div class="inst-name">{{ $label }}</div>
+                                <div class="inst-career">{{ $instructor->major ?? '—' }}</div>
+                            </div>
+                        </label>
+                    @empty
+                        <p class="field-hint">No hay instructores en la base de datos. Crea uno desde administración.</p>
+                    @endforelse
+                </div>
             </div>
-            {{-- Al integrar backend: lista dinámica de instructores --}}
-            <div id="instructorList">
-                <div class="instructor-option selected" onclick="selectInstructor(this)">
-                    <div class="inst-avatar">AM</div>
-                    <div><div class="inst-name">Ana Mejía</div><div class="inst-career">Ing. Sistemas</div></div>
-                    <div class="inst-check"><i class="ti ti-check" style="font-size:10px"></i></div>
-                </div>
-                <div class="instructor-option" onclick="selectInstructor(this)">
-                    <div class="inst-avatar" style="background:var(--primary)">CR</div>
-                    <div><div class="inst-name">Carlos Rivas</div><div class="inst-career">Arquitectura</div></div>
-                    <div class="inst-check"><i class="ti ti-check" style="font-size:10px"></i></div>
-                </div>
-                <div class="instructor-option" onclick="selectInstructor(this)">
-                    <div class="inst-avatar" style="background:var(--primary-400)">MG</div>
-                    <div><div class="inst-name">Miguel García</div><div class="inst-career">Ing. Civil</div></div>
-                    <div class="inst-check"><i class="ti ti-check" style="font-size:10px"></i></div>
-                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeModal('modalInstructor')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" @if($instructors->isEmpty()) disabled @endif>
+                    <i class="ti ti-user-check" aria-hidden="true"></i> Confirmar asignación
+                </button>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-ghost" onclick="closeModal('modalInstructor')">Cancelar</button>
-            <button class="btn btn-primary">
-                <i class="ti ti-user-check" aria-hidden="true"></i> Confirmar asignación
-            </button>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -284,7 +297,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn btn-ghost" onclick="closeModal('modalDelete')">Cancelar</button>
-            <form method="POST" id="deleteForm" action="#">
+            <form method="POST" id="deleteForm" action="">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger">
@@ -299,6 +312,11 @@
 
 @push('scripts')
 <script>
+    // Filas actuales y URLs para PUT/DELETE/asignar sin strings frágiles en onclick
+    const GROUPS_ROWS = @json($groups);
+    const GROUPS_STORE_URL = @json(route('coordinator.groups.store'));
+    const GROUPS_BASE_URL = @json(url('/coordinator/groups'));
+
     // ── Dropdown ───────────────────────────────────────────
     function toggleDropdown(btn) {
         const menu = btn.nextElementSibling;
@@ -339,75 +357,82 @@
         document.body.style.overflow = '';
         if (id === 'modalForm') resetForm();
     }
+
+    function openCreateModal() {
+        resetForm();
+        toggleClassroom();
+        openModal('modalForm');
+    }
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', e => {
             if (e.target === overlay) closeModal(overlay.id);
         });
     });
 
-    // ── Reset formulario ───────────────────────────────────
+    // Reset formulario (alta nueva): POST a store, sin spoof PUT
     function resetForm() {
-        document.getElementById('groupForm').reset();
-        document.getElementById('formMethod').value = 'POST';
+        const form = document.getElementById('groupForm');
+        form.reset();
+        form.action = GROUPS_STORE_URL;
+        document.getElementById('methodSpoof').innerHTML = '';
         document.getElementById('modalTitle').textContent = 'Nuevo grupo';
         document.getElementById('btnText').textContent = 'Guardar';
         document.getElementById('fieldClassroom').style.display = 'none';
         document.getElementById('fieldLink').style.display = 'none';
     }
 
-    // ── Toggle aula según modalidad ────────────────────────
+    // Mostrar aula física o enlace según modalidad (columna classroom en BD)
     function toggleClassroom() {
         const val = document.getElementById('modality').value;
         document.getElementById('fieldClassroom').style.display = val === 'Presencial' ? 'flex' : 'none';
         document.getElementById('fieldLink').style.display      = val === 'En línea'   ? 'flex' : 'none';
     }
 
-    // ── Abrir editar ───────────────────────────────────────
-    function openEdit(id, subject, teacher, cycle, modality, schedule, classroom) {
+    function openEditModal(id) {
+        const g = GROUPS_ROWS.find(r => r.id === id);
+        if (!g) return;
         document.getElementById('modalTitle').textContent = 'Editar grupo';
-        document.getElementById('btnText').textContent   = 'Actualizar';
-        document.getElementById('formMethod').value      = 'PUT';
-        document.getElementById('subject').value   = subject;
-        document.getElementById('teacher').value   = teacher;
-        document.getElementById('cycle').value     = cycle;
-        document.getElementById('modality').value  = modality;
-        document.getElementById('schedule').value  = schedule;
-        document.getElementById('classroom').value = classroom;
+        document.getElementById('btnText').textContent = 'Actualizar';
+        document.getElementById('methodSpoof').innerHTML = '<input type="hidden" name="_method" value="PUT">';
+        const form = document.getElementById('groupForm');
+        form.action = GROUPS_BASE_URL + '/' + id;
+        document.getElementById('subject').value = g.subject;
+        document.getElementById('teacher').value = g.teacher;
+        document.getElementById('cycle').value = g.cycle;
+        document.getElementById('modality').value = g.modality;
+        document.getElementById('schedule').value = g.schedule;
+        if (g.modality === 'Presencial') {
+            document.getElementById('classroom').value = g.classroom || '';
+            document.getElementById('link').value = '';
+        } else {
+            document.getElementById('link').value = g.classroom || '';
+            document.getElementById('classroom').value = '';
+        }
         toggleClassroom();
         openModal('modalForm');
     }
 
-    // ── Abrir asignar instructor ───────────────────────────
-    function openInstructor(subject, cycle) {
-        document.getElementById('instructorGroupName').textContent = subject + ' — ' + cycle;
+    function openInstructorModal(id) {
+        const g = GROUPS_ROWS.find(r => r.id === id);
+        if (!g) return;
+        document.getElementById('instructorGroupName').textContent = g.subject + ' — ' + g.cycle;
+        document.getElementById('assignInstructorForm').action = GROUPS_BASE_URL + '/' + id + '/assign-instructor';
         openModal('modalInstructor');
     }
 
-    // ── Seleccionar instructor ─────────────────────────────
-    function selectInstructor(el) {
-        document.querySelectorAll('.instructor-option').forEach(o => o.classList.remove('selected'));
-        el.classList.add('selected');
-    }
-
-    // ── Abrir eliminar ─────────────────────────────────────
-    function openDelete(id, subject) {
-        document.getElementById('deleteGroupName').textContent = subject;
+    function openDeleteModal(id) {
+        const g = GROUPS_ROWS.find(r => r.id === id);
+        if (!g) return;
+        document.getElementById('deleteGroupName').textContent = g.subject;
+        document.getElementById('deleteForm').action = GROUPS_BASE_URL + '/' + id;
         openModal('modalDelete');
     }
 
-    // ── Filtro en tiempo real ──────────────────────────────
-    function filterTable() {
-        const search   = document.getElementById('searchInput').value.toLowerCase();
-        const cycle    = document.getElementById('filterCycle').value;
-        const modality = document.getElementById('filterModality').value;
-        const rows     = document.querySelectorAll('#groupsTable tbody tr[data-subject]');
-
-        rows.forEach(row => {
-            const matchSearch   = row.dataset.subject.includes(search) || row.dataset.teacher.includes(search);
-            const matchCycle    = !cycle    || row.dataset.cycle    === cycle;
-            const matchModality = !modality || row.dataset.modality === modality;
-            row.style.display   = matchSearch && matchCycle && matchModality ? '' : 'none';
-        });
-    }
+    @if($errors->any())
+    document.addEventListener('DOMContentLoaded', function () {
+        openModal('modalForm');
+        toggleClassroom();
+    });
+    @endif
 </script>
 @endpush

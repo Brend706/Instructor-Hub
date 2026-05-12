@@ -57,11 +57,37 @@ class User extends Authenticatable
     }
 
     /**
-     * Nombre de ruta Laravel del panel principal según el rol (login, admin, coordinador, instructor).
+     * Slug estable del rol (`admin`, `coordinator`, `instructor`) para autorización y redirecciones.
+     *
+     * 1) Si existe la relación `role` y `roles.name` es uno de los slugs anteriores, se usa ese valor
+     *    (convención Laravel / seeders).
+     * 2) Si no (p. ej. datos creados en phpMyAdmin con otro texto en `name`), se infiere desde `role_id`:
+     *    1 = admin, 2 = coordinador, 3 = instructor — alineado con los seeders por defecto.
+     */
+    public function roleSlug(): ?string
+    {
+        $this->loadMissing('role');
+        $name = $this->role?->name;
+        if (in_array($name, ['admin', 'coordinator', 'instructor'], true)) {
+            return $name;
+        }
+
+        // Respaldo por FK: mismo criterio que `RoleSeeder` / usuarios con `role_id` correcto.
+        return match ((int) ($this->role_id ?? 0)) {
+            1 => 'admin',
+            2 => 'coordinator',
+            3 => 'instructor',
+            default => null,
+        };
+    }
+
+    /**
+     * Nombre de ruta del panel tras login o `/dashboard` (p. ej. `coordinator.dashboard`).
+     * Delega en `roleSlug()` para que coincida con el middleware `role:*`.
      */
     public function dashboardRouteName(): string
     {
-        return match ($this->role?->name) {
+        return match ($this->roleSlug()) {
             'admin' => 'admin.dashboard',
             'coordinator' => 'coordinator.dashboard',
             'instructor' => 'instructor.dashboard',
@@ -70,11 +96,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Etiqueta del rol en español para la UI (perfil, sidebar admin, etc.).
+     * Texto del rol en español para vistas (perfil, etc.); usa el mismo `roleSlug()` que el resto de la app.
      */
     public function roleDisplayLabel(): string
     {
-        return match ($this->role?->name) {
+        return match ($this->roleSlug()) {
             'admin' => 'Administrador',
             'coordinator' => 'Coordinador',
             'instructor' => 'Instructor',

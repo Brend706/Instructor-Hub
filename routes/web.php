@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CoordinatorController;
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Coordinator\ClassGroupController;
 use App\Http\Controllers\ProfileController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -87,10 +88,19 @@ Route::middleware('auth')->group(function () {
         Route::resource('instructores', InstructorController::class)->except(['create', 'show', 'edit']);
     });
 
+    // Panel coordinador: solo usuarios autenticados con rol coordinador (`roleSlug()` / middleware `role:coordinator`).
+    // Tras el login, `User::dashboardRouteName()` apunta aquí (`coordinator.dashboard` → vista maquetada).
+    // No duplicar estas rutas fuera de `auth`: antes anulaban el middleware y mezclaban vistas.
     Route::middleware('role:coordinator')->group(function () {
-        Route::get('/coordinator/dashboard', function () {
-            return view('dashboard.coordinator');
-        })->name('coordinator.dashboard');
+        Route::get('/coordinator/dashboard', fn () => view('coordinator.dashboard'))->name('coordinator.dashboard');
+        // Grupos de clase: lectura/escritura en `class_groups` + asignación en `instructor_assignments`
+        Route::get('/coordinator/groups', [ClassGroupController::class, 'index'])->name('coordinator.groups.index');
+        Route::post('/coordinator/groups', [ClassGroupController::class, 'store'])->name('coordinator.groups.store');
+        Route::put('/coordinator/groups/{group}', [ClassGroupController::class, 'update'])->name('coordinator.groups.update');
+        Route::delete('/coordinator/groups/{group}', [ClassGroupController::class, 'destroy'])->name('coordinator.groups.destroy');
+        Route::post('/coordinator/groups/{group}/assign-instructor', [ClassGroupController::class, 'assignInstructor'])->name('coordinator.groups.assign-instructor');
+        Route::get('/coordinator/instructors', fn () => view('coordinator.instructors.index'))->name('coordinator.instructors.index');
+        Route::get('/coordinator/instructorias', fn () => view('coordinator.instructorias.index'))->name('coordinator.instructorias.index');
     });
     Route::middleware('role:instructor')->group(function () {
         Route::get('/instructor/dashboard', function () {
@@ -103,17 +113,3 @@ Route::middleware('auth')->group(function () {
     Route::put('/mi-perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/mi-perfil/contrasena', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });
-
-//ruta temporal al perfil de usuario que ha iniciado sesion
-Route::get('/mi-perfil', function () {
-    return view('profile.index');
-})->name('profile.index');
-
-//rutas temporales para el frontend de coordinadores// Rutas temporales coordinador — solo frontend
-Route::get('/coordinator/dashboard', fn() => view('coordinator.dashboard'))->name('coordinator.dashboard');
-Route::get('/coordinator/groups', fn() => view('coordinator.groups.index'))->name('coordinator.groups.index');
-Route::get('/coordinator/instructors', fn() => view('coordinator.instructors.index'))->name('coordinator.instructors.index');
-Route::get('/coordinator/instructorias', fn() => view('coordinator.instructorias.index'))->name('coordinator.instructorias.index');
-
-// (Se removieron rutas temporales duplicadas fuera de auth)
-

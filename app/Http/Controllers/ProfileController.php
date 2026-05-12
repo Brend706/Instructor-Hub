@@ -40,8 +40,8 @@ class ProfileController extends Controller
             }
         }
 
-        // Enlace "Inicio" del breadcrumb: dashboard que corresponda al rol del usuario.
-        $breadcrumbHome = match ($user->role?->name) {
+        // Enlace "Inicio" del breadcrumb: mismo rol efectivo que login/middleware (`roleSlug()`, no solo `role->name`).
+        $breadcrumbHome = match ($user->roleSlug()) {
             'admin' => route('admin.dashboard'),
             'coordinator' => route('coordinator.dashboard'),
             'instructor' => route('instructor.dashboard'),

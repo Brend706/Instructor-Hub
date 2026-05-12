@@ -35,6 +35,7 @@ class LoginController extends Controller
         $user = Auth::user();
         $user->load('role');
 
+        // Panel según rol: `dashboardRouteName()` → `roleSlug()` (tabla `roles` o respaldo por `role_id`).
         $route = $user->dashboardRouteName();
         if ($route === 'login') {
             Auth::logout();
