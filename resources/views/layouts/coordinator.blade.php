@@ -39,8 +39,8 @@
 
             <div class="nav-section">
                 <p class="nav-label">Gestion</p>
-                <a href="{{ route('coordinator.instructors.index') }}"
-                   class="nav-item {{ request()->routeIs('coordinator.instructors.*') ? 'active' : '' }}"
+                <a href="{{ route('coordinator.instructores.index') }}"
+                   class="nav-item {{ request()->routeIs('coordinator.instructores.*') ? 'active' : '' }}"
                    data-label="Mis instructores">
                     <i class="ti ti-user-check nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Mis instructores</span>
@@ -52,18 +52,12 @@
                     <i class="ti ti-books nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Grupos de clase</span>
                 </a>
-                <a href="{{ route('coordinator.instructorias.index') }}"
-                   class="nav-item {{ request()->routeIs('coordinator.instructorias.*') ? 'active' : '' }}"
-                   data-label="Instructorias">
-                    <i class="ti ti-calendar-event nav-icon" aria-hidden="true"></i>
-                    <span class="nav-text">Instructorias</span>
-                </a>
             </div>
 
             <div class="nav-section">
                 <p class="nav-label">Cuenta</p>
-                <a href=""
-                   class="nav-item {{ request()->routeIs('profile') ? 'active' : '' }}"
+                <a href="{{ route('profile.index') }}"
+                   class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}"
                    data-label="Mi perfil">
                     <i class="ti ti-user-circle nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Mi perfil</span>

@@ -26,6 +26,14 @@ class InstructorController extends Controller
         'Ing. Industrial',
     ];
 
+    /**
+     * Get the correct route name prefix based on the authenticated user's role.
+     */
+    private function getRoutePrefix(): string
+    {
+        return auth()->user()->roleSlug() . '.instructores';
+    }
+
     public function index(): View
     {
         $instructors = Instructor::query()
@@ -33,7 +41,7 @@ class InstructorController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('admin.instructors.index', [
+        return view('instructors.index', [
             'instructors' => $instructors,
             'carreras' => $this->carreraOptions(),
             'hasStatusColumn' => Schema::hasColumn('instructors', 'status'),
@@ -104,7 +112,7 @@ class InstructorController extends Controller
         });
 
         return redirect()
-            ->route('admin.instructores.index')
+            ->route($this->getRoutePrefix() . '.index')
             ->with('success', 'Instructor creado correctamente.');
     }
 
@@ -136,7 +144,7 @@ class InstructorController extends Controller
         });
 
         return redirect()
-            ->route('admin.instructores.index')
+            ->route($this->getRoutePrefix() . '.index')
             ->with('success', 'Instructor actualizado correctamente.');
     }
 
@@ -154,7 +162,7 @@ class InstructorController extends Controller
         });
 
         return redirect()
-            ->route('admin.instructores.index')
+            ->route($this->getRoutePrefix() . '.index')
             ->with('success', 'Instructor eliminado correctamente.');
     }
 

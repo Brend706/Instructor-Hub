@@ -91,16 +91,16 @@ Route::middleware('auth')->group(function () {
     // Panel coordinador: solo usuarios autenticados con rol coordinador (`roleSlug()` / middleware `role:coordinator`).
     // Tras el login, `User::dashboardRouteName()` apunta aquí (`coordinator.dashboard` → vista maquetada).
     // No duplicar estas rutas fuera de `auth`: antes anulaban el middleware y mezclaban vistas.
-    Route::middleware('role:coordinator')->group(function () {
-        Route::get('/coordinator/dashboard', fn () => view('coordinator.dashboard'))->name('coordinator.dashboard');
-        // Grupos de clase: lectura/escritura en `class_groups` + asignación en `instructor_assignments`
-        Route::get('/coordinator/groups', [ClassGroupController::class, 'index'])->name('coordinator.groups.index');
-        Route::post('/coordinator/groups', [ClassGroupController::class, 'store'])->name('coordinator.groups.store');
-        Route::put('/coordinator/groups/{group}', [ClassGroupController::class, 'update'])->name('coordinator.groups.update');
-        Route::delete('/coordinator/groups/{group}', [ClassGroupController::class, 'destroy'])->name('coordinator.groups.destroy');
-        Route::post('/coordinator/groups/{group}/assign-instructor', [ClassGroupController::class, 'assignInstructor'])->name('coordinator.groups.assign-instructor');
-        Route::get('/coordinator/instructors', fn () => view('coordinator.instructors.index'))->name('coordinator.instructors.index');
-        Route::get('/coordinator/instructorias', fn () => view('coordinator.instructorias.index'))->name('coordinator.instructorias.index');
+    Route::middleware(['auth', 'role:coordinator'])->prefix('coordinador')->name('coordinator.')->group(function () {
+        Route::get('/dashboard', fn () => view('coordinator.dashboard'))->name('dashboard');
+
+        Route::get('/groups', [ClassGroupController::class, 'index'])->name('groups.index');
+        Route::post('/groups', [ClassGroupController::class, 'store'])->name('groups.store');
+        Route::put('/groups/{group}', [ClassGroupController::class, 'update'])->name('groups.update');
+        Route::delete('/groups/{group}', [ClassGroupController::class, 'destroy'])->name('groups.destroy');
+        Route::post('/groups/{group}/assign-instructor', [ClassGroupController::class, 'assignInstructor'])->name('groups.assign-instructor');
+
+        Route::resource('instructores', InstructorController::class)->except(['create', 'show', 'edit']);
     });
     Route::middleware('role:instructor')->group(function () {
         Route::get('/instructor/dashboard', function () {

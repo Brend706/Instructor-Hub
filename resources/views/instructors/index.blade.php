@@ -1,4 +1,4 @@
-@extends('layouts.admin', ['title' => 'Instructores'])
+@extends('layouts.' . (auth()->user()->roleSlug() ?? 'admin'), ['title' => 'Instructores'])
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/admin/coordinators.css') }}">
@@ -194,7 +194,7 @@
             </button>
         </div>
 
-        <form method="POST" id="instructorForm" action="{{ route('admin.instructores.store') }}" novalidate>
+        <form method="POST" id="instructorForm" action="{{ route(auth()->user()->roleSlug() . '.instructores.store') }}" novalidate>
             @csrf
             <input type="hidden" name="_method" id="formMethod" value="POST">
             <input type="hidden" id="instructorId" value="">
@@ -336,7 +336,7 @@
 
 @push('scripts')
 <script>
-    const BASE_URL = @json(url('/admin/instructores'));
+    const BASE_URL = @json(url('/' . (auth()->user()->roleSlug() ?? 'admin') . '/instructores'));
     const HAS_STATUS = @json($hasStatusColumn ?? false);
 
     function clearInstructorClientErrors() {
@@ -404,7 +404,7 @@
         clearInstructorClientErrors();
         document.getElementById('formMethod').value = 'POST';
         document.getElementById('instructorId').value = '';
-        document.getElementById('instructorForm').action = @json(route('admin.instructores.store'));
+        document.getElementById('instructorForm').action = @json(route(auth()->user()->roleSlug() . '.instructores.store'));
         document.getElementById('modalTitle').textContent = 'Nuevo instructor';
         document.getElementById('btnText').textContent = 'Guardar';
         const pwd = document.getElementById('password');
