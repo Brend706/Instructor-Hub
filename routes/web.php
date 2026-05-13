@@ -113,3 +113,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/mi-perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/mi-perfil/contrasena', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });
+
+//ruta temporal para el frontend de agregar estudiantes a grupos
+Route::get('/coordinador/groups/{group}/students', fn($group) => view('coordinator.groups.students'))
+     ->name('coordinator.groups.students');

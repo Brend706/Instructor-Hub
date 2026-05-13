@@ -115,9 +115,8 @@
                                         <i class="ti ti-user-check" style="color:var(--primary)" aria-hidden="true"></i>
                                         Asignar instructor
                                     </button>
-                                    <a class="dropdown-item" href="#">
-                                        {{-- Al integrar backend: href="{{ route('admin.groups.students', $group['id']) }}" --}}
-                                        <i class="ti ti-users-plus" style="color:var(--accent)" aria-hidden="true"></i>
+                                    <a class="dropdown-item" href="{{ route('coordinator.groups.students', $group['id']) }}">
+                                        <i class="ti ti-users-plus" style="color:var(--primary-400)"></i>
                                         Agregar estudiantes
                                     </a>
                                     <div class="dropdown-divider"></div>
@@ -315,7 +314,7 @@
     // Filas actuales y URLs para PUT/DELETE/asignar sin strings frágiles en onclick
     const GROUPS_ROWS = @json($groups);
     const GROUPS_STORE_URL = @json(route('coordinator.groups.store'));
-    const GROUPS_BASE_URL = @json(url('/coordinator/groups'));
+    const GROUPS_BASE_URL = @json(url('/coordinador/groups'));
 
     // ── Dropdown ───────────────────────────────────────────
     function toggleDropdown(btn) {
