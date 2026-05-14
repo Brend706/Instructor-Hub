@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Coordinator;
 use App\Models\Instructor;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,8 +16,6 @@ use Illuminate\View\View;
 
 class InstructorController extends Controller
 {
-    private const INSTRUCTOR_ROLE_ID = 3;
-
     /** Carreras sugeridas si aún no hay datos en BD */
     private const DEFAULT_MAJORS = [
         'Ing. Sistemas',
@@ -31,7 +30,7 @@ class InstructorController extends Controller
      */
     private function getRoutePrefix(): string
     {
-        return auth()->user()->roleSlug() . '.instructores';
+        return auth()->user()->roleSlug().'.instructores';
     }
 
     public function index(): View
@@ -97,7 +96,7 @@ class InstructorController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => $validated['password'],
-                'role_id' => self::INSTRUCTOR_ROLE_ID,
+                'role_id' => Role::idForSlug('instructor'),
             ]);
 
             $data = [
@@ -112,7 +111,7 @@ class InstructorController extends Controller
         });
 
         return redirect()
-            ->route($this->getRoutePrefix() . '.index')
+            ->route($this->getRoutePrefix().'.index')
             ->with('success', 'Instructor creado correctamente.');
     }
 
@@ -144,7 +143,7 @@ class InstructorController extends Controller
         });
 
         return redirect()
-            ->route($this->getRoutePrefix() . '.index')
+            ->route($this->getRoutePrefix().'.index')
             ->with('success', 'Instructor actualizado correctamente.');
     }
 
@@ -162,7 +161,7 @@ class InstructorController extends Controller
         });
 
         return redirect()
-            ->route($this->getRoutePrefix() . '.index')
+            ->route($this->getRoutePrefix().'.index')
             ->with('success', 'Instructor eliminado correctamente.');
     }
 
@@ -179,13 +178,18 @@ class InstructorController extends Controller
             ? ['required', 'string', Rule::in(['Activo', 'Inactivo'])]
             : ['nullable'];
 
+        $emailUnique = Rule::unique('users', 'email');
+        if ($instructor !== null && $instructor->user_id) {
+            $emailUnique->ignore($instructor->user_id);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($instructor?->user_id),
+                $emailUnique,
             ],
             'password' => $passwordRules,
             'major' => ['required', 'string', 'max:255'],
@@ -194,7 +198,7 @@ class InstructorController extends Controller
             'name.required' => 'Debe ingresar el nombre completo.',
             'email.required' => 'Debe ingresar el correo electrónico.',
             'email.email' => 'El correo electrónico no es válido.',
-            'email.unique' => 'Ese correo ya está registrado.',
+            'email.unique' => 'Ese correo ya está registrado en el sistema.',
             'password.required' => 'Debe ingresar una contraseña.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'major.required' => 'Debe seleccionar la carrera.',

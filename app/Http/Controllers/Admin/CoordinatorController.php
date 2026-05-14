@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Coordinator;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,14 +16,6 @@ use Illuminate\View\View;
 class CoordinatorController extends Controller
 {
     /**
-     * Rol usado para usuarios coordinadores.
-     *
-     * Nota: se mantiene como constante para no depender de una consulta a la tabla
-     * `roles` durante la creación.
-     */
-    private const COORDINATOR_ROLE_ID = 2;
-
-    /**
      * Display a listing of the resource.
      */
     public function index(): View
@@ -32,11 +25,7 @@ class CoordinatorController extends Controller
             ->latest()
             ->paginate(10);
 
-        // Compatibilidad:
-        // - En migración vieja `coordinators` tenía columna `name` (guardaba la coordinación).
-        // - En la nueva migración agregamos `coordination_name`.
-        // Mientras exista gente con la BD a medias (sin migrar), no podemos referenciar
-        // `coordination_name` si aún no existe.
+        // `coordination_name` (nuevo) vs `name` (legado): expresión compatible si falta la columna.
         $hasCoordinationName = Schema::hasColumn('coordinators', 'coordination_name');
         $coordinationExpr = $hasCoordinationName ? 'COALESCE(coordination_name, name)' : 'name';
 
@@ -57,14 +46,6 @@ class CoordinatorController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request): RedirectResponse
@@ -78,7 +59,7 @@ class CoordinatorController extends Controller
             'name.required' => 'Debe ingresar el nombre completo.',
             'email.required' => 'Debe ingresar el correo electrónico.',
             'email.email' => 'El correo electrónico no es válido.',
-            'email.unique' => 'Ese correo ya está registrado.',
+            'email.unique' => 'Ese correo ya está registrado en el sistema.',
             'password.required' => 'Debe ingresar una contraseña.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'coordination_name.required' => 'Debe seleccionar o indicar la coordinación.',
@@ -97,7 +78,7 @@ class CoordinatorController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => $validated['password'],
-                'role_id' => self::COORDINATOR_ROLE_ID,
+                'role_id' => Role::idForSlug('coordinator'),
             ]);
 
             // Compatibilidad de columnas (BD migrada vs no migrada):
@@ -121,22 +102,6 @@ class CoordinatorController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id): RedirectResponse
@@ -144,13 +109,15 @@ class CoordinatorController extends Controller
         /** @var Coordinator $coordinator */
         $coordinator = Coordinator::query()->with('user')->findOrFail($id);
 
+        $emailUnique = Rule::unique('users', 'email')->ignore($coordinator->user_id);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($coordinator->user_id),
+                $emailUnique,
             ],
             'password' => ['nullable', 'string', 'min:8', 'max:255'],
             'coordination_name' => ['required', 'string', 'max:255'],
@@ -158,7 +125,7 @@ class CoordinatorController extends Controller
             'name.required' => 'Debe ingresar el nombre completo.',
             'email.required' => 'Debe ingresar el correo electrónico.',
             'email.email' => 'El correo electrónico no es válido.',
-            'email.unique' => 'Ese correo ya está registrado.',
+            'email.unique' => 'Ese correo ya está registrado en el sistema.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'coordination_name.required' => 'Debe seleccionar o indicar la coordinación.',
         ]);
