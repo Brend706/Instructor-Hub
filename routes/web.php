@@ -85,7 +85,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::middleware('role:instructor')->group(function () {
         Route::get('/instructor/dashboard', function () {
-            return view('dashboard.instructor');
+            return view('instructors.dashboard');
         })->name('instructor.dashboard');
     });
 

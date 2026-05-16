@@ -38,20 +38,20 @@
             </div>
 
             <div class="nav-section">
-                <p class="nav-label">Gestion</p>
-                <a href="{{ route('coordinator.instructores.index') }}"
-                   class="nav-item {{ request()->routeIs('coordinator.instructores.*') ? 'active' : '' }}"
-                   data-label="Mis instructores">
-                    <i class="ti ti-user-check nav-icon" aria-hidden="true"></i>
-                    <span class="nav-text">Mis instructores</span>
-                    <span class="nav-badge">{{ $totalInstructors ?? '' }}</span>
-                </a>
-                <a href="{{ route('coordinator.groups.index') }}"
-                   class="nav-item {{ request()->routeIs('coordinator.groups.*') ? 'active' : '' }}"
-                   data-label="Grupos de clase">
-                    <i class="ti ti-books nav-icon" aria-hidden="true"></i>
-                    <span class="nav-text">Grupos de clase</span>
-                </a>
+                <p class="nav-label">Mi instructoría</p>
+                    <a class="nav-item" data-label="Mis grupos" onclick="setActive(this)">
+                        <i class="ti ti-books nav-icon"></i>
+                        <span class="nav-text">Mis grupos</span>
+                        <span class="nav-badge">1</span>
+                    </a>
+                    <a class="nav-item" data-label="Iniciar sesión" onclick="setActive(this)" style="color:#90BAE9">
+                        <i class="ti ti-player-play nav-icon"></i>
+                        <span class="nav-text">Iniciar sesión</span>
+                    </a>
+                    <a class="nav-item" data-label="Asistencia" onclick="setActive(this)">
+                        <i class="ti ti-clipboard-check nav-icon"></i>
+                        <span class="nav-text">Asistencia</span>
+                    </a>
             </div>
 
             <div class="nav-section">

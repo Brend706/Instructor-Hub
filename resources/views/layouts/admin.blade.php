@@ -33,7 +33,7 @@
     <aside class="sidebar" id="sidebar" aria-label="Menú principal">
 
         <div class="sidebar-header">
-            <div class="logo-mark" aria-hidden="true">FI</div>
+            <div class="logo-mark" aria-hidden="true">FICA</div>
             <span class="logo-text">Instructor Hub</span>
         </div>
 
