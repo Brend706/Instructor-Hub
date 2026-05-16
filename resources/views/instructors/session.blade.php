@@ -31,34 +31,44 @@
         <div class="group-card">
             <div class="group-card-header">
                 <div>
-                    <div class="group-name">Programacion I</div>
-                    <div class="group-sub">Ing. Roberto Chavez · PRG101</div>
+                    <div class="group-name">
+                        {{ $group->name ?? 'Sin grupo asignado' }}
+                    </div>
+                    <div class="group-sub">
+                        {{ $group ? ($group->professor . ' · ' . ($group->code ?? '')) : 'No tienes una instructoría asignada' }}
+                    </div>
                 </div>
-                <span class="cycle-tag">01-2026</span>
+                <span class="cycle-tag">
+                    {{ $group->semester ?? 'N/A' }}
+                </span>
             </div>
             <div class="group-card-body">
-                <div>
-                    <div class="detail-label">Horario</div>
-                    <div class="detail-value">Lun y Mie 7-9am</div>
-                    <div class="detail-sub">Sesion #13</div>
-                </div>
-                <div>
-                    <div class="detail-label">Modalidad</div>
-                    <div class="detail-value">Presencial</div>
-                    {{-- Si es presencial muestra aula, si es en linea muestra link --}}
-                    <div class="detail-sub">Aula 204</div>
-                    {{-- En linea: <div class="detail-sub">meet.google.com/abc-xyz</div> --}}
-                </div>
-                <div>
-                    <div class="detail-label">Estudiantes</div>
-                    <div class="detail-value">28 inscritos</div>
-                    <div class="detail-sub">Prom. 25 asistentes</div>
-                </div>
-                <div>
-                    <div class="detail-label">Ultima sesion</div>
-                    <div class="detail-value">Hace 2 dias</div>
-                    <div class="detail-sub">26 asistentes</div>
-                </div>
+                @if($group)
+                    <div>
+                        <div class="detail-label">Horario</div>
+                        <div class="detail-value">{{ $group->schedule ?? 'No disponible' }}</div>
+                        <div class="detail-sub">Sesión activa</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Modalidad</div>
+                        <div class="detail-value">{{ $group->modality ?? 'N/A' }}</div>
+                        <div class="detail-sub">{{ $group->classroom ?? $group->virtual_link ?? 'Sin ubicación' }}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Estudiantes</div>
+                        <div class="detail-value">{{ $group->students()->count() }} inscritos</div>
+                        <div class="detail-sub">Prom. 25 asistentes</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Última sesión</div>
+                        <div class="detail-value">Hace 2 días</div>
+                        <div class="detail-sub">26 asistentes</div>
+                    </div>
+                @else
+                    <div style="padding:24px 12px; color:var(--text-muted);">
+                        No hay instructoría asignada a este usuario. Contacta a tu coordinador para que te asigne un grupo.
+                    </div>
+                @endif
             </div>
         </div>
 

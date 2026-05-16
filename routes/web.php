@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Coordinator\ClassGroupController;
 use App\Http\Controllers\Coordinator\DashboardController;
 use App\Http\Controllers\Coordinator\StudentImportController;
+use App\Http\Controllers\Instructor\SessionController;
 use App\Http\Controllers\ProfileController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -87,6 +88,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/instructor/dashboard', function () {
             return view('instructors.dashboard');
         })->name('instructor.dashboard');
+
+        Route::get('/instructor/session', [SessionController::class, 'create'])
+            ->name('instructor.session');
+
+        Route::post('/instructor/session', [SessionController::class, 'store'])
+            ->name('instructor.session.store');
+
+        Route::post('/instructor/session/end', [SessionController::class, 'end'])
+            ->name('instructor.session.end');
     });
 
     // Perfil: requiere sesión; cualquier rol autenticado puede ver y editar su propio `users`.

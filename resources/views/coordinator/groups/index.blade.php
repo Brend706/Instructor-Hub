@@ -234,6 +234,7 @@
 </div>
 
 {{-- MODAL ASIGNAR INSTRUCTOR --}}
+{{-- Proximo a actualizar para poder actualizar la asignacion y desasignar al instructor del grupo --}}
 <div class="modal-overlay" id="modalInstructor" role="dialog" aria-modal="true">
     <div class="modal" style="max-width:440px">
         <div class="modal-header">

@@ -29,8 +29,8 @@
 
         <nav class="sidebar-nav">
             <div class="nav-section">
-                <a href="{{ route('coordinator.dashboard') }}"
-                   class="nav-item {{ request()->routeIs('coordinator.dashboard') ? 'active' : '' }}"
+                <a href="{{ route('instructor.dashboard') }}"
+                   class="nav-item {{ request()->routeIs('instructor.dashboard') ? 'active' : '' }}"
                    data-label="Dashboard">
                     <i class="ti ti-layout-dashboard nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Dashboard</span>
@@ -38,13 +38,15 @@
             </div>
 
             <div class="nav-section">
-                <p class="nav-label">Mi instructoría</p>
+                <p class="nav-label">Mis instructorías</p>
                     <a class="nav-item" data-label="Mis grupos" onclick="setActive(this)">
                         <i class="ti ti-books nav-icon"></i>
                         <span class="nav-text">Mis grupos</span>
                         <span class="nav-badge">1</span>
                     </a>
-                    <a class="nav-item" data-label="Iniciar sesión" onclick="setActive(this)" style="color:#90BAE9">
+                    <a href="{{ route('instructor.session') }}"
+                       class="nav-item {{ request()->routeIs('instructor.session') ? 'active' : '' }}"
+                       data-label="Iniciar sesión">
                         <i class="ti ti-player-play nav-icon"></i>
                         <span class="nav-text">Iniciar sesión</span>
                     </a>
