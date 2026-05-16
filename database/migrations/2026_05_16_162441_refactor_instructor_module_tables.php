@@ -27,6 +27,8 @@ return new class extends Migration
         //CAMBIO EN LA TABLA DE ASIGNACION DE INSTRUCTORES A UN GRUPO DE CLASE
         Schema::table('instructor_assignments', function (Blueprint $table) {
 
+            $table->string('schedule')->nullable() //Horario en que se dara la instructoria
+                  ->after('instructor_id');
             $table->string('status') //Activo o Finalizado, por si ya paso el ciclo
                   ->default('Activo');
             $table->string('modality') //Presencial o Virtual, modalidad en que se dara la instructoria
@@ -70,6 +72,7 @@ return new class extends Migration
         Schema::table('instructor_assignments', function (Blueprint $table) {
 
             $table->dropColumn([
+                'schedule',
                 'status',
                 'modality',
                 'classroom',
