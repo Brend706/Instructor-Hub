@@ -1,0 +1,133 @@
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-soft);
+    text-decoration: none;
+    margin-bottom: 20px;
+}
+.back-link:hover { color: var(--primary); }
+
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.page-title { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
+.page-sub { font-size: 12px; color: var(--text-muted); }
+
+.students-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--primary-50);
+    color: var(--primary);
+}
+
+.empty-card {
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-muted);
+}
+.empty-card i { font-size: 36px; margin-bottom: 12px; display: block; opacity: .5; }
+
+.groups-list { display: flex; flex-direction: column; gap: 10px; }
+
+.group-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .15s, box-shadow .15s;
+}
+.group-row:hover {
+    border-color: var(--primary-400);
+    box-shadow: 0 4px 16px rgba(27, 78, 139, .08);
+}
+
+.group-row-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--primary-50);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.group-row-main { flex: 1; min-width: 0; }
+.group-row-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.group-row-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.group-row-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--text-soft);
+}
+.group-row-meta i { font-size: 12px; margin-right: 2px; }
+.group-row-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-50);
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+.group-row-arrow { color: var(--text-muted); font-size: 18px; }
+
+.group-info-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+.info-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.info-value { font-size: 13px; font-weight: 500; color: var(--text); }
+.info-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.table-wrap { overflow-x: auto; }
+.table-card table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-card th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+.table-card td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text-soft); }
+.table-card tr:last-child td { border-bottom: none; }
+.table-card .td-name { font-weight: 500; color: var(--text); }
+.table-card .empty-state { text-align: center; padding: 32px; color: var(--text-muted); }
+.table-card .empty-state i { font-size: 28px; display: block; margin-bottom: 8px; opacity: .5; }

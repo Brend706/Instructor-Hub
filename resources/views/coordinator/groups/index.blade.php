@@ -99,10 +99,12 @@
                         </td>
                         <td class="td-classroom">{{ $group['classroom'] }}</td>
                         <td>
-                            <span class="badge badge-students">
+                            <a href="{{ route('coordinator.groups.enrolled', $group['id']) }}"
+                               class="badge badge-students badge-students-link"
+                               title="Ver estudiantes inscritos">
                                 <i class="ti ti-users" style="font-size:11px" aria-hidden="true"></i>
                                 {{ $group['students'] }}
-                            </span>
+                            </a>
                         </td>
                         <td>
                             <div class="dropdown">
@@ -115,6 +117,10 @@
                                         <i class="ti ti-user-check" style="color:var(--primary)" aria-hidden="true"></i>
                                         Asignar instructor
                                     </button>
+                                    <a class="dropdown-item" href="{{ route('coordinator.groups.enrolled', $group['id']) }}">
+                                        <i class="ti ti-users" style="color:var(--primary)"></i>
+                                        Ver estudiantes
+                                    </a>
                                     <a class="dropdown-item" href="{{ route('coordinator.groups.students', $group['id']) }}">
                                         <i class="ti ti-users-plus" style="color:var(--primary-400)"></i>
                                         Agregar estudiantes

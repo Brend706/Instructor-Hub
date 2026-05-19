@@ -55,6 +55,11 @@
 .mini-val   { font-size: 22px; font-weight: 600; margin-bottom: 3px; }
 .mini-label { font-size: 11px; color: var(--text-muted); }
 
+/*
+ * Tarjeta del QR (columna derecha de "Iniciar sesión").
+ * .qr-wrap usa grid para centrar el QR; placeholder / img / canvas comparten la misma celda.
+ * .attendance-link: enlace clicable bajo el QR (misma URL que codifica el código).
+ */
 /* QR card */
 .qr-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.06); }
 .qr-card-header { background: var(--primary); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
@@ -62,9 +67,61 @@
 .qr-card-sub    { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 2px; }
 .qr-status-indicator { display: flex; align-items: center; justify-content: center; }
 
-.qr-body { padding: 24px; text-align: center; }
-.qr-wrap { width: 200px; height: 200px; margin: 0 auto 16px; border-radius: 12px; border: 3px solid var(--border); display: flex; align-items: center; justify-content: center; background: var(--bg); overflow: hidden; }
-.qr-wrap canvas { border-radius: 8px; }
+.qr-body { padding: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.qr-wrap {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 16px;
+    border-radius: 12px;
+    border: 3px solid var(--border);
+    display: grid;
+    place-items: center;
+    background: var(--bg);
+    overflow: hidden;
+    position: relative;
+}
+/* Un solo “slot”: placeholder, img y canvas se superponen y quedan centrados */
+.qr-wrap > * {
+    grid-area: 1 / 1;
+    justify-self: center;
+    align-self: center;
+}
+.qr-wrap > [hidden] {
+    display: none !important;
+}
+.qr-wrap canvas,
+.qr-wrap img {
+    border-radius: 8px;
+    width: 190px;
+    height: 190px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+.qr-wrap .qr-placeholder {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 12px;
+    line-height: 1.5;
+    max-width: 170px;
+}
+.attendance-link-wrap {
+    margin-bottom: 14px;
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+}
+.attendance-link {
+    display: inline-block;
+    max-width: 100%;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--primary);
+    word-break: break-all;
+    text-decoration: underline;
+}
+.attendance-link:hover { color: #163d6d; }
 
 .qr-code-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
 .qr-code-value { font-size: 13px; font-weight: 600; color: var(--text); font-family: monospace; background: var(--bg); padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); display: inline-block; margin-bottom: 16px; }

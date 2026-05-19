@@ -1,3 +1,9 @@
+{{--
+    Vista INSTRUCTOR: "Iniciar sesión de instructoría".
+    - Izquierda: datos del grupo, fecha/hora, estadísticas, contador de asistencias en sesión activa.
+    - Derecha: QR centrado, enlace debajo del QR, código de sesión (PROGRAMA-2026-004), iniciar/finalizar.
+    El JavaScript llama a instructor.session.store / instructor.session.end y pinta el QR con la URL pública.
+--}}
 @extends('layouts.instructor', ['title' => 'Iniciar sesion'])
 
 @push('styles')
@@ -23,56 +29,53 @@
 
 <div class="main-grid">
 
-    {{-- COLUMNA IZQUIERDA --}}
     <div class="info-col">
 
-        {{-- Info del grupo --}}
-        {{-- Al integrar backend: reemplazar con $group->subject, $group->cycle, etc. --}}
+        @php
+            $schedule = $assignment?->schedule ?? $group?->schedule;
+            $modality = $assignment?->modality ?? $group?->modality;
+            $location = $assignment?->classroom ?? $assignment?->virtual_link ?? $group?->classroom;
+            $studentCount = $group ? $group->students()->count() : 0;
+        @endphp
         <div class="group-card">
             <div class="group-card-header">
                 <div>
-                    <div class="group-name">
-                        {{ $group->name ?? 'Sin grupo asignado' }}
-                    </div>
+                    <div class="group-name">{{ $group->name ?? 'Sin grupo asignado' }}</div>
                     <div class="group-sub">
-                        {{ $group ? ($group->professor . ' · ' . ($group->code ?? '')) : 'No tienes una instructoría asignada' }}
+                        {{ $group ? $group->professor : 'No tienes una instructoría asignada' }}
                     </div>
                 </div>
-                <span class="cycle-tag">
-                    {{ $group->semester ?? 'N/A' }}
-                </span>
+                <span class="cycle-tag">{{ $group->semester ?? 'N/A' }}</span>
             </div>
             <div class="group-card-body">
                 @if($group)
                     <div>
                         <div class="detail-label">Horario</div>
-                        <div class="detail-value">{{ $group->schedule ?? 'No disponible' }}</div>
-                        <div class="detail-sub">Sesión activa</div>
+                        <div class="detail-value">{{ $schedule ?? 'No disponible' }}</div>
                     </div>
                     <div>
                         <div class="detail-label">Modalidad</div>
-                        <div class="detail-value">{{ $group->modality ?? 'N/A' }}</div>
-                        <div class="detail-sub">{{ $group->classroom ?? $group->virtual_link ?? 'Sin ubicación' }}</div>
+                        <div class="detail-value">{{ $modality ?? 'N/A' }}</div>
+                        <div class="detail-sub">{{ $location ?? 'Sin ubicación' }}</div>
                     </div>
                     <div>
                         <div class="detail-label">Estudiantes</div>
-                        <div class="detail-value">{{ $group->students()->count() }} inscritos</div>
-                        <div class="detail-sub">Prom. 25 asistentes</div>
+                        <div class="detail-value">{{ $studentCount }} inscritos</div>
+                        <div class="detail-sub">Solo ellos pueden marcar asistencia</div>
                     </div>
                     <div>
-                        <div class="detail-label">Última sesión</div>
-                        <div class="detail-value">Hace 2 días</div>
-                        <div class="detail-sub">26 asistentes</div>
+                        <div class="detail-label">Asistencias en sesión</div>
+                        <div class="detail-value" id="liveAttendanceCount">{{ $openAttendanceCount ?? 0 }}</div>
+                        <div class="detail-sub">Registros con carnet válido</div>
                     </div>
                 @else
                     <div style="padding:24px 12px; color:var(--text-muted);">
-                        No hay instructoría asignada a este usuario. Contacta a tu coordinador para que te asigne un grupo.
+                        No hay instructoría asignada. Contacta a tu coordinador.
                     </div>
                 @endif
             </div>
         </div>
 
-        {{-- Datos de la sesion --}}
         <div class="session-card">
             <div class="session-title">
                 <i class="ti ti-clipboard-list" aria-hidden="true"></i>
@@ -81,65 +84,65 @@
             <div class="session-grid">
                 <div class="session-field">
                     <label class="session-label" for="session-date">Fecha</label>
-                    <input class="session-input" id="session-date" type="date"
-                           value="{{ now()->format('Y-m-d') }}"
-                           {{-- Al integrar backend: name="date" --}}>
+                    <input class="session-input" id="session-date" type="date" value="{{ now()->format('Y-m-d') }}">
                 </div>
                 <div class="session-field">
                     <label class="session-label" for="session-time">Hora de inicio</label>
-                    <input class="session-input" id="session-time" type="time"
-                           value="{{ now()->format('H:i') }}"
-                           {{-- Al integrar backend: name="start_time" --}}>
+                    <input class="session-input" id="session-time" type="time" value="{{ now()->format('H:i') }}">
                 </div>
             </div>
         </div>
 
-        {{-- Stats mini --}}
         <div class="stats-row">
             <div class="mini-stat">
-                <div class="mini-val" style="color:var(--primary)">12</div>
+                <div class="mini-val" style="color:var(--primary)">{{ $stats['sessions_count'] }}</div>
                 <div class="mini-label">Sesiones realizadas</div>
             </div>
             <div class="mini-stat">
-                <div class="mini-val" style="color:#4C8FD4">87%</div>
+                <div class="mini-val" style="color:#4C8FD4">{{ $stats['attendance_avg'] }}%</div>
                 <div class="mini-label">Asistencia promedio</div>
             </div>
             <div class="mini-stat">
-                <div class="mini-val" style="color:var(--primary)">268</div>
+                <div class="mini-val" style="color:var(--primary)">{{ $stats['total_attendances'] }}</div>
                 <div class="mini-label">Total asistencias</div>
             </div>
         </div>
 
     </div>
 
-    {{-- COLUMNA DERECHA — QR --}}
+    {{-- Columna QR: tarjeta azul "Código QR de asistencia" + bloque "Cómo funciona" --}}
     <div class="qr-col">
         <div class="qr-card">
             <div class="qr-card-header">
                 <div>
                     <div class="qr-card-title">Codigo QR de asistencia</div>
-                    <div class="qr-card-sub">Los estudiantes deben escanear este codigo</div>
+                    <div class="qr-card-sub">Los estudiantes escanean y registran su carnet</div>
                 </div>
                 <div class="qr-status-indicator" id="qrIndicator">
                     <i class="ti ti-qrcode" style="font-size:20px;color:rgba(255,255,255,.4)"></i>
                 </div>
             </div>
             <div class="qr-body">
-
+                {{-- Contenedor del QR: antes de iniciar muestra texto; al iniciar, imagen centrada --}}
                 <div class="qr-wrap" id="qrWrap">
-                    <canvas id="qrCanvas" width="190" height="190"></canvas>
+                    <div class="qr-placeholder" id="qrPlaceholder">QR no generado<br>Inicia la sesion</div>
+                    <img id="qrImage" alt="Codigo QR de asistencia" width="190" height="190" hidden>
+                    <canvas id="qrCanvas" width="190" height="190" hidden></canvas>
                 </div>
-
+                {{-- Enlace que el estudiante puede abrir si no escanea el QR (misma URL que el código) --}}
+                <div class="attendance-link-wrap" id="attendanceLinkWrap" hidden>
+                    <a href="#" id="attendanceLink" class="attendance-link" target="_blank" rel="noopener noreferrer">
+                        Abrir enlace de asistencia
+                    </a>
+                </div>
                 <div class="qr-code-label">Codigo de sesion</div>
-                <div class="qr-code-value" id="sessionCode">PRG101-2026-013</div>
-
+                <div class="qr-code-value" id="sessionCode">—</div>
                 <p class="qr-hint">
-                    El QR se genera al iniciar la sesion y permanece activo<br>
-                    hasta que finalices la clase manualmente.
+                    El QR enlaza a un formulario donde el estudiante ingresa su carnet.<br>
+                    Solo se acepta si está inscrito en esta clase.
                 </p>
-
                 <div class="qr-actions">
-                    <button type="button" class="btn btn-primary" id="btnStart" onclick="startSession()">
+                    <button type="button" class="btn btn-primary" id="btnStart" onclick="startSession()" @disabled(!$group)>
                         <i class="ti ti-player-play" aria-hidden="true"></i> Generar QR e iniciar
                     </button>
                     <button type="button" class="btn btn-danger" id="btnEnd" style="display:none" onclick="endSession()">
@@ -149,29 +152,13 @@
             </div>
         </div>
 
-        {{-- Info como funciona --}}
         <div class="qr-info">
-            <div class="qr-info-title">
-                <i class="ti ti-info-circle" aria-hidden="true"></i> Como funciona?
-            </div>
-            <div class="qr-info-item">
-                <i class="ti ti-player-play" aria-hidden="true"></i>
-                Haz clic en "Generar QR e iniciar" para comenzar
-            </div>
-            <div class="qr-info-item">
-                <i class="ti ti-qrcode" aria-hidden="true"></i>
-                Muestra el QR a tus estudiantes para que lo escaneen
-            </div>
-            <div class="qr-info-item">
-                <i class="ti ti-clock" aria-hidden="true"></i>
-                El QR permanece activo durante toda la sesion
-            </div>
-            <div class="qr-info-item">
-                <i class="ti ti-player-stop" aria-hidden="true"></i>
-                Presiona "Finalizar sesion" cuando termines la clase
-            </div>
+            <div class="qr-info-title"><i class="ti ti-info-circle"></i> Como funciona?</div>
+            <div class="qr-info-item"><i class="ti ti-player-play"></i> Inicia la sesión y se genera el QR</div>
+            <div class="qr-info-item"><i class="ti ti-qrcode"></i> El estudiante escanea y escribe su carnet</div>
+            <div class="qr-info-item"><i class="ti ti-check"></i> Si está en el grupo, se guarda la asistencia</div>
+            <div class="qr-info-item"><i class="ti ti-player-stop"></i> Finaliza la sesión al terminar la clase</div>
         </div>
-
     </div>
 
 </div>
@@ -180,102 +167,172 @@
 
 @push('scripts')
 <script>
-    // ── Dibujar QR en canvas ───────────────────────────────
-    function drawQR(canvas, active) {
-        const ctx  = canvas.getContext('2d');
-        const size = canvas.width;
-        ctx.clearRect(0, 0, size, size);
+(function () {
+    // Rutas AJAX del instructor (crear sesión / cerrar sesión).
+    const storeUrl = @json(route('instructor.session.store'));
+    const endUrl = @json(route('instructor.session.end'));
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-        if (!active) {
-            ctx.fillStyle = '#F1F4F8';
-            ctx.fillRect(0, 0, size, size);
-            ctx.fillStyle = '#94A3B8';
-            ctx.font = '13px "DM Sans", system-ui';
-            ctx.textAlign = 'center';
-            ctx.fillText('QR no generado', size / 2, size / 2 - 8);
-            ctx.font = '11px "DM Sans", system-ui';
-            ctx.fillText('Inicia la sesion para verlo', size / 2, size / 2 + 12);
+    // Si recargó la página con sesión abierta, el backend ya envió id, URL y código.
+    let currentSessionId = @json($openSession?->id);
+    let attendanceUrl = @json($openAttendanceUrl ?? null);
+    let sessionCode = @json($openSession?->session_code);
+
+    const placeholder = document.getElementById('qrPlaceholder');
+    const qrImage = document.getElementById('qrImage');
+    const qrCanvas = document.getElementById('qrCanvas');
+    const linkWrap = document.getElementById('attendanceLinkWrap');
+    const linkEl = document.getElementById('attendanceLink');
+
+    // Genera la imagen del QR apuntando a /asistencia/{token} (formulario de carnet del estudiante).
+    function qrImageSrc(url) {
+        return 'https://api.qrserver.com/v1/create-qr-code/?size=190x190&margin=10&data=' + encodeURIComponent(url);
+    }
+
+    // Muestra el enlace clicable debajo del QR con la URL completa.
+    function setAttendanceLink(url) {
+        if (!url) {
+            linkWrap.hidden = true;
+            linkEl.removeAttribute('href');
+            linkEl.textContent = 'Abrir enlace de asistencia';
+            return;
+        }
+        linkWrap.hidden = false;
+        linkEl.href = url;
+        linkEl.textContent = url;
+    }
+
+    function showPlaceholder() {
+        placeholder.hidden = false;
+        qrImage.hidden = true;
+        qrCanvas.hidden = true;
+        setAttendanceLink(null);
+    }
+
+    // Pinta el QR centrado y activa el enlace; si falla la imagen externa, intenta canvas.
+    function renderQr(url) {
+        if (!url) {
+            showPlaceholder();
             return;
         }
 
-        // QR simulado — el backend generara el real con una libreria como SimpleSoftwareIO/simple-qrcode
-        const cell = 6;
-        const pattern = [
-            [1,1,1,1,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,1,1,0,0,0,1,0,0,1,1,0],
-            [1,0,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,1,0,0,1,0],
-            [1,0,1,1,1,0,1,0,1,0,1,1,1,0,1,0,1,1,1,0,1,0,0,1,0,0,1,0,0,0],
-            [1,0,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,1,0,1,0,1,0,1,1,0,1,1,0],
-            [1,0,1,1,1,0,1,0,1,1,0,1,0,1,1,0,1,1,1,0,1,0,0,0,1,0,1,1,0,0],
-            [1,0,0,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,1,1,0,0,0],
-            [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0],
-            [0,0,0,0,0,0,0,0,1,1,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0],
-            [1,0,1,1,0,1,1,0,0,0,1,0,0,0,1,1,0,1,0,1,0,1,0,0,0,1,0,1,1,0],
-            [0,1,1,0,0,1,0,0,1,1,0,1,1,0,0,1,1,0,1,0,1,0,1,1,0,0,1,0,1,0],
-            [1,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,0,1,1,0,1,0,0,1,1,0,1,0,0],
-            [0,1,0,1,1,0,0,1,1,0,1,0,0,1,0,1,0,1,0,1,1,0,1,0,0,1,1,0,1,0],
-            [1,1,1,0,1,0,1,1,0,1,0,1,1,0,0,0,1,0,0,0,1,1,0,1,0,0,1,0,0,0],
-            [0,0,0,0,0,0,0,1,1,1,0,0,1,0,1,1,0,1,0,1,0,0,1,0,1,1,0,1,1,0],
-            [1,1,1,1,1,1,1,0,0,0,1,0,0,1,1,0,1,0,0,1,1,0,0,0,0,1,0,0,1,0],
-            [1,0,0,0,0,0,1,0,1,1,0,1,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,1,0,0],
-            [1,0,1,1,1,0,1,0,0,0,1,0,0,1,1,0,0,0,1,1,0,0,1,0,1,1,0,0,1,0],
-            [1,0,1,1,1,0,1,0,1,0,1,1,0,0,0,1,0,1,0,0,1,1,0,1,0,0,1,0,1,0],
-            [1,0,1,1,1,0,1,0,0,1,0,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,0,1,0,0],
-            [1,0,0,0,0,0,1,0,1,0,1,0,0,1,0,1,0,1,1,0,0,1,0,1,0,0,1,0,1,0],
-            [1,1,1,1,1,1,1,0,0,1,1,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,0,1,0,0],
-        ];
+        placeholder.hidden = true;
+        setAttendanceLink(url);
 
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(0, 0, size, size);
-        pattern.forEach((row, r) => {
-            row.forEach((val, c) => {
-                if (val) {
-                    ctx.fillStyle = '#1B4E8B';
-                    ctx.fillRect(c * cell + 5, r * cell + 5, cell - 1, cell - 1);
-                }
+        qrImage.onload = function () {
+            qrImage.hidden = false;
+            qrCanvas.hidden = true;
+        };
+        qrImage.onerror = function () {
+            if (typeof QRCode !== 'undefined') {
+                QRCode.toCanvas(qrCanvas, url, {
+                    width: 190,
+                    margin: 1,
+                    color: { dark: '#1B4E8B', light: '#ffffff' },
+                }, function (err) {
+                    if (err) {
+                        showPlaceholder();
+                        return;
+                    }
+                    qrCanvas.hidden = false;
+                    qrImage.hidden = true;
+                });
+            } else {
+                showPlaceholder();
+            }
+        };
+        qrImage.src = qrImageSrc(url);
+    }
+
+    function setUiActive(active) {
+        document.getElementById('btnStart').style.display = active ? 'none' : 'flex';
+        document.getElementById('btnEnd').style.display = active ? 'flex' : 'none';
+        const badge = document.getElementById('statusBadge');
+        badge.className = active ? 'status-badge status-active' : 'status-badge status-waiting';
+        document.getElementById('statusDot').className = active ? 'status-dot dot-active' : 'status-dot dot-waiting';
+        document.getElementById('statusText').textContent = active ? 'Sesion activa' : 'En espera';
+        document.getElementById('qrIndicator').innerHTML = active
+            ? '<i class="ti ti-circle-check" style="font-size:20px;color:rgba(255,255,255,.9)"></i>'
+            : '<i class="ti ti-qrcode" style="font-size:20px;color:rgba(255,255,255,.4)"></i>';
+        document.getElementById('session-date').disabled = active;
+        document.getElementById('session-time').disabled = active;
+    }
+
+    // Botón "Generar QR e iniciar": POST crea class_sessions y devuelve attendance_url + session_code.
+    window.startSession = async function () {
+        const date = document.getElementById('session-date').value;
+        const start_time = document.getElementById('session-time').value;
+        try {
+            const res = await fetch(storeUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ date, start_time }),
             });
-        });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(data.message || 'No se pudo iniciar la sesión.');
+                return;
+            }
+            currentSessionId = data.session_id;
+            attendanceUrl = data.attendance_url;
+            sessionCode = data.session_code;
+            document.getElementById('sessionCode').textContent = sessionCode;
+            renderQr(attendanceUrl);
+            setUiActive(true);
+        } catch (e) {
+            alert('Error de conexión al iniciar la sesión.');
+        }
+    };
+
+    // Botón "Finalizar sesión": is_open = false; estudiantes ya no pueden enviar carnet.
+    window.endSession = async function () {
+        if (!currentSessionId) return;
+        if (!confirm('¿Finalizar la sesión? Ya no se podrán registrar más asistencias.')) return;
+        try {
+            const res = await fetch(endUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ session_id: currentSessionId }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                alert(data.message || 'No se pudo finalizar la sesión.');
+                return;
+            }
+            if (data.attendance_count !== undefined) {
+                document.getElementById('liveAttendanceCount').textContent = data.attendance_count;
+            }
+            currentSessionId = null;
+            attendanceUrl = null;
+            sessionCode = null;
+            document.getElementById('sessionCode').textContent = '—';
+            showPlaceholder();
+            setUiActive(false);
+        } catch (e) {
+            alert('Error de conexión al finalizar.');
+        }
+    };
+
+    if (currentSessionId && attendanceUrl) {
+        document.getElementById('sessionCode').textContent = sessionCode || '—';
+        renderQr(attendanceUrl);
+        setUiActive(true);
+    } else {
+        showPlaceholder();
+        setUiActive(false);
     }
-
-    // ── Estado inicial ─────────────────────────────────────
-    drawQR(document.getElementById('qrCanvas'), false);
-
-    // ── Iniciar sesion ─────────────────────────────────────
-    function startSession() {
-        drawQR(document.getElementById('qrCanvas'), true);
-
-        document.getElementById('btnStart').style.display = 'none';
-        document.getElementById('btnEnd').style.display   = 'flex';
-
-        const badge = document.getElementById('statusBadge');
-        badge.className = 'status-badge status-active';
-        document.getElementById('statusDot').className = 'status-dot dot-active';
-        document.getElementById('statusText').textContent = 'Sesion activa';
-
-        document.getElementById('qrIndicator').innerHTML =
-            '<i class="ti ti-circle-check" style="font-size:20px;color:rgba(255,255,255,.9)"></i>';
-
-        // Al integrar backend: hacer POST para crear la sesion y obtener el QR real
-        // fetch("{{ route('instructor.session.store') }}", { method:'POST', ... })
-    }
-
-    // ── Finalizar sesion ───────────────────────────────────
-    function endSession() {
-        if (!confirm('Finalizar la sesion? Ya no se podran registrar mas asistencias.')) return;
-
-        drawQR(document.getElementById('qrCanvas'), false);
-        document.getElementById('btnStart').style.display = 'flex';
-        document.getElementById('btnEnd').style.display   = 'none';
-
-        const badge = document.getElementById('statusBadge');
-        badge.className = 'status-badge status-waiting';
-        document.getElementById('statusDot').className = 'status-dot dot-waiting';
-        document.getElementById('statusText').textContent = 'En espera';
-
-        document.getElementById('qrIndicator').innerHTML =
-            '<i class="ti ti-qrcode" style="font-size:20px;color:rgba(255,255,255,.4)"></i>';
-
-        // Al integrar backend: hacer POST para cerrar la sesion
-        // fetch("{{ route('instructor.session.end') }}", { method:'POST', ... })
-    }
+})();
 </script>
 @endpush

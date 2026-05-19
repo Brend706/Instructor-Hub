@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Relación instructor ↔ grupo (`instructor_assignments`).
@@ -14,6 +15,11 @@ class InstructorAssignment extends Model
     protected $fillable = [
         'instructor_id',
         'class_group_id',
+        'schedule',
+        'status',
+        'modality',
+        'classroom',
+        'virtual_link',
     ];
 
     /**
@@ -30,5 +36,13 @@ class InstructorAssignment extends Model
     public function classGroup(): BelongsTo
     {
         return $this->belongsTo(ClassGroup::class);
+    }
+
+    /**
+     * @return HasMany<ClassSession, $this>
+     */
+    public function classSessions(): HasMany
+    {
+        return $this->hasMany(ClassSession::class);
     }
 }

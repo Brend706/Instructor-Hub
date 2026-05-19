@@ -39,6 +39,8 @@ tr:hover td { background:#FAFBFC; }
 .badge-presencial { background:var(--primary-50); color:var(--primary); }
 .badge-linea      { background:var(--accent-50);  color:var(--accent); }
 .badge-students   { background:#F1F4F8; color:var(--text-soft); }
+.badge-students-link { text-decoration:none; cursor:pointer; transition:background .15s, color .15s; }
+.badge-students-link:hover { background:var(--primary-50); color:var(--primary); }
 
 /* Dropdown */
 .dropdown { position:relative; display:inline-block; }

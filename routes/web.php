@@ -3,10 +3,13 @@
 use App\Http\Controllers\Admin\CoordinatorController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InstructorController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Coordinator\ClassGroupController;
 use App\Http\Controllers\Coordinator\DashboardController;
+use App\Http\Controllers\Coordinator\GroupStudentsController;
 use App\Http\Controllers\Coordinator\StudentImportController;
+use App\Http\Controllers\Instructor\GroupController as InstructorGroupController;
 use App\Http\Controllers\Instructor\SessionController;
 use App\Http\Controllers\ProfileController;
 use App\Models\User;
@@ -34,6 +37,16 @@ Route::get('/', function () {
 
     return view('welcome');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Asistencia por QR (público, sin login)
+|--------------------------------------------------------------------------
+| El estudiante abre el enlace del QR → formulario de carnet → AttendanceController.
+| El instructor usa las rutas instructor.session* (autenticado) para abrir/cerrar sesión.
+*/
+Route::get('/asistencia/{token}', [AttendanceController::class, 'show'])->name('attendance.show');
+Route::post('/asistencia/{token}', [AttendanceController::class, 'store'])->name('attendance.store');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
@@ -76,6 +89,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/groups/{group}', [ClassGroupController::class, 'destroy'])->name('groups.destroy');
         Route::post('/groups/{group}/assign-instructor', [ClassGroupController::class, 'assignInstructor'])->name('groups.assign-instructor');
 
+        Route::get('/groups/{group}/estudiantes', [GroupStudentsController::class, 'index'])->name('groups.enrolled');
         Route::get('/groups/{group}/students', [StudentImportController::class, 'show'])->name('groups.students');
         Route::post('/groups/{group}/students/preview', [StudentImportController::class, 'preview'])->name('groups.students.preview');
         Route::post('/groups/{group}/students/preview-matrix', [StudentImportController::class, 'previewMatrix'])->name('groups.students.preview-matrix');
@@ -89,6 +103,10 @@ Route::middleware('auth')->group(function () {
             return view('instructors.dashboard');
         })->name('instructor.dashboard');
 
+        Route::get('/instructor/grupos', [InstructorGroupController::class, 'index'])->name('instructor.groups.index');
+        Route::get('/instructor/grupos/{assignment}', [InstructorGroupController::class, 'show'])->name('instructor.groups.show');
+
+        // Vista "Iniciar sesión": generar QR, código de sesión y finalizar clase.
         Route::get('/instructor/session', [SessionController::class, 'create'])
             ->name('instructor.session');
 

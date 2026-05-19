@@ -39,10 +39,11 @@
 
             <div class="nav-section">
                 <p class="nav-label">Mis instructorías</p>
-                    <a class="nav-item" data-label="Mis grupos" onclick="setActive(this)">
+                    <a href="{{ route('instructor.groups.index') }}"
+                       class="nav-item {{ request()->routeIs('instructor.groups.*') ? 'active' : '' }}"
+                       data-label="Mis grupos">
                         <i class="ti ti-books nav-icon"></i>
                         <span class="nav-text">Mis grupos</span>
-                        <span class="nav-badge">1</span>
                     </a>
                     <a href="{{ route('instructor.session') }}"
                        class="nav-item {{ request()->routeIs('instructor.session') ? 'active' : '' }}"
