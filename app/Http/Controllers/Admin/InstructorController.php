@@ -7,9 +7,12 @@ use App\Models\Coordinator;
 use App\Models\Instructor;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\InstructorCreated;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+// Facade `Notification`: envía la notificación a múltiples destinatarios (los admins).
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -90,7 +93,7 @@ class InstructorController extends Controller
     {
         $validated = $this->validatedInstructorRequest($request, null);
 
-        DB::transaction(function () use ($validated) {
+        $instructor = DB::transaction(function () use ($validated): Instructor {
             /** @var User $user */
             $user = User::query()->create([
                 'name' => $validated['name'],
@@ -107,12 +110,47 @@ class InstructorController extends Controller
                 $data['status'] = $validated['status'];
             }
 
-            Instructor::query()->create($data);
+            return Instructor::query()->create($data);
         });
+
+        // Tras crear, intenta avisar a los administradores (solo si lo creó un coordinador).
+        // fresh('user') recarga la relación user para que la notificación tenga nombre/correo actualizados.
+        $this->notifyAdminsIfCreatedByCoordinator($instructor->fresh('user'), $request->user());
 
         return redirect()
             ->route($this->getRoutePrefix().'.index')
             ->with('success', 'Instructor creado correctamente.');
+    }
+
+    /**
+     * Si quien crea el instructor es un coordinador, avisa a TODOS los administradores
+     * vía la tabla `notifications` (se ve en la campanita del layout admin).
+     *
+     * - Solo se dispara cuando el creador tiene rol `coordinator`.
+     * - El admin que esté logueado nunca se autonotifica.
+     */
+    private function notifyAdminsIfCreatedByCoordinator(Instructor $instructor, ?User $creator): void
+    {
+        // Filtro inicial: si no hay sesión o el creador NO es coordinador, no se notifica nada.
+        if (! $creator || $creator->roleSlug() !== 'coordinator') {
+            return;
+        }
+
+        // Buscamos a todos los usuarios cuyo rol (`roles.name`) sea exactamente 'admin'.
+        // Excluimos al creador por si en algún caso límite también fuera admin (no auto-aviso).
+        $admins = User::query()
+            ->whereHas('role', fn ($q) => $q->where('name', 'admin'))
+            ->where('id', '!=', $creator->id)
+            ->get();
+
+        // Si no hay administradores en el sistema, no hay a quién enviar.
+        if ($admins->isEmpty()) {
+            return;
+        }
+
+        // Notification::send inserta una fila en `notifications` por cada admin destinatario.
+        // El contenido (data JSON) lo arma InstructorCreated::toArray().
+        Notification::send($admins, new InstructorCreated($instructor, $creator));
     }
 
     public function update(Request $request, string $id): RedirectResponse

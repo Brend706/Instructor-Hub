@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CoordinatorController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InstructorController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Coordinator\ClassGroupController;
@@ -78,6 +79,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::resource('coordinadores', CoordinatorController::class)->except(['create', 'show', 'edit']);
         Route::resource('instructores', InstructorController::class)->except(['create', 'show', 'edit']);
+
+        // Campanita de notificaciones del admin.
+        // POST /admin/notifications/{id}/read  → marca una notificación como leída al hacer clic.
+        // POST /admin/notifications/read-all   → marca todas las no leídas como leídas.
+        // Ambas viven detrás de role:admin, así que solo administradores pueden invocarlas.
+        Route::post('/notifications/{id}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
+        Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
     });
 
     Route::middleware(['auth', 'role:coordinator'])->prefix('coordinador')->name('coordinator.')->group(function () {

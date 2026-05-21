@@ -145,13 +145,88 @@
             </nav>
 
             <div class="topbar-right">
-                {{-- Notificaciones --}}
-                <button class="icon-btn" aria-label="Notificaciones">
-                    <i class="ti ti-bell" aria-hidden="true"></i>
-                    @if(($notifCount ?? 0) > 0)
-                        <span class="notif-dot" aria-label="{{ $notifCount }} notificaciones"></span>
-                    @endif
-                </button>
+                {{-- Notificaciones (campanita) --}}
+                {{-- $notifications y $notifCount vienen del View::composer de layouts.admin
+                     (definido en App\Providers\AppServiceProvider::boot). --}}
+                <div class="notif-wrap" id="notifWrap">
+                    {{-- Botón con el icono de campana.
+                         toggleNotifications(event) abre/cierra el dropdown agregando la clase 'open'. --}}
+                    <button type="button" class="icon-btn" aria-label="Notificaciones" id="notifBtn"
+                            onclick="toggleNotifications(event)">
+                        <i class="ti ti-bell" aria-hidden="true"></i>
+                        {{-- Punto rojo + contador: solo si hay no leídas (notifCount > 0). --}}
+                        @if(($notifCount ?? 0) > 0)
+                            <span class="notif-dot" aria-label="{{ $notifCount }} notificaciones"></span>
+                            {{-- "9+" cuando hay más de 9 para no romper el badge visualmente. --}}
+                            <span class="notif-count">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
+                        @endif
+                    </button>
+
+                    {{-- Panel flotante con la lista de notificaciones.
+                         Se muestra cuando #notifWrap tiene la clase 'open' (ver CSS). --}}
+                    <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Lista de notificaciones">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            {{-- "Marcar todas como leídas": solo aparece si hay alguna no leída.
+                                 Hace POST a admin.notifications.read-all → markAllRead(). --}}
+                            @if(($notifCount ?? 0) > 0)
+                                <form method="POST" action="{{ route('admin.notifications.read-all') }}" style="margin:0">
+                                    @csrf
+                                    <button type="submit" class="notif-mark-all">Marcar todas como leídas</button>
+                                </form>
+                            @endif
+                        </div>
+
+                        <div class="notif-list">
+                            {{-- @forelse: itera $notifications; @empty se ejecuta si la colección está vacía. --}}
+                            @forelse(($notifications ?? collect()) as $notif)
+                                @php
+                                    // data está casteado a array por Laravel (columna `notifications.data`).
+                                    $data = $notif->data;
+                                    // read_at NULL = no leída → se resalta con la clase is-unread.
+                                    $isUnread = is_null($notif->read_at);
+                                    // Lecturas seguras del JSON con valor por defecto si faltan campos.
+                                    $instructorName = $data['instructor']['name'] ?? 'Instructor';
+                                    $creatorName = $data['creator']['name'] ?? 'Coordinador';
+                                    // Carbon::parse acepta el formato ISO 8601 guardado en toArray().
+                                    $when = \Illuminate\Support\Carbon::parse($data['created_at'] ?? $notif->created_at);
+                                @endphp
+                                {{-- Cada notificación es un mini-form POST que llama a markRead($notif->id).
+                                     El controlador marca como leída y redirige a la lista de instructores. --}}
+                                <form method="POST"
+                                      action="{{ route('admin.notifications.read', $notif->id) }}"
+                                      class="notif-item-form">
+                                    @csrf
+                                    <button type="submit" class="notif-item {{ $isUnread ? 'is-unread' : '' }}">
+                                        <span class="notif-icon"><i class="ti ti-user-plus" aria-hidden="true"></i></span>
+                                        <span class="notif-body">
+                                            {{-- Título: a quién se creó. --}}
+                                            <span class="notif-title">Nuevo instructor: <strong>{{ $instructorName }}</strong></span>
+                                            {{-- Meta: quién lo creó. --}}
+                                            <span class="notif-meta">
+                                                Creado por <strong>{{ $creatorName }}</strong>
+                                            </span>
+                                            {{-- Fecha y hora formateadas en español. --}}
+                                            <span class="notif-time">
+                                                {{ $when->translatedFormat('d M Y · H:i') }}
+                                            </span>
+                                        </span>
+                                        {{-- Pill "Nuevo" solo si aún no se leyó. --}}
+                                        @if($isUnread)
+                                            <span class="notif-pill">Nuevo</span>
+                                        @endif
+                                    </button>
+                                </form>
+                            @empty
+                                {{-- Estado vacío: no hay notificaciones en BD para este admin. --}}
+                                <div class="notif-empty">
+                                    <i class="ti ti-bell-off" aria-hidden="true"></i>
+                                    <p>No tienes notificaciones</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
 
                 {{-- Ayuda --}}
                 <button class="icon-btn" aria-label="Ayuda">
@@ -227,12 +302,27 @@
             if (!e.target.closest('[onclick*="user-dropdown"]')) {
                 dropdown.style.display = 'none';
             }
+            // Notificaciones: cierra si el clic fue fuera del contenedor .notif-wrap
+            const notifWrap = document.getElementById('notifWrap');
+            if (notifWrap && !e.target.closest('#notifWrap')) {
+                notifWrap.classList.remove('open');
+            }
         });
 
         document.querySelector('[onclick*="user-dropdown"]')?.addEventListener('click', function() {
             const d = document.getElementById('user-dropdown');
             d.style.display = d.style.display === 'none' ? 'block' : 'none';
         });
+
+        // ── Dropdown de notificaciones ──────────────
+        // Abre/cierra el panel agregando o quitando la clase 'open' en #notifWrap.
+        // stopPropagation evita que el listener global del document lo cierre de inmediato.
+        function toggleNotifications(e) {
+            e.stopPropagation();
+            document.getElementById('notifWrap')?.classList.toggle('open');
+        }
+        // Se expone en window para que el onclick inline del botón pueda llamarla.
+        window.toggleNotifications = toggleNotifications;
     </script>
 
     {{-- Scripts adicionales por vista --}}

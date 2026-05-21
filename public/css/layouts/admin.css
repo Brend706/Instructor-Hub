@@ -190,6 +190,101 @@ body.sidebar-collapsed .topbar { left: var(--sidebar-w-col); }
     border: 1.5px solid var(--surface);
 }
 
+/* ─── Campanita / dropdown de notificaciones ───
+   Estructura:
+     .notif-wrap          → contenedor relativo (ancla al botón).
+        .icon-btn         → botón de la campana (reutiliza la clase existente).
+            .notif-dot    → puntito rojo arriba a la derecha cuando hay no leídas.
+            .notif-count  → número (1, 2 ... 9+) sobre el botón.
+        .notif-dropdown   → panel flotante; oculto por defecto y visible con .open.
+*/
+.notif-wrap { position: relative; }
+.notif-count {
+    /* Pegado a la esquina superior derecha del botón, por encima del icono. */
+    position: absolute;
+    top: -4px; right: -4px;
+    min-width: 16px; height: 16px;
+    border-radius: 999px;
+    background: #E24B4A;
+    color: #fff;
+    font-size: 9px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+    border: 1.5px solid var(--surface);
+}
+.notif-dropdown {
+    /* Panel desplegable: posicionado bajo el botón de la campana, alineado a la derecha. */
+    position: absolute; top: calc(100% + 8px); right: 0;
+    width: 360px; max-width: calc(100vw - 40px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.12);
+    z-index: 200;
+    overflow: hidden;
+    /* Oculto hasta que el JS agregue la clase 'open' al contenedor padre. */
+    display: none;
+}
+/* Cuando #notifWrap recibe 'open' (clic en la campana), el panel se muestra. */
+.notif-wrap.open .notif-dropdown { display: block; }
+.notif-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 600; color: var(--text);
+}
+.notif-mark-all {
+    background: transparent; border: none; cursor: pointer;
+    font-size: 11px; color: var(--primary);
+    font-family: inherit; padding: 4px 6px; border-radius: 6px;
+}
+.notif-mark-all:hover { background: var(--primary-50); }
+/* Contenedor de la lista; scroll vertical si hay muchas notificaciones. */
+.notif-list { max-height: 380px; overflow-y: auto; }
+/* Cada notificación está envuelta en un <form> POST; quitamos su margin por defecto. */
+.notif-item-form { margin: 0; }
+/* Una fila clicable (es un <button> dentro del form para enviar el POST). */
+.notif-item {
+    width: 100%;
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 14px;
+    background: transparent; border: none; cursor: pointer;
+    text-align: left; font-family: inherit;
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+}
+.notif-item:hover { background: var(--bg); }
+/* is-unread: fondo azul claro para destacar las que aún no se han leído. */
+.notif-item.is-unread { background: var(--primary-50); }
+.notif-item.is-unread:hover { background: #E2EAF5; }
+/* Quitamos el borde inferior de la última fila para que no se vea doble línea. */
+.notif-list .notif-item:last-child { border-bottom: none; }
+.notif-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: 8px;
+    background: var(--primary-50); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+}
+.notif-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.notif-title { font-size: 13px; color: var(--text); line-height: 1.35; }
+.notif-meta  { font-size: 11px; color: var(--text-soft); }
+.notif-time  { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.notif-pill {
+    align-self: center;
+    background: var(--primary); color: #fff;
+    font-size: 9px; font-weight: 600;
+    padding: 2px 7px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: .05em;
+}
+.notif-empty {
+    text-align: center;
+    padding: 32px 18px;
+    color: var(--text-muted);
+}
+.notif-empty i { font-size: 28px; display: block; margin-bottom: 8px; opacity: .5; }
+.notif-empty p { font-size: 12px; margin: 0; }
+
 .topbar-avatar {
     width: 34px; height: 34px;
     border-radius: 8px;
