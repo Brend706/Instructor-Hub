@@ -28,6 +28,11 @@ class InstructorController extends Controller
         'Ing. Industrial',
     ];
 
+    /** Coordinaciones a ocultar en los selects (datos de prueba, etc.). */
+    private const HIDDEN_COORDINATIONS = [
+        'Coordinación Demo',
+    ];
+
     /**
      * Get the correct route name prefix based on the authenticated user's role.
      */
@@ -72,6 +77,7 @@ class InstructorController extends Controller
             $fromCoordinators = Coordinator::query()
                 ->selectRaw($coordinationExpr.' as coordination')
                 ->whereRaw($coordinationExpr.' IS NOT NULL')
+                ->whereNotIn(DB::raw($coordinationExpr), self::HIDDEN_COORDINATIONS)
                 ->distinct()
                 ->orderBy('coordination')
                 ->pluck('coordination')
@@ -83,6 +89,8 @@ class InstructorController extends Controller
             ->merge($fromCoordinators)
             ->merge(self::DEFAULT_MAJORS)
             ->filter()
+            // Quitamos también coordinaciones ocultas si aparecieran en carreras de instructores.
+            ->reject(fn ($value) => in_array($value, self::HIDDEN_COORDINATIONS, true))
             ->unique()
             ->sort()
             ->values()
@@ -190,13 +198,36 @@ class InstructorController extends Controller
         /** @var Instructor $instructor */
         $instructor = Instructor::query()->with('user')->findOrFail($id);
 
-        DB::transaction(function () use ($instructor) {
-            if ($instructor->user) {
-                $instructor->user->delete();
-            } else {
-                $instructor->delete();
+        // Si el instructor tiene tutorías (filas en `instructor_assignments`),
+        // NO podemos borrarlo porque rompe la FK. Mostramos un mensaje amistoso.
+        $assignmentsCount = $instructor->instructorAssignments()->count();
+        if ($assignmentsCount > 0) {
+            $name = $instructor->user?->name ?? 'el instructor';
+
+            return redirect()
+                ->route($this->getRoutePrefix().'.index')
+                ->with('error', "No se puede eliminar a {$name} porque tiene {$assignmentsCount} tutoría(s) asignada(s). Quita primero sus asignaciones de grupo antes de borrarlo.");
+        }
+
+        try {
+            DB::transaction(function () use ($instructor) {
+                if ($instructor->user) {
+                    $instructor->user->delete();
+                } else {
+                    $instructor->delete();
+                }
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Red de seguridad por si hay otra FK pendiente (sesiones, etc.).
+            // Código 23000 = integrity constraint violation en MySQL.
+            if ($e->getCode() === '23000') {
+                return redirect()
+                    ->route($this->getRoutePrefix().'.index')
+                    ->with('error', 'No se puede eliminar este instructor porque tiene registros relacionados en el sistema.');
             }
-        });
+
+            throw $e;
+        }
 
         return redirect()
             ->route($this->getRoutePrefix().'.index')

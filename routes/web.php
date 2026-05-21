@@ -9,7 +9,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Coordinator\ClassGroupController;
 use App\Http\Controllers\Coordinator\DashboardController;
 use App\Http\Controllers\Coordinator\GroupStudentsController;
+use App\Http\Controllers\Coordinator\InstructoriaController;
 use App\Http\Controllers\Coordinator\StudentImportController;
+use App\Http\Controllers\Instructor\AttendanceController as InstructorAttendanceController;
 use App\Http\Controllers\Instructor\GroupController as InstructorGroupController;
 use App\Http\Controllers\Instructor\SessionController;
 use App\Http\Controllers\ProfileController;
@@ -105,6 +107,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/groups/{group}/students/import-matrix', [StudentImportController::class, 'importMatrix'])->name('groups.students.import-matrix');
 
         Route::resource('instructores', InstructorController::class)->except(['create', 'show', 'edit']);
+
+        // Instructorías: por instructor, ver todas las sesiones que ha dado (fecha + horas + grupo + asistentes).
+        Route::get('/instructorias', [InstructoriaController::class, 'index'])->name('instructorias.index');
+        Route::get('/instructorias/{instructor}', [InstructoriaController::class, 'show'])->name('instructorias.show');
     });
     Route::middleware('role:instructor')->group(function () {
         Route::get('/instructor/dashboard', function () {
@@ -113,6 +119,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/instructor/grupos', [InstructorGroupController::class, 'index'])->name('instructor.groups.index');
         Route::get('/instructor/grupos/{assignment}', [InstructorGroupController::class, 'show'])->name('instructor.groups.show');
+
+        // Asistencia: lista de instructorías y, por instructoría, matriz estudiantes × sesiones.
+        Route::get('/instructor/asistencia', [InstructorAttendanceController::class, 'index'])->name('instructor.attendance.index');
+        Route::get('/instructor/asistencia/{assignment}', [InstructorAttendanceController::class, 'show'])->name('instructor.attendance.show');
 
         // Vista "Iniciar sesión": generar QR, código de sesión y finalizar clase.
         Route::get('/instructor/session', [SessionController::class, 'create'])

@@ -52,17 +52,14 @@
                     <i class="ti ti-books nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Grupos de clase</span>
                 </a>
-            </div>
-
-            <div class="nav-section">
-                <p class="nav-label">Cuenta</p>
-                <a href="{{ route('profile.index') }}"
-                   class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}"
-                   data-label="Mi perfil">
-                    <i class="ti ti-user-circle nav-icon" aria-hidden="true"></i>
-                    <span class="nav-text">Mi perfil</span>
+                <a href="{{ route('coordinator.instructorias.index') }}"
+                   class="nav-item {{ request()->routeIs('coordinator.instructorias.*') ? 'active' : '' }}"
+                   data-label="Instructorías">
+                    <i class="ti ti-calendar-event nav-icon" aria-hidden="true"></i>
+                    <span class="nav-text">Instructorías</span>
                 </a>
             </div>
+
         </nav>
 
         <div class="sidebar-footer">

@@ -35,11 +35,13 @@
     border-left: 4px solid var(--primary);
     border-radius: 12px; padding: 18px;
     margin-bottom: 20px;
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    /* Grid responsivo: cada columna mide al menos 160px, así textos cortos como "En línea" no se cortan. */
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;
 }
 .info-item-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-.info-item-value { font-size: 13px; font-weight: 500; color: var(--text); }
-.info-item-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+/* word-break/overflow-wrap normales para que "En línea" no se rompa a la mitad */
+.info-item-value { font-size: 13px; font-weight: 500; color: var(--text); word-break: normal; overflow-wrap: normal; hyphens: none; }
+.info-item-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; word-break: normal; overflow-wrap: normal; hyphens: none; }
 
 /* Upload section */
 .upload-section {

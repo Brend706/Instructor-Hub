@@ -30,9 +30,12 @@ class CoordinatorController extends Controller
         $coordinationExpr = $hasCoordinationName ? 'COALESCE(coordination_name, name)' : 'name';
 
         // Lista de coordinaciones para el filtro del select en la UI.
+        // Se ocultan coordinaciones de prueba (datos seeder) para que no aparezcan en el dropdown.
+        $hiddenCoordinations = ['Coordinación Demo'];
         $coordinaciones = Coordinator::query()
             ->selectRaw($coordinationExpr.' as coordination')
             ->whereRaw($coordinationExpr.' IS NOT NULL')
+            ->whereNotIn(DB::raw($coordinationExpr), $hiddenCoordinations)
             ->distinct()
             ->orderBy('coordination')
             ->pluck('coordination')

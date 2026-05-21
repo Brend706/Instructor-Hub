@@ -1,0 +1,183 @@
+/* Asistencia por instructoría */
+
+.back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text-soft);
+    text-decoration: none; margin-bottom: 20px;
+}
+.back-link:hover { color: var(--primary); }
+
+.page-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.page-title { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
+.page-sub { font-size: 12px; color: var(--text-muted); }
+
+.empty-card {
+    text-align: center; padding: 48px 24px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text-muted);
+}
+.empty-card i { font-size: 36px; margin-bottom: 12px; display: block; opacity: .5; }
+
+/* ─── INDEX: tarjetas de instructorías ──────────── */
+.att-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.att-card {
+    display: flex; flex-direction: column; gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    text-decoration: none; color: inherit;
+    transition: border-color .15s, box-shadow .15s, transform .12s;
+}
+.att-card:hover {
+    border-color: var(--primary-400);
+    box-shadow: 0 6px 18px rgba(27, 78, 139, .10);
+    transform: translateY(-1px);
+}
+.att-card-head { display: flex; align-items: center; gap: 12px; }
+.att-card-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--primary-50); color: var(--primary);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+    flex-shrink: 0;
+}
+.att-card-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.att-card-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.att-card-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+.att-stat { text-align: center; }
+.att-stat-val { font-size: 16px; font-weight: 600; color: var(--text); }
+.att-stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 1px; }
+
+.att-card-foot {
+    display: flex; align-items: center; justify-content: flex-end; gap: 5px;
+    font-size: 12px; color: var(--primary); font-weight: 500;
+}
+
+/* ─── SHOW: matriz estudiantes × sesiones ─────────── */
+.att-matrix-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.att-matrix-wrap { overflow-x: auto; }
+
+.att-matrix {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+}
+
+.att-matrix th, .att-matrix td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    vertical-align: middle;
+    background: var(--surface);
+}
+
+/* Encabezados sticky para scroll horizontal cómodo */
+.att-matrix thead th {
+    background: var(--bg);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    position: sticky; top: 0;
+    z-index: 2;
+}
+
+/* Primera columna (estudiante) y segunda (carnet) sticky horizontalmente */
+.att-col-student, .att-cell-student {
+    text-align: left;
+    min-width: 180px;
+    position: sticky; left: 0;
+    z-index: 3;
+}
+.att-cell-student { background: var(--surface); }
+.att-matrix thead .att-col-student { z-index: 4; }
+
+.att-col-carnet, .att-cell-carnet {
+    text-align: left;
+    min-width: 90px;
+    font-family: monospace;
+    color: var(--text-soft);
+    position: sticky; left: 180px;
+    z-index: 3;
+}
+.att-cell-carnet { background: var(--surface); }
+.att-matrix thead .att-col-carnet { z-index: 4; }
+
+.att-col-session { min-width: 64px; }
+.att-col-session-date { font-size: 11px; font-weight: 600; color: var(--text); }
+.att-col-session-hour { font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+
+.att-col-total, .att-cell-total { min-width: 70px; }
+
+.att-student { display: flex; align-items: center; gap: 8px; }
+.att-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600;
+    flex-shrink: 0;
+}
+.att-student span { font-size: 12px; color: var(--text); font-weight: 500; }
+
+.att-cell-mark { font-size: 13px; }
+.att-cell-mark.is-yes  { color: #166534; background: rgba(22, 101, 52, .07); }
+.att-cell-mark.is-yes i { background: #DCFCE7; padding: 4px; border-radius: 999px; }
+.att-cell-mark.is-no   { color: var(--text-muted); }
+.att-cell-mark.is-no  i { opacity: .45; }
+
+.att-total-pill {
+    display: inline-block;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--bg); color: var(--text-soft);
+}
+.att-total-pill.is-full {
+    background: #DCFCE7; color: #166534;
+}
+
+tr:hover .att-cell-student,
+tr:hover .att-cell-carnet { background: #FAFBFC; }
+tr:hover td { background: #FAFBFC; }
+
+/* Fila final: conteo de asistentes por sesión */
+.att-matrix tfoot th {
+    background: var(--bg);
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 600;
+    border-top: 1px solid var(--border);
+}
+.att-foot-label {
+    text-align: right !important;
+    color: var(--text-soft) !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    position: sticky; left: 0;
+}
+.att-foot-count { color: var(--primary); }
+
+/* Botón usado solo en empty state */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-700); }

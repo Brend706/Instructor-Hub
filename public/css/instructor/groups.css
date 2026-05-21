@@ -109,8 +109,9 @@
     margin-bottom: 16px;
 }
 .info-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-.info-value { font-size: 13px; font-weight: 500; color: var(--text); }
-.info-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+/* word-break/overflow-wrap normales + hyphens:none para que "En línea" no se parta a la mitad */
+.info-value { font-size: 13px; font-weight: 500; color: var(--text); word-break: normal; overflow-wrap: normal; hyphens: none; }
+.info-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; word-break: normal; overflow-wrap: normal; hyphens: none; }
 
 .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .table-wrap { overflow-x: auto; }

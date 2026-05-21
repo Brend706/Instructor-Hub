@@ -23,6 +23,14 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div class="alert-success" role="alert"
+         style="background:#FEF2F2;border-color:#FECACA;color:#991B1B">
+        <i class="ti ti-alert-circle" aria-hidden="true"></i>
+        {{ session('error') }}
+    </div>
+@endif
+
 <div class="toolbar">
     <div class="search-wrap">
         <i class="ti ti-search" aria-hidden="true"></i>
