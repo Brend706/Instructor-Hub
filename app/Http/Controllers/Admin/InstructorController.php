@@ -43,16 +43,34 @@ class InstructorController extends Controller
 
     public function index(): View
     {
-        $instructors = Instructor::query()
+        $query = Instructor::query()
             ->with('user')
-            ->latest()
-            ->paginate(10);
+            ->latest();
 
-        return view('instructors.index', [
+        $viewName = 'instructors.index';
+        if (auth()->user()->roleSlug() === 'coordinator') {
+            $query->where('coordinator_id', $this->currentCoordinatorId());
+            $viewName = 'coordinator.instructors.index';
+        }
+
+        $instructors = $query->paginate(10);
+
+        return view($viewName, [
             'instructors' => $instructors,
             'carreras' => $this->carreraOptions(),
             'hasStatusColumn' => Schema::hasColumn('instructors', 'status'),
         ]);
+    }
+
+    private function currentCoordinatorId(): ?int
+    {
+        if (auth()->user()->roleSlug() !== 'coordinator') {
+            return null;
+        }
+
+        return Coordinator::query()
+            ->where('user_id', auth()->id())
+            ->value('id');
     }
 
     /**
@@ -114,6 +132,9 @@ class InstructorController extends Controller
                 'user_id' => $user->id,
                 'major' => $validated['major'],
             ];
+            if (auth()->user()->roleSlug() === 'coordinator') {
+                $data['coordinator_id'] = $this->currentCoordinatorId();
+            }
             if (Schema::hasColumn('instructors', 'status')) {
                 $data['status'] = $validated['status'];
             }

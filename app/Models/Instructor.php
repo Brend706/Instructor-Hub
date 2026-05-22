@@ -12,6 +12,8 @@ class Instructor extends Model
         'user_id',
         'major',
         'status',
+        'coordinator_id',
+        'category',
     ];
 
     /**

@@ -15,6 +15,13 @@ use Illuminate\View\View;
 
 class CoordinatorController extends Controller
 {
+    private const ALLOWED_COORDINATIONS = [
+        'Industrial',
+        'Catedra de Informática',
+        'Arquitectura',
+        'Diseño',
+    ];
+
     /**
      * Display a listing of the resource.
      */
@@ -57,7 +64,7 @@ class CoordinatorController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'max:255'],
-            'coordination_name' => ['required', 'string', 'max:255'],
+            'coordination_name' => ['required', 'string', 'max:255', Rule::in(self::ALLOWED_COORDINATIONS)],
         ], [
             'name.required' => 'Debe ingresar el nombre completo.',
             'email.required' => 'Debe ingresar el correo electrónico.',
@@ -65,7 +72,8 @@ class CoordinatorController extends Controller
             'email.unique' => 'Ese correo ya está registrado en el sistema.',
             'password.required' => 'Debe ingresar una contraseña.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'coordination_name.required' => 'Debe seleccionar o indicar la coordinación.',
+            'coordination_name.required' => 'Debe seleccionar una coordinación válida.',
+            'coordination_name.in' => 'Debe seleccionar una coordinación válida.',
         ]);
 
         /**
@@ -123,14 +131,15 @@ class CoordinatorController extends Controller
                 $emailUnique,
             ],
             'password' => ['nullable', 'string', 'min:8', 'max:255'],
-            'coordination_name' => ['required', 'string', 'max:255'],
+            'coordination_name' => ['required', 'string', 'max:255', Rule::in(self::ALLOWED_COORDINATIONS)],
         ], [
             'name.required' => 'Debe ingresar el nombre completo.',
             'email.required' => 'Debe ingresar el correo electrónico.',
             'email.email' => 'El correo electrónico no es válido.',
             'email.unique' => 'Ese correo ya está registrado en el sistema.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'coordination_name.required' => 'Debe seleccionar o indicar la coordinación.',
+            'coordination_name.required' => 'Debe seleccionar una coordinación válida.',
+            'coordination_name.in' => 'Debe seleccionar una coordinación válida.',
         ]);
 
         DB::transaction(function () use ($coordinator, $validated) {
