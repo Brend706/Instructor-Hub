@@ -170,6 +170,6 @@
     </script>
 
     @stack('scripts')
-
+    @include('components.ficabot')  {{-- ← modal del chatbot con ia --}}
 </body>
 </html>
