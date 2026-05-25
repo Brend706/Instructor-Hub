@@ -6,6 +6,18 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Dashboard' }} — InstructorHub</title>
 
+    {{-- Bootstrap del tema: corre ANTES de pintar la página para evitar
+         el "flash" blanco si el usuario tenía el modo oscuro activo. --}}
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('fica_theme') === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) { /* localStorage bloqueado */ }
+        })();
+    </script>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -14,6 +26,7 @@
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/layouts/admin.css') }}"> <!-- usa los mismos disenos del menu del admin -->
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
 
     @livewireStyles
     @stack('styles')
@@ -47,9 +60,9 @@
                     </a>
                     <a href="{{ route('instructor.session') }}"
                        class="nav-item {{ request()->routeIs('instructor.session') ? 'active' : '' }}"
-                       data-label="Iniciar sesión">
+                       data-label="Iniciar instructoría">
                         <i class="ti ti-player-play nav-icon"></i>
-                        <span class="nav-text">Iniciar sesión</span>
+                        <span class="nav-text">Iniciar instructoría</span>
                     </a>
                     <a href="{{ route('instructor.attendance.index') }}"
                        class="nav-item {{ request()->routeIs('instructor.attendance.*') ? 'active' : '' }}"
@@ -64,11 +77,11 @@
         <div class="sidebar-footer">
             <a href="" class="user-card">
                 <div class="avatar" aria-hidden="true">
-                    {{ strtoupper(substr(auth()->user()->name ?? 'CO', 0, 2)) }}
+                    {{ strtoupper(substr(auth()->user()->name ?? 'IN', 0, 2)) }}
                 </div>
                 <div class="user-info">
-                    <div class="user-name">{{ auth()->user()->name ?? 'Coordinador' }}</div>
-                    <div class="user-role">Coordinador</div>
+                    <div class="user-name">{{ auth()->user()->name ?? 'Instructor' }}</div>
+                    <div class="user-role">Instructor</div>
                 </div>
             </a>
         </div>
@@ -101,6 +114,7 @@
             </nav>
 
             <div class="topbar-right">
+                <x-dark-toggle />
                 <button class="icon-btn" aria-label="Notificaciones">
                     <i class="ti ti-bell" aria-hidden="true"></i>
                     @if(($notifCount ?? 0) > 0)
@@ -114,16 +128,16 @@
                     <div class="topbar-avatar"
                          onclick="document.getElementById('user-dropdown').classList.toggle('open')"
                          title="Opciones de usuario">
-                        {{ strtoupper(substr(auth()->user()->name ?? 'CO', 0, 2)) }}
+                        {{ strtoupper(substr(auth()->user()->name ?? 'IN', 0, 2)) }}
                     </div>
                     <div id="user-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:160px;overflow:hidden;z-index:200;">
-                        <a href="" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--text);text-decoration:none;transition:background .15s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
+                        <a href="" class="user-dropdown-link" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--text);text-decoration:none;transition:background .15s">
                             <i class="ti ti-user" style="font-size:15px"></i> Mi perfil
                         </a>
                         <div style="height:1px;background:var(--border)"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;font-size:13px;color:#991B1B;background:transparent;border:none;cursor:pointer;transition:background .15s" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='transparent'">
+                            <button type="submit" class="user-dropdown-logout" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;font-size:13px;color:#991B1B;background:transparent;border:none;cursor:pointer;transition:background .15s">
                                 <i class="ti ti-logout" style="font-size:15px"></i> Cerrar sesion
                             </button>
                         </form>
@@ -143,7 +157,7 @@
     @livewireScripts
 
     <script>
-        const STORAGE_KEY = 'fica_coordinator_sidebar_collapsed';
+        const STORAGE_KEY = 'fica_instructor_sidebar_collapsed';
 
         function toggleSidebar() {
             const collapsed = document.body.classList.toggle('sidebar-collapsed');

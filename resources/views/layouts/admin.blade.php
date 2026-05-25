@@ -6,6 +6,18 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Dashboard' }} — InstructorHub</title>
 
+    {{-- Bootstrap del tema: corre ANTES de pintar la página para evitar
+         el "flash" blanco si el usuario tenía el modo oscuro activo. --}}
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('fica_theme') === 'dark') {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) { /* localStorage bloqueado */ }
+        })();
+    </script>
+
     {{-- Tabler Icons --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 
@@ -21,6 +33,7 @@
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/layouts/admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dark-mode.css') }}">
 
     {{-- Estilos adicionales por vista --}}
     @stack('styles')
@@ -145,6 +158,9 @@
             </nav>
 
             <div class="topbar-right">
+                {{-- Toggle tema claro/oscuro --}}
+                <x-dark-toggle />
+
                 {{-- Notificaciones (campanita) --}}
                 {{-- $notifications y $notifCount vienen del View::composer de layouts.admin
                      (definido en App\Providers\AppServiceProvider::boot). --}}
@@ -185,32 +201,64 @@
                                     $data = $notif->data;
                                     // read_at NULL = no leída → se resalta con la clase is-unread.
                                     $isUnread = is_null($notif->read_at);
-                                    // Lecturas seguras del JSON con valor por defecto si faltan campos.
-                                    $instructorName = $data['instructor']['name'] ?? 'Instructor';
-                                    $creatorName = $data['creator']['name'] ?? 'Coordinador';
+                                    // 'kind' identifica el tipo lógico de la notificación.
+                                    // Las viejas (sin 'kind') son del flujo "instructor creado".
+                                    $kind = $data['kind'] ?? 'instructor.created';
                                     // Carbon::parse acepta el formato ISO 8601 guardado en toArray().
                                     $when = \Illuminate\Support\Carbon::parse($data['created_at'] ?? $notif->created_at);
                                 @endphp
                                 {{-- Cada notificación es un mini-form POST que llama a markRead($notif->id).
-                                     El controlador marca como leída y redirige a la lista de instructores. --}}
+                                     El controlador la marca como leída y decide si redirige según el tipo. --}}
                                 <form method="POST"
                                       action="{{ route('admin.notifications.read', $notif->id) }}"
                                       class="notif-item-form">
                                     @csrf
                                     <button type="submit" class="notif-item {{ $isUnread ? 'is-unread' : '' }}">
-                                        <span class="notif-icon"><i class="ti ti-user-plus" aria-hidden="true"></i></span>
-                                        <span class="notif-body">
-                                            {{-- Título: a quién se creó. --}}
-                                            <span class="notif-title">Nuevo instructor: <strong>{{ $instructorName }}</strong></span>
-                                            {{-- Meta: quién lo creó. --}}
-                                            <span class="notif-meta">
-                                                Creado por <strong>{{ $creatorName }}</strong>
+                                        @if($kind === 'ficabot.support')
+                                            {{-- ── Solicitud de soporte desde FICABOT ── --}}
+                                            @php
+                                                // Datos de contacto preferidos por el usuario (pueden diferir de su cuenta).
+                                                $contactName = $data['contact']['name'] ?? ($data['requester']['name'] ?? 'Usuario');
+                                                $contactEmail = $data['contact']['email'] ?? ($data['requester']['email'] ?? '');
+                                                $roleLabel = $data['requester']['role_label'] ?? 'Usuario';
+                                                $question = $data['question'] ?? '';
+                                            @endphp
+                                            <span class="notif-icon" style="background:#FEF3C7;color:#92400E">
+                                                <i class="ti ti-lifebuoy" aria-hidden="true"></i>
                                             </span>
-                                            {{-- Fecha y hora formateadas en español. --}}
-                                            <span class="notif-time">
-                                                {{ $when->translatedFormat('d M Y · H:i') }}
+                                            <span class="notif-body">
+                                                <span class="notif-title">
+                                                    Soporte solicitado por <strong>{{ $contactName }}</strong>
+                                                </span>
+                                                <span class="notif-meta">
+                                                    {{ $roleLabel }}
+                                                    @if($contactEmail) · <a href="mailto:{{ $contactEmail }}" style="color:inherit;text-decoration:underline">{{ $contactEmail }}</a> @endif
+                                                </span>
+                                                <span class="notif-meta">
+                                                    "{{ \Illuminate\Support\Str::limit($question, 70) }}"
+                                                </span>
+                                                <span class="notif-time">
+                                                    {{ $when->translatedFormat('d M Y · H:i') }}
+                                                </span>
                                             </span>
-                                        </span>
+                                        @else
+                                            {{-- ── Instructor creado (notificación por defecto) ── --}}
+                                            @php
+                                                $instructorName = $data['instructor']['name'] ?? 'Instructor';
+                                                $creatorName = $data['creator']['name'] ?? 'Coordinador';
+                                            @endphp
+                                            <span class="notif-icon"><i class="ti ti-user-plus" aria-hidden="true"></i></span>
+                                            <span class="notif-body">
+                                                <span class="notif-title">Nuevo instructor: <strong>{{ $instructorName }}</strong></span>
+                                                <span class="notif-meta">
+                                                    Creado por <strong>{{ $creatorName }}</strong>
+                                                </span>
+                                                <span class="notif-time">
+                                                    {{ $when->translatedFormat('d M Y · H:i') }}
+                                                </span>
+                                            </span>
+                                        @endif
+
                                         {{-- Pill "Nuevo" solo si aún no se leyó. --}}
                                         @if($isUnread)
                                             <span class="notif-pill">Nuevo</span>
@@ -247,22 +295,22 @@
                         border-radius:10px; min-width:160px; overflow:hidden; z-index:200;
                     ">
                         {{-- Acceso rápido al mismo perfil que la ruta profile.index --}}
-                        <a href="{{ route('profile.index') }}" style="
+                        <a href="{{ route('profile.index') }}" class="user-dropdown-link" style="
                             display:flex;align-items:center;gap:8px;
                             padding:10px 14px;font-size:13px;color:var(--text);
                             text-decoration:none;transition:background .15s;
-                        " onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
+                        ">
                             <i class="ti ti-user" style="font-size:15px"></i> Mi perfil
                         </a>
                         <div style="height:1px;background:var(--border)"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" style="
+                            <button type="submit" class="user-dropdown-logout" style="
                                 display:flex;align-items:center;gap:8px;width:100%;
                                 padding:10px 14px;font-size:13px;color:#991B1B;
                                 background:transparent;border:none;cursor:pointer;
                                 transition:background .15s;
-                            " onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='transparent'">
+                            ">
                                 <i class="ti ti-logout" style="font-size:15px"></i> Cerrar sesión
                             </button>
                         </form>

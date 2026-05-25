@@ -65,7 +65,9 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // Zona horaria por defecto: El Salvador (UTC-6). Se puede sobrescribir
+    // desde .env con APP_TIMEZONE=... (por ej. para servidores en otra región).
+    'timezone' => env('APP_TIMEZONE', 'America/El_Salvador'),
 
     /*
     |--------------------------------------------------------------------------

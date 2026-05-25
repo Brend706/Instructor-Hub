@@ -7,8 +7,10 @@ use App\Models\ClassSession;
 use App\Models\Instructor;
 use App\Models\InstructorAssignment;
 use App\Models\StudentAttendance;
+use App\Services\AttendanceExcelExportService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
@@ -91,6 +93,32 @@ class AttendanceController extends Controller
             'sessions' => $sessions,
             'students' => $students,
             'attendedMap' => $attended,
+        ]);
+    }
+
+    /**
+     * Descarga el .xlsx con la matriz de asistencia de la instructoría seleccionada.
+     *
+     * Flujo:
+     *  1. Verifica que la instructoría pertenezca al instructor logueado (evita
+     *     que alguien exporte datos de otro instructor cambiando el ID en la URL).
+     *  2. Delega la construcción del Excel en AttendanceExcelExportService::buildInstructorMatrix,
+     *     que devuelve el contenido binario del archivo y un nombre seguro.
+     *  3. Devuelve la respuesta HTTP con headers para forzar la descarga:
+     *      - Content-Type oficial de .xlsx
+     *      - Content-Disposition: attachment → el navegador descarga en vez de abrir
+     *      - Cache-Control: no-store → cada descarga refleja el estado actual de la BD
+     */
+    public function export(Request $request, InstructorAssignment $assignment, AttendanceExcelExportService $exporter): Response
+    {
+        $this->ensureOwnsAssignment($request, $assignment);
+
+        $file = $exporter->buildInstructorMatrix($assignment);
+
+        return response($file['content'], 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$file['filename'].'"',
+            'Cache-Control' => 'no-store, no-cache',
         ]);
     }
 

@@ -49,7 +49,18 @@ class InstructorController extends Controller
 
         $viewName = 'instructors.index';
         if (auth()->user()->roleSlug() === 'coordinator') {
-            $query->where('coordinator_id', $this->currentCoordinatorId());
+            // El coordinador ve:
+            //  - los instructores que él mismo administra (coordinator_id = su id), y
+            //  - los instructores "huérfanos" que aún no están asignados a ningún coordinador
+            //    (coordinator_id IS NULL), típicamente los creados desde el panel admin
+            //    o antes de que existiera la columna coordinator_id.
+            $coordId = $this->currentCoordinatorId();
+            $query->where(function ($q) use ($coordId) {
+                $q->whereNull('coordinator_id');
+                if ($coordId !== null) {
+                    $q->orWhere('coordinator_id', $coordId);
+                }
+            });
             $viewName = 'coordinator.instructors.index';
         }
 

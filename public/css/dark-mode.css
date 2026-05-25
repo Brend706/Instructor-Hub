@@ -1,0 +1,88 @@
+/* ═══════════════════════════════════════════════════════════════
+   DARK MODE — overrides puntuales
+   ═══════════════════════════════════════════════════════════════
+   La paleta principal vive en `app.css` (variables redefinidas bajo
+   `:root.dark`). Este archivo SOLO contiene los ajustes para casos
+   donde el CSS original usaba colores hardcodeados (no variables)
+   o donde una transparencia se ve distinto sobre fondo oscuro.
+
+   Selectores usan `:root.dark` para mayor prioridad sobre los
+   estilos base sin necesidad de `!important`. */
+
+/* ── Tablas: hover de fila ────────────────────────────────────
+   Varios archivos (dashboardAdmin, dashboardInstructor, etc.)
+   tienen `tr:hover td { background:#FAFBFC }` literal. */
+:root.dark tr:hover td { background: rgba(255,255,255,.04); }
+
+/* ── Topbar (admin.css) ───────────────────────────────────────
+   El toggle/icon-btn tienen `:hover { background: var(--bg) }`
+   y eso queda casi invisible en oscuro. Usamos un blanco tenue. */
+:root.dark .toggle-btn:hover,
+:root.dark .icon-btn:hover { background: rgba(255,255,255,.06); }
+
+/* ── Campanita: dropdown de notificaciones ────────────────────
+   `.notif-item:hover { background: var(--bg) }` queda apagado;
+   los unread tienen un `#E2EAF5` hardcoded en :hover. */
+:root.dark .notif-item:hover         { background: rgba(255,255,255,.04); }
+:root.dark .notif-item.is-unread     { background: rgba(76,143,212,.10); }
+:root.dark .notif-item.is-unread:hover { background: rgba(76,143,212,.18); }
+:root.dark .notif-mark-all:hover     { background: rgba(76,143,212,.16); }
+:root.dark .notif-dropdown           { box-shadow: 0 14px 48px rgba(0,0,0,.55); }
+
+/* ── Dropdown del usuario (logout) ────────────────────────────
+   Hovers base + ajustes para dark. Las clases vienen de
+   layouts/*.blade.php (Mi perfil, Cerrar sesión). */
+.user-dropdown-link:hover   { background: var(--bg); }
+.user-dropdown-logout:hover { background: #FEE2E2; }
+
+:root.dark .user-dropdown-link:hover  { background: rgba(255,255,255,.05); }
+:root.dark .user-dropdown-logout      { color: #fca5a5; }
+:root.dark .user-dropdown-logout:hover{ background: rgba(239,68,68,.12); }
+
+/* ── Stat-cards (admin/instructor/coordinator dashboards) ─────
+   Varios `stat-icon` traen `style="background:#EBF2FB"` /
+   `#FEF9C3` literal en blade. En dark cambiamos a un tono
+   acorde con la paleta. */
+:root.dark .stat-icon[style*="EBF2FB"],
+:root.dark .stat-icon[style*="#EBF2FB"] { background: rgba(76,143,212,.14) !important; }
+
+:root.dark .stat-icon[style*="FEF9C3"],
+:root.dark .stat-icon[style*="#FEF9C3"] { background: rgba(234,179,8,.14) !important; }
+
+:root.dark .tag-light  { background: rgba(76,143,212,.18); color: #93c5fd; }
+:root.dark .tag-warning{ background: rgba(234,179,8,.18); color: #fde68a; }
+
+/* ── Trend pills (dashboardAdmin.css) ────────────────────────── */
+:root.dark .trend.up   { background: rgba(34,197,94,.18); color: #86efac; }
+:root.dark .trend.down { background: rgba(239,68,68,.18); color: #fca5a5; }
+
+/* ── Inputs, selects, textareas ──────────────────────────────── */
+:root.dark input,
+:root.dark select,
+:root.dark textarea {
+    background-color: rgba(255,255,255,.04);
+    color: var(--text);
+    border-color: var(--border);
+}
+:root.dark input::placeholder,
+:root.dark textarea::placeholder { color: var(--text-muted); }
+:root.dark input:focus,
+:root.dark select:focus,
+:root.dark textarea:focus { border-color: var(--primary-400); }
+
+/* ── Botones primarios mantienen su color; los secundarios
+      con fondo claro hardcodeado los ajustamos. */
+:root.dark .btn-secondary,
+:root.dark .btn-ghost { background: rgba(255,255,255,.05); color: var(--text); border-color: var(--border); }
+
+/* ── Modales / overlays con shadow muy clara ──────────────────
+   Mantenemos el shadow pero más profundo en dark. */
+:root.dark [class*="-shadow"],
+:root.dark .panel { box-shadow: 0 1px 0 rgba(255,255,255,.02); }
+
+/* ── Botón del toggle de tema (sol/luna) ────────────────────── */
+.theme-toggle-icon { font-size: 17px; transition: opacity .15s, transform .25s; }
+.theme-toggle-sun  { display: inline-block; }
+.theme-toggle-moon { display: none; }
+:root.dark .theme-toggle-sun  { display: none; }
+:root.dark .theme-toggle-moon { display: inline-block; }

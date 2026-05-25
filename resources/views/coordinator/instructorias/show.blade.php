@@ -25,6 +25,14 @@
             </p>
         </div>
     </div>
+    {{-- Botón "Exportar Excel": dispara la descarga del histórico de sesiones
+         del instructor. Solo se muestra si hay al menos una sesión registrada. --}}
+    @if(!$sessions->isEmpty())
+        <a href="{{ route('coordinator.instructorias.export', $instructor) }}" class="btn-export-excel">
+            <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
+            <span>Exportar Excel</span>
+        </a>
+    @endif
 </div>
 
 @if($sessions->isEmpty())

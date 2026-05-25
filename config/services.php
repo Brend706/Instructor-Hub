@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    // NOTA: FICABOT ya NO usa OpenAI. Es un asistente rule-based 100% local
+    // (ver App\Services\FicabotKnowledgeBase + FicabotService). Por lo tanto
+    // no hay bloque `openai` ni se requieren claves externas.
+
 ];

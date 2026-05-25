@@ -15,6 +15,15 @@
         <h1 class="page-title">{{ $group->name }}</h1>
         <p class="page-sub">{{ $group->professor }} · {{ $group->semester }} · {{ $sessions->count() }} sesión(es) registradas</p>
     </div>
+    {{-- Botón "Exportar Excel": solo aparece si hay datos reales que exportar
+         (al menos una sesión y al menos un estudiante). Apunta a la ruta
+         instructor.attendance.export, que devuelve el .xlsx como descarga. --}}
+    @if(!$sessions->isEmpty() && !$students->isEmpty())
+        <a href="{{ route('instructor.attendance.export', $assignment) }}" class="btn-export-excel">
+            <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
+            <span>Exportar Excel</span>
+        </a>
+    @endif
 </div>
 
 @if($sessions->isEmpty())

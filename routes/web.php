@@ -11,7 +11,9 @@ use App\Http\Controllers\Coordinator\DashboardController;
 use App\Http\Controllers\Coordinator\GroupStudentsController;
 use App\Http\Controllers\Coordinator\InstructoriaController;
 use App\Http\Controllers\Coordinator\StudentImportController;
+use App\Http\Controllers\FicabotController;
 use App\Http\Controllers\Instructor\AttendanceController as InstructorAttendanceController;
+use App\Http\Controllers\Instructor\DashboardController as InstructorDashboardController;
 use App\Http\Controllers\Instructor\GroupController as InstructorGroupController;
 use App\Http\Controllers\Instructor\SessionController;
 use App\Http\Controllers\ProfileController;
@@ -111,11 +113,11 @@ Route::middleware('auth')->group(function () {
         // Instructorías: por instructor, ver todas las sesiones que ha dado (fecha + horas + grupo + asistentes).
         Route::get('/instructorias', [InstructoriaController::class, 'index'])->name('instructorias.index');
         Route::get('/instructorias/{instructor}', [InstructoriaController::class, 'show'])->name('instructorias.show');
+        // Descarga .xlsx con todas las sesiones del instructor (botón "Exportar Excel" en la vista show).
+        Route::get('/instructorias/{instructor}/export', [InstructoriaController::class, 'export'])->name('instructorias.export');
     });
     Route::middleware('role:instructor')->group(function () {
-        Route::get('/instructor/dashboard', function () {
-            return view('instructors.dashboard');
-        })->name('instructor.dashboard');
+        Route::get('/instructor/dashboard', InstructorDashboardController::class)->name('instructor.dashboard');
 
         Route::get('/instructor/grupos', [InstructorGroupController::class, 'index'])->name('instructor.groups.index');
         Route::get('/instructor/grupos/{assignment}', [InstructorGroupController::class, 'show'])->name('instructor.groups.show');
@@ -123,6 +125,8 @@ Route::middleware('auth')->group(function () {
         // Asistencia: lista de instructorías y, por instructoría, matriz estudiantes × sesiones.
         Route::get('/instructor/asistencia', [InstructorAttendanceController::class, 'index'])->name('instructor.attendance.index');
         Route::get('/instructor/asistencia/{assignment}', [InstructorAttendanceController::class, 'show'])->name('instructor.attendance.show');
+        // Descarga .xlsx con la matriz de asistencia (botón "Exportar Excel" en la vista show).
+        Route::get('/instructor/asistencia/{assignment}/export', [InstructorAttendanceController::class, 'export'])->name('instructor.attendance.export');
 
         // Vista "Iniciar sesión": generar QR, código de sesión y finalizar clase.
         Route::get('/instructor/session', [SessionController::class, 'create'])
@@ -140,3 +144,21 @@ Route::middleware('auth')->group(function () {
     Route::put('/mi-perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/mi-perfil/contrasena', [ProfileController::class, 'updatePassword'])->name('profile.password');
 });
+
+/*
+|--------------------------------------------------------------------------
+| FICABOT (asistente rule-based, sin OpenAI)
+|--------------------------------------------------------------------------
+| Estas rutas viven FUERA del middleware `auth` por dos motivos:
+|   1) Si la sesión del usuario expira o el navegador no envía la cookie
+|      correctamente, antes el endpoint devolvía 401 y el chat se rompía.
+|   2) El bot responde con un banco de respuestas estático (sin acceso a
+|      datos sensibles), así que no necesita autenticación para devolver
+|      ayuda general.
+| El controlador igualmente lee Auth::user() de forma opcional para
+| personalizar la respuesta y vincular las solicitudes de soporte cuando
+| hay sesión válida.
+*/
+Route::post('/ficabot/ask', [FicabotController::class, 'ask'])->name('ficabot.ask');
+Route::post('/ficabot/support', [FicabotController::class, 'escalate'])->name('ficabot.support');
+Route::get('/ficabot/suggestions', [FicabotController::class, 'suggestions'])->name('ficabot.suggestions');

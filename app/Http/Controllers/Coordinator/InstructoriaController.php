@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassSession;
 use App\Models\Instructor;
 use App\Models\StudentAttendance;
+use App\Services\AttendanceExcelExportService;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
@@ -73,6 +75,31 @@ class InstructoriaController extends Controller
         return view('coordinator.instructorias.show', [
             'instructor' => $instructor,
             'sessions' => $sessions,
+        ]);
+    }
+
+    /**
+     * Descarga el .xlsx con todas las sesiones que ha dado un instructor.
+     *
+     * Pensado para que el coordinador pueda llevarse el histórico completo
+     * de un instructor (no se restringe a un grupo en particular).
+     *
+     * Flujo:
+     *  1. AttendanceExcelExportService::buildCoordinatorSessions carga las sesiones
+     *     del instructor (con grupo y conteo de asistentes) y arma el libro con
+     *     dos hojas: "Sesiones" y "Resumen".
+     *  2. Se devuelven los bytes del archivo con los headers de descarga
+     *     correctos para que el navegador guarde el .xlsx en vez de abrirlo
+     *     como texto.
+     */
+    public function export(Instructor $instructor, AttendanceExcelExportService $exporter): Response
+    {
+        $file = $exporter->buildCoordinatorSessions($instructor);
+
+        return response($file['content'], 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$file['filename'].'"',
+            'Cache-Control' => 'no-store, no-cache',
         ]);
     }
 }

@@ -35,8 +35,19 @@ class NotificationController extends Controller
             $notification->markAsRead();
         }
 
-        // El campo data se castea a array automáticamente.
-        $instructorId = $notification?->data['instructor']['id'] ?? null;
+        $data = $notification?->data ?? [];
+
+        // Notificación de soporte de FICABOT: no hay vista dedicada todavía,
+        // así que simplemente volvemos a la página anterior (el dropdown se
+        // refresca al recargar y el badge baja porque ya se marcó como leída).
+        if (($data['kind'] ?? null) === 'ficabot.support') {
+            return redirect()->back();
+        }
+
+        // Notificación de instructor creado: si el instructor sigue existiendo,
+        // llevamos al admin directamente a la lista de instructores para que
+        // pueda revisarlo / editarlo.
+        $instructorId = $data['instructor']['id'] ?? null;
         if ($instructorId && Instructor::query()->whereKey($instructorId)->exists()) {
             return redirect()->route('admin.instructores.index');
         }
