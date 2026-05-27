@@ -71,6 +71,12 @@
                     <i class="ti ti-calendar-event nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Instructorías</span>
                 </a>
+                <a href="{{ route('coordinator.evaluations.index') }}"
+                   class="nav-item {{ request()->routeIs('coordinator.evaluations.*') ? 'active' : '' }}"
+                   data-label="Evaluaciones">
+                    <i class="ti ti-star nav-icon" aria-hidden="true"></i>
+                    <span class="nav-text">Evaluaciones</span>
+                </a>
             </div>
 
         </nav>

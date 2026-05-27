@@ -35,6 +35,80 @@
     @endif
 </div>
 
+{{-- ─── Flash de éxito/error luego de finalizar o reactivar una instructoría ─── --}}
+@if(session('status'))
+    <div class="flash-success">
+        <i class="ti ti-circle-check" aria-hidden="true"></i> {{ session('status') }}
+    </div>
+@endif
+
+{{-- ─── Estado de las instructorías (assignments) ─────────────────────────────
+     Cada fila = un grupo asignado a este instructor. El estado controla si
+     se pueden completar las evaluaciones del módulo. Al pulsar "Finalizar"
+     se cambia a "Finalizado" y se habilitan las evaluaciones. --}}
+<div class="assignments-card">
+    <div class="assignments-head">
+        <div>
+            <div class="assignments-title">Instructorías a tu cargo</div>
+            <div class="assignments-sub">Finalizar una instructoría habilita sus evaluaciones (autoeval, coordinador, etc.)</div>
+        </div>
+    </div>
+    @if($instructor->instructorAssignments->isEmpty())
+        <div class="assignments-empty">Este instructor todavía no tiene grupos asignados.</div>
+    @else
+        <div class="assignments-list">
+            @foreach($instructor->instructorAssignments as $assignment)
+                @php
+                    $g = $assignment->classGroup;
+                    $isFinalized = $assignment->status === 'Finalizado';
+                @endphp
+                <div class="assignment-row">
+                    <div class="assignment-info">
+                        <div class="assignment-name">{{ $g?->name ?? 'Grupo sin nombre' }}</div>
+                        <div class="assignment-meta">
+                            {{ $g?->semester ?? '—' }} · {{ $assignment->schedule ?? $g?->schedule ?? '—' }}
+                            @if($assignment->modality) · {{ $assignment->modality }} @endif
+                        </div>
+                    </div>
+                    <div class="assignment-status">
+                        @if($isFinalized)
+                            <span class="badge badge-closed">Finalizado</span>
+                        @else
+                            <span class="badge badge-open">Activo</span>
+                        @endif
+                    </div>
+                    <div class="assignment-actions">
+                        @if($isFinalized)
+                            {{-- Atajo a la evaluación del coordinador de ESTA instructoría --}}
+                            <a href="{{ route('coordinator.evaluations.create', $assignment) }}"
+                               class="btn-evaluate">
+                                <i class="ti ti-star" aria-hidden="true"></i> Evaluar
+                            </a>
+                            <form method="POST"
+                                  action="{{ route('coordinator.instructorias.assignment.reactivate', [$instructor, $assignment]) }}"
+                                  onsubmit="return confirm('¿Reactivar esta instructoría? Las evaluaciones ya enviadas se conservarán.');">
+                                @csrf
+                                <button type="submit" class="btn-reactivate">
+                                    <i class="ti ti-rotate" aria-hidden="true"></i> Reactivar
+                                </button>
+                            </form>
+                        @else
+                            <form method="POST"
+                                  action="{{ route('coordinator.instructorias.assignment.finalize', [$instructor, $assignment]) }}"
+                                  onsubmit="return confirm('¿Finalizar esta instructoría? Se habilitarán las evaluaciones.');">
+                                @csrf
+                                <button type="submit" class="btn-finalize">
+                                    <i class="ti ti-flag-check" aria-hidden="true"></i> Finalizar instructoría
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+</div>
+
 @if($sessions->isEmpty())
     <div class="empty-card">
         <i class="ti ti-calendar-off" aria-hidden="true"></i>

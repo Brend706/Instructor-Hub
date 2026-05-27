@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CoordinatorSeeder::class,
             InstructorSeeder::class,
+            EvaluationsSeeder::class,
         ]);
     }
 }

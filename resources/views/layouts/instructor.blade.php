@@ -70,6 +70,12 @@
                         <i class="ti ti-clipboard-check nav-icon"></i>
                         <span class="nav-text">Asistencia</span>
                     </a>
+                    <a href="{{ route('instructor.evaluations.index') }}"
+                       class="nav-item {{ request()->routeIs('instructor.evaluations.*') ? 'active' : '' }}"
+                       data-label="Evaluaciones">
+                        <i class="ti ti-star nav-icon"></i>
+                        <span class="nav-text">Evaluaciones</span>
+                    </a>
             </div>
 
         </nav>

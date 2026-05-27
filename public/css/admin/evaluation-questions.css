@@ -1,0 +1,243 @@
+/* ─────────────────────────────────────────────────────────────
+   CRUD de plantillas de preguntas (admin)
+   ───────────────────────────────────────────────────────────── */
+
+/* Tabs por tipo */
+.qt-tabs {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+}
+.qt-tab {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 14px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text-soft);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+}
+.qt-tab:hover { color: var(--text); }
+.qt-tab.is-active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+.qt-tab-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 18px; padding: 0 6px;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 10px; font-weight: 600;
+}
+.qt-tab.is-active .qt-tab-count {
+    background: var(--primary);
+    color: #fff;
+}
+
+/* Grid principal: lista + sidebar de nueva */
+.qt-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 18px;
+}
+
+/* Card de lista */
+.qt-list-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+}
+.qt-list-head {
+    margin-bottom: 14px;
+}
+.qt-list-title { font-size: 15px; font-weight: 600; }
+.qt-list-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.qt-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 30px 12px;
+}
+.qt-empty i { font-size: 28px; margin-bottom: 6px; display: block; }
+.qt-empty p { font-size: 13px; line-height: 1.5; }
+
+/* Lista numerada */
+.qt-list {
+    list-style: none;
+    padding: 0; margin: 0;
+}
+.qt-item {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+.qt-item:last-child { border-bottom: none; }
+.qt-item-inactive .qt-item-text { color: var(--text-muted); text-decoration: line-through; }
+
+.qt-item-order {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--text-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600;
+    margin-top: 2px;
+}
+
+.qt-item-body { min-width: 0; }
+.qt-item-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.4;
+}
+.qt-item-meta {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 6px;
+}
+
+.qt-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 10px;
+}
+.qt-badge-score { background: rgba(99,102,241,.12); color: var(--primary); }
+.qt-badge-text  { background: rgba(99,102,241,.06); color: var(--text-soft); }
+.qt-badge-info  { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.qt-badge-inactive {
+    background: #FEE2E2; color: #991B1B;
+}
+:root.dark .qt-badge-score { background: rgba(99,102,241,.20); }
+:root.dark .qt-badge-text  { background: rgba(255,255,255,.04); color: var(--text-soft); }
+:root.dark .qt-badge-inactive { background: rgba(239,68,68,.16); color: #fca5a5; }
+
+/* Form inline de edición */
+.qt-item-edit {
+    margin-top: 6px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.qt-item-edit textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+}
+.qt-item-edit textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+.qt-edit-row {
+    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+}
+.qt-edit-row select,
+.qt-edit-row input[type="number"] {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 12px;
+    font-family: inherit;
+}
+.qt-edit-row input[type="number"] { width: 70px; }
+
+/* Botones de ícono (mover / editar / toggle / borrar) */
+.qt-item-actions {
+    display: flex; gap: 4px; flex-shrink: 0;
+}
+.qt-icon-btn {
+    width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+.qt-icon-btn:hover {
+    background: var(--surface-hover);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+.qt-icon-btn:disabled { opacity: .4; cursor: not-allowed; }
+.qt-icon-danger:hover {
+    color: #DC2626;
+    border-color: #DC2626;
+}
+:root.dark .qt-icon-danger:hover { color: #fca5a5; border-color: #fca5a5; }
+
+/* Sidebar de nueva pregunta */
+.qt-new-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    height: fit-content;
+    position: sticky;
+    top: 18px;
+}
+.qt-new-title {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 600;
+    margin-bottom: 6px;
+}
+.qt-new-help {
+    font-size: 11px; color: var(--text-muted);
+    margin-bottom: 14px;
+    line-height: 1.5;
+}
+
+.qt-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin: 12px 0 4px;
+}
+.qt-label:first-of-type { margin-top: 0; }
+
+.qt-new-form textarea,
+.qt-new-form select,
+.qt-new-form input[type="number"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+}
+.qt-new-form textarea { resize: vertical; }
+.qt-new-form textarea:focus,
+.qt-new-form select:focus,
+.qt-new-form input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+.qt-new-submit {
+    width: 100%;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+@media (max-width: 900px) {
+    .qt-grid { grid-template-columns: 1fr; }
+    .qt-new-card { position: static; }
+    .qt-item { grid-template-columns: 28px 1fr; }
+    .qt-item-actions { grid-column: 1 / -1; justify-content: flex-end; margin-top: 6px; }
+}

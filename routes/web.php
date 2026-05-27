@@ -2,18 +2,24 @@
 
 use App\Http\Controllers\Admin\CoordinatorController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\EvaluationController as AdminEvaluationController;
+use App\Http\Controllers\Admin\EvaluationQuestionController as AdminEvaluationQuestionController;
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Coordinator\ClassGroupController;
 use App\Http\Controllers\Coordinator\DashboardController;
+use App\Http\Controllers\Coordinator\AssignmentStatusController;
+use App\Http\Controllers\Coordinator\EvaluationController as CoordinatorEvaluationController;
+use App\Http\Controllers\Coordinator\EvaluationImportController as CoordinatorEvaluationImportController;
 use App\Http\Controllers\Coordinator\GroupStudentsController;
 use App\Http\Controllers\Coordinator\InstructoriaController;
 use App\Http\Controllers\Coordinator\StudentImportController;
 use App\Http\Controllers\FicabotController;
 use App\Http\Controllers\Instructor\AttendanceController as InstructorAttendanceController;
 use App\Http\Controllers\Instructor\DashboardController as InstructorDashboardController;
+use App\Http\Controllers\Instructor\EvaluationController as InstructorEvaluationController;
 use App\Http\Controllers\Instructor\GroupController as InstructorGroupController;
 use App\Http\Controllers\Instructor\SessionController;
 use App\Http\Controllers\ProfileController;
@@ -90,6 +96,47 @@ Route::middleware('auth')->group(function () {
         // Ambas viven detrás de role:admin, así que solo administradores pueden invocarlas.
         Route::post('/notifications/{id}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
         Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+
+        // Evaluaciones (admin): vista global de TODAS las evaluaciones del sistema.
+        // Index lista instructorías con evaluaciones (filtrable por instructor y ciclo);
+        // show muestra el detalle por tipo con todas las respuestas; export descarga
+        // el .xlsx consolidado del assignment; por_instructor es un reporte agregado.
+        Route::get('/evaluaciones',
+            [AdminEvaluationController::class, 'index'])
+            ->name('evaluations.index');
+        Route::get('/evaluaciones/por-instructor',
+            [AdminEvaluationController::class, 'byInstructor'])
+            ->name('evaluations.by_instructor');
+        Route::get('/evaluaciones/{assignment}',
+            [AdminEvaluationController::class, 'show'])
+            ->name('evaluations.show');
+        Route::get('/evaluaciones/{assignment}/exportar',
+            [AdminEvaluationController::class, 'export'])
+            ->name('evaluations.export');
+        Route::post('/evaluaciones/resultado/{result}/revisar',
+            [AdminEvaluationController::class, 'markReviewed'])
+            ->name('evaluations.results.review');
+
+        // CRUD de plantillas de preguntas (4 tipos: self/coordinator/student/teacher).
+        // Permite agregar, editar, reordenar y desactivar preguntas sin tocar código.
+        Route::get('/plantillas-evaluacion/{tipo}',
+            [AdminEvaluationQuestionController::class, 'index'])
+            ->name('evaluations.questions.index');
+        Route::post('/plantillas-evaluacion/{tipo}',
+            [AdminEvaluationQuestionController::class, 'store'])
+            ->name('evaluations.questions.store');
+        Route::put('/plantillas-evaluacion/pregunta/{question}',
+            [AdminEvaluationQuestionController::class, 'update'])
+            ->name('evaluations.questions.update');
+        Route::post('/plantillas-evaluacion/pregunta/{question}/toggle',
+            [AdminEvaluationQuestionController::class, 'toggle'])
+            ->name('evaluations.questions.toggle');
+        Route::post('/plantillas-evaluacion/pregunta/{question}/mover/{direction}',
+            [AdminEvaluationQuestionController::class, 'move'])
+            ->name('evaluations.questions.move');
+        Route::delete('/plantillas-evaluacion/pregunta/{question}',
+            [AdminEvaluationQuestionController::class, 'destroy'])
+            ->name('evaluations.questions.destroy');
     });
 
     Route::middleware(['auth', 'role:coordinator'])->prefix('coordinador')->name('coordinator.')->group(function () {
@@ -115,6 +162,39 @@ Route::middleware('auth')->group(function () {
         Route::get('/instructorias/{instructor}', [InstructoriaController::class, 'show'])->name('instructorias.show');
         // Descarga .xlsx con todas las sesiones del instructor (botón "Exportar Excel" en la vista show).
         Route::get('/instructorias/{instructor}/export', [InstructoriaController::class, 'export'])->name('instructorias.export');
+
+        // Finalizar / reactivar una instructoría (assignment). Finalizar es lo que
+        // habilita las evaluaciones del módulo "Evaluaciones".
+        Route::post('/instructorias/{instructor}/asignaciones/{assignment}/finalizar',
+            [AssignmentStatusController::class, 'finalize'])
+            ->name('instructorias.assignment.finalize');
+        Route::post('/instructorias/{instructor}/asignaciones/{assignment}/reactivar',
+            [AssignmentStatusController::class, 'reactivate'])
+            ->name('instructorias.assignment.reactivate');
+
+        // Evaluaciones del coordinador: listar instructorías finalizadas a su cargo
+        // y completar la evaluación al instructor (10 preguntas).
+        Route::get('/evaluaciones',
+            [CoordinatorEvaluationController::class, 'index'])
+            ->name('evaluations.index');
+        Route::get('/evaluaciones/{assignment}',
+            [CoordinatorEvaluationController::class, 'create'])
+            ->name('evaluations.create');
+        Route::post('/evaluaciones/{assignment}',
+            [CoordinatorEvaluationController::class, 'store'])
+            ->name('evaluations.store');
+
+        // Import por Excel: evaluaciones de estudiantes y docente titular.
+        // El {tipo} debe ser 'student' o 'teacher' (validado en el controller).
+        Route::get('/evaluaciones/{assignment}/importar/{tipo}',
+            [CoordinatorEvaluationImportController::class, 'show'])
+            ->name('evaluations.import.show');
+        Route::get('/evaluaciones/{assignment}/importar/{tipo}/plantilla',
+            [CoordinatorEvaluationImportController::class, 'template'])
+            ->name('evaluations.import.template');
+        Route::post('/evaluaciones/{assignment}/importar/{tipo}',
+            [CoordinatorEvaluationImportController::class, 'store'])
+            ->name('evaluations.import.store');
     });
     Route::middleware('role:instructor')->group(function () {
         Route::get('/instructor/dashboard', InstructorDashboardController::class)->name('instructor.dashboard');
@@ -137,6 +217,18 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/instructor/session/end', [SessionController::class, 'end'])
             ->name('instructor.session.end');
+
+        // Evaluaciones: autoevaluación del instructor (se habilita por
+        // instructoría cuando el coordinador la marca como "Finalizada").
+        Route::get('/instructor/evaluaciones',
+            [InstructorEvaluationController::class, 'index'])
+            ->name('instructor.evaluations.index');
+        Route::get('/instructor/evaluaciones/{assignment}',
+            [InstructorEvaluationController::class, 'create'])
+            ->name('instructor.evaluations.create');
+        Route::post('/instructor/evaluaciones/{assignment}',
+            [InstructorEvaluationController::class, 'store'])
+            ->name('instructor.evaluations.store');
     });
 
     // Perfil: requiere sesión; cualquier rol autenticado puede ver y editar su propio `users`.

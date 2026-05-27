@@ -82,6 +82,12 @@
                     <i class="ti ti-calendar-event nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Instructorías</span>
                 </a>
+                <a href="{{ route('admin.evaluations.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.evaluations.*') ? 'active' : '' }}"
+                   data-label="Evaluaciones">
+                    <i class="ti ti-star nav-icon" aria-hidden="true"></i>
+                    <span class="nav-text">Evaluaciones</span>
+                </a>
             </div>
 
             <div class="nav-section">

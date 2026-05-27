@@ -152,3 +152,98 @@
 }
 .badge-open   { background: #DCFCE7; color: #166534; }
 .badge-closed { background: #F1F4F8; color: var(--text-soft); }
+
+/* ─────────────────────────────────────────────────────────────
+   FLASH + TARJETA DE INSTRUCTORÍAS (assignments) DEL INSTRUCTOR
+   ───────────────────────────────────────────────────────────── */
+
+.flash-success {
+    display: flex; align-items: center; gap: 8px;
+    background: #DCFCE7; color: #166534;
+    border: 1px solid #86efac;
+    padding: 10px 14px; border-radius: 10px;
+    font-size: 13px; margin-bottom: 16px;
+}
+
+.assignments-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+}
+.assignments-head { margin-bottom: 12px; }
+.assignments-title { font-size: 13px; font-weight: 600; }
+.assignments-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.assignments-empty { font-size: 12px; color: var(--text-muted); padding: 10px 0; }
+
+.assignments-list { display: flex; flex-direction: column; gap: 10px; }
+.assignment-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px; align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+}
+.assignment-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.assignment-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.btn-finalize,
+.btn-reactivate,
+.btn-evaluate {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; font-family: inherit;
+    padding: 6px 12px; border-radius: 8px;
+    cursor: pointer; border: 1px solid transparent;
+    text-decoration: none;
+    transition: background .15s, border-color .15s, transform .1s;
+}
+.btn-finalize  { background: var(--primary); color: #fff; }
+.btn-finalize:hover  { background: var(--primary-700); }
+.btn-reactivate {
+    background: transparent;
+    color: var(--text-soft);
+    border-color: var(--border);
+}
+.btn-reactivate:hover { background: var(--surface-hover); color: var(--text); }
+/* Botón "Evaluar" en assignments ya finalizados: estilo "warning" suave
+   para que se diferencie del resto y llame la atención. */
+.btn-evaluate {
+    background: #FEF3C7;
+    color: #92400E;
+    border-color: #FDE68A;
+}
+.btn-evaluate:hover { background: #FDE68A; }
+:root.dark .btn-evaluate {
+    background: rgba(251,191,36,.16);
+    color: #fcd34d;
+    border-color: rgba(251,191,36,.32);
+}
+:root.dark .btn-evaluate:hover { background: rgba(251,191,36,.28); }
+
+.assignment-actions {
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Modo oscuro: el flash y la tarjeta usan vars y se ven bien; ajustamos
+   solo el flash que tiene colores hardcodeados de éxito. */
+:root.dark .flash-success {
+    background: rgba(34,197,94,.14);
+    color: #86efac;
+    border-color: rgba(134,239,172,.32);
+}
+:root.dark .assignment-row { background: rgba(255,255,255,.02); }
+
+@media (max-width: 640px) {
+    .assignment-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    .assignment-actions form { width: 100%; }
+    .btn-finalize, .btn-reactivate { width: 100%; justify-content: center; }
+}
