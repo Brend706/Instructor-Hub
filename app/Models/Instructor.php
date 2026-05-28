@@ -25,6 +25,17 @@ class Instructor extends Model
     }
 
     /**
+     * Coordinador propietario del instructor (puede ser NULL para datos
+     * heredados de antes del aislamiento por coordinación).
+     *
+     * @return BelongsTo<Coordinator, $this>
+     */
+    public function coordinator(): BelongsTo
+    {
+        return $this->belongsTo(Coordinator::class);
+    }
+
+    /**
      * Grupos asignados a este instructor (vía `instructor_assignments`).
      *
      * @return HasMany<InstructorAssignment, $this>

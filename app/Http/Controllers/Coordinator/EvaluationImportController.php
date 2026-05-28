@@ -124,8 +124,8 @@ class EvaluationImportController extends Controller
             ->first();
 
         $coordinatorId = $coordinator?->id;
-        $owned = $instructor->coordinator_id === null
-            || ($coordinatorId && (int) $instructor->coordinator_id === (int) $coordinatorId);
+        $owned = $coordinatorId !== null
+            && (int) $instructor->coordinator_id === (int) $coordinatorId;
 
         if (! $owned) {
             abort(403, 'No tienes permiso para importar evaluaciones de este instructor.');

@@ -600,5 +600,38 @@
     });
 
     sendBtn.addEventListener('click', sendMessage);
+
+    // ─── API pública para abrir Lumi proactivamente ────────────────
+    // Se usa, por ejemplo, en la vista de login para abrir el chat
+    // automáticamente cuando el usuario falla dos veces sus credenciales.
+    //
+    // Uso:
+    //   window.LumiAutoOpen.show({
+    //     message: 'Hola, soy Lumi…',
+    //     suggestions: ['Quiero contactar al admin', 'Olvidé mi contraseña'],
+    //   });
+    //
+    // Si offerEscalate=true se renderiza también el botón "Contactar
+    // administrador" debajo del mensaje, igual que en una respuesta normal.
+    window.LumiAutoOpen = {
+      show({ message, suggestions = [], offerEscalate = true } = {}) {
+        openSage();
+        if (message) {
+          appendMessage('assistant', message);
+        }
+        if (Array.isArray(suggestions) && suggestions.length) {
+          mountSuggestions(suggestions);
+        }
+        if (offerEscalate) {
+          // Pre-armamos el contexto que se enviará al admin si el usuario
+          // confirma escalar (pregunta = el motivo del auto-open).
+          pendingEscalation = {
+            question: message || 'Solicitud automática de soporte',
+            reply: 'Lumi se abrió automáticamente para ofrecer ayuda al usuario.',
+          };
+          mountEscalateButton();
+        }
+      },
+    };
   })();
 </script>

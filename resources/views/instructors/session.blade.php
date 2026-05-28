@@ -141,8 +141,21 @@
                     El QR enlaza a un formulario donde el estudiante ingresa su carnet.<br>
                     Solo se acepta si está inscrito en esta clase.
                 </p>
+                {{-- Si el coordinador finalizó la instructoría, el botón queda
+                     desactivado y se muestra un aviso. Si la reactiva, vuelve
+                     a habilitarse automáticamente al recargar la vista. --}}
+                @if($assignmentFinalized ?? false)
+                    <div class="qr-finalized-notice"
+                         style="margin:10px 0;padding:10px 14px;border-radius:10px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);color:#b91c1c;font-size:13px;display:flex;align-items:center;gap:8px">
+                        <i class="ti ti-lock" aria-hidden="true"></i>
+                        <span>Tu coordinador finalizó esta instructoría. No puedes generar QR hasta que la reactive.</span>
+                    </div>
+                @endif
+
                 <div class="qr-actions">
-                    <button type="button" class="btn btn-primary" id="btnStart" onclick="startSession()" @disabled(!$group)>
+                    <button type="button" class="btn btn-primary" id="btnStart" onclick="startSession()"
+                            @disabled(!$group || ($assignmentFinalized ?? false))
+                            title="{{ ($assignmentFinalized ?? false) ? 'Instructoría finalizada por el coordinador' : '' }}">
                         <i class="ti ti-player-play" aria-hidden="true"></i> Generar QR e iniciar
                     </button>
                     <button type="button" class="btn btn-danger" id="btnEnd" style="display:none" onclick="endSession()">

@@ -161,5 +161,36 @@
         const input = document.getElementById('password');
         if (input) input.type = this.checked ? 'text' : 'password';
     });
+
+    // ─── Auto-apertura de Lumi tras 2 fallos consecutivos ─────────────
+    // El backend (LoginController@trackFailedLogin) deja un flash session
+    // `login_help` con { type: 'email'|'password' } cuando se alcanzan los
+    // dos fallos. Aquí lo leemos y abrimos Lumi con un mensaje proactivo.
+    @if(session()->has('login_help'))
+        @php
+            $loginHelp = session('login_help');
+            $loginHelpType = $loginHelp['type'] ?? 'password';
+            // Mensajes específicos según qué falló más probablemente.
+            $loginHelpMessage = $loginHelpType === 'email'
+                ? '¡Hola! Soy Lumi. Vi que tuviste dos intentos fallidos. Parece que el correo no está registrado en el sistema. ¿Te quieres poner en contacto con un administrador para que te ayude?'
+                : '¡Hola! Soy Lumi. Vi que tuviste dos intentos fallidos. Parece que olvidaste tu contraseña. ¿Te quieres poner en contacto con un administrador para que te la restablezca?';
+        @endphp
+        document.addEventListener('DOMContentLoaded', function () {
+            // Pequeño retraso para que Lumi termine de inicializarse después
+            // del IIFE del componente.
+            setTimeout(function () {
+                if (window.LumiAutoOpen && typeof window.LumiAutoOpen.show === 'function') {
+                    window.LumiAutoOpen.show({
+                        message: @json($loginHelpMessage),
+                        // Estas sugerencias matchean intents del KB de Lumi:
+                        //  - "contactar al administrador" → intent contact_admin
+                        //  - "¿olvidé mi contraseña?" / "¿cómo cambio mi contraseña?"
+                        suggestions: ['Contactar al administrador', '¿Olvidé mi contraseña?'],
+                        offerEscalate: true,
+                    });
+                }
+            }, 400);
+        });
+    @endif
 </script>
 @endpush

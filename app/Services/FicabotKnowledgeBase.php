@@ -197,17 +197,17 @@ class FicabotKnowledgeBase
         return match ($role) {
             'admin' => [
                 '¿Cómo creo un coordinador?',
-                '¿Cómo veo las notificaciones?',
-                '¿Cómo elimino un instructor?',
+                '¿Cómo veo todas las evaluaciones?',
+                '¿Cómo gestiono las preguntas de evaluación?',
             ],
             'coordinator' => [
                 '¿Cómo creo un grupo de clase?',
-                '¿Cómo importo estudiantes?',
-                '¿Cómo asigno un instructor a un grupo?',
+                '¿Cómo evalúo a un instructor?',
+                '¿Cómo importo evaluaciones de estudiantes?',
             ],
             'instructor' => [
                 '¿Cómo inicio una sesión con QR?',
-                '¿Cómo veo mi asistencia?',
+                '¿Cómo envío mi autoevaluación?',
                 '¿Cómo exporto la asistencia a Excel?',
             ],
             default => [
@@ -261,9 +261,9 @@ class FicabotKnowledgeBase
     public function topicPills(?string $role): array
     {
         return match ($role) {
-            'admin' => ['Coordinadores', 'Instructores', 'Notificaciones', 'Mi perfil'],
-            'coordinator' => ['Mis instructores', 'Grupos de clase', 'Importar estudiantes', 'Instructorías'],
-            'instructor' => ['Mis grupos', 'Iniciar QR', 'Asistencia', 'Exportar Excel'],
+            'admin' => ['Coordinadores', 'Instructores', 'Evaluaciones', 'Notificaciones'],
+            'coordinator' => ['Mis instructores', 'Grupos de clase', 'Instructorías', 'Evaluaciones'],
+            'instructor' => ['Mis grupos', 'Iniciar QR', 'Asistencia', 'Autoevaluación'],
             default => ['Iniciar sesión', 'Asistencia QR', 'Mi perfil', 'Contactar admin'],
         };
     }
@@ -457,7 +457,7 @@ class FicabotKnowledgeBase
                     'gracias', 'muchas gracias', 'mil gracias', 'chao', 'chau',
                     'adios', 'listo', 'ok gracias', 'nos vemos', 'bye',
                 ],
-                'response' => 'De nada. Si te surge otra duda, abre la campanita de FICABOT cuando quieras.',
+                'response' => 'De nada. Si te surge otra duda, abre la burbuja de Lumi cuando quieras.',
                 'suggestions' => [],
             ],
 
@@ -1195,7 +1195,7 @@ class FicabotKnowledgeBase
                     ."1. Verificá que el correo esté sin espacios al inicio o al final.\n"
                     ."2. La contraseña distingue mayúsculas y minúsculas.\n"
                     ."3. Tu cuenta tiene que existir (la crea un admin o un coordinador; no hay auto-registro).\n"
-                    ."4. Si te aparece \"Las credenciales no coinciden con nuestros registros.\", el correo o la contraseña son incorrectos.\n"
+                    ."4. Si te aparece \"El correo o la contraseña están equivocados.\", revisá ambos campos.\n"
                     ."5. Si te aparece \"Tu cuenta no tiene un rol válido asignado.\", un administrador debe asignarte un rol.\n\n"
                     .'Por ahora no hay auto-reseteo de contraseña. Si nada de esto funcionó, ¿querés que te ponga en contacto con un administrador?',
                 'suggestions' => [
@@ -1492,24 +1492,229 @@ class FicabotKnowledgeBase
                 ],
             ],
 
+            // ═══════════════════════════════════════════════════════════
+            //  EVALUACIONES (módulo completo: self / coordinator / student / teacher / admin)
+            // ═══════════════════════════════════════════════════════════
+
             [
-                'id' => 'register_evaluations',
+                'id' => 'evaluations_overview',
                 'keywords' => [
-                    'registrar evaluaciones', 'crear evaluacion', 'subir notas',
-                    'poner notas', 'calificaciones', 'examen', 'examenes',
-                    'evaluacion', 'evaluaciones', 'modulo de notas',
+                    'evaluacion', 'evaluaciones', 'modulo de evaluaciones',
+                    'sobre evaluaciones', 'que son las evaluaciones',
+                    'como funciona evaluaciones', 'como funcionan las evaluaciones',
+                    'subir notas', 'poner notas', 'calificaciones',
+                    'modulo de notas', 'examen', 'examenes',
                 ],
-                'response' => "Por ahora Instructor Hub NO tiene un módulo de evaluaciones ni de notas. La plataforma maneja:\n\n"
-                    ."- Grupos de clase\n"
-                    ."- Lista de estudiantes inscritos\n"
-                    ."- Asistencia (con QR)\n"
-                    ."- Reportes de asistencia en Excel\n\n"
-                    ."Las calificaciones tendrías que llevarlas por otro medio (sistema académico de la universidad, una hoja de cálculo, etc.).\n\n"
-                    ."Si te urge tener este módulo, ¿querés que te ponga en contacto con un administrador para registrar la solicitud?",
+                'response' => "Instructor Hub tiene un módulo de evaluaciones para medir el desempeño del instructor.\n\n"
+                    ."Hay 4 tipos:\n"
+                    ."- Autoevaluación (la hace el propio instructor).\n"
+                    ."- Coordinador (la hace su coordinador encargado).\n"
+                    ."- Estudiantes (las completan los estudiantes y se suben por Excel).\n"
+                    ."- Docente titular (la completa el catedrático y se sube por Excel).\n\n"
+                    ."Requisito clave: la instructoría debe estar en estado \"Finalizado\". Mientras esté \"Activo\" las evaluaciones siguen bloqueadas.\n\n"
+                    ."¿Sobre qué parte querés saber más?",
                 'suggestions' => [
-                    '¿Cómo registro asistencia con QR?',
-                    '¿Cómo exporto la asistencia a Excel?',
-                    '¿Cómo veo los estudiantes del grupo?',
+                    '¿Cómo envío mi autoevaluación?',
+                    '¿Cómo evalúo a un instructor?',
+                    '¿Cómo importo evaluaciones de estudiantes?',
+                    '¿Cómo veo todas las evaluaciones (admin)?',
+                ],
+            ],
+
+            [
+                'id' => 'evaluations_finalize_required',
+                'keywords' => [
+                    'no aparece evaluacion', 'no aparece la evaluacion',
+                    'evaluacion bloqueada', 'no puedo evaluar', 'no me deja evaluar',
+                    'porque no puedo evaluar', 'donde se habilita la evaluacion',
+                    'finalizar instructoria', 'reactivar instructoria',
+                    'estado activo finalizado', 'cambiar estado instructoria',
+                ],
+                'response' => "Las evaluaciones SOLO se habilitan cuando la instructoría está \"Finalizado\".\n\n"
+                    ."Lo hace el coordinador desde:\n"
+                    ."Coordinador → Instructorías → entrar al instructor → botón \"Finalizar instructoría\".\n\n"
+                    ."Mientras esté \"Activo\":\n"
+                    ."- Las opciones de evaluar no aparecen.\n"
+                    ."- El instructor PUEDE seguir generando QR e iniciar sesiones.\n\n"
+                    ."Si se finalizó por error, el coordinador puede pulsar \"Reactivar\" en la misma vista. Al reactivarla, el instructor puede volver a generar QR.",
+                'suggestions' => [
+                    '¿Cómo finalizo una instructoría?',
+                    '¿Cómo envío mi autoevaluación?',
+                    '¿Cómo evalúo a un instructor?',
+                ],
+            ],
+
+            [
+                'id' => 'evaluations_self',
+                'keywords' => [
+                    'autoevaluacion', 'auto evaluacion', 'auto-evaluacion',
+                    'enviar autoevaluacion', 'completar autoevaluacion',
+                    'mi autoevaluacion', 'evaluarme', 'evaluacion propia',
+                    'autoevaluarme', 'autoevaluacion del instructor',
+                ],
+                'restricted_to' => ['instructor'],
+                'restricted_response' => 'La autoevaluación la hace cada instructor desde su panel. Si querés ayuda con el flujo igual, te lo puedo explicar.',
+                'response' => "Para enviar tu autoevaluación:\n\n"
+                    ."1. Entra a Evaluaciones desde tu menú lateral.\n"
+                    ."2. Verás tus instructorías FINALIZADAS. Si la tuya aparece como \"Pendiente\", pulsa \"Realizar autoevaluación\".\n"
+                    ."3. El formulario tiene preguntas con escala 1 a 5 + algunas preguntas de texto.\n"
+                    ."4. Pulsa \"Enviar autoevaluación\".\n\n"
+                    ."Cuando la envíes, tu coordinador recibe una notificación automática en su burbuja para revisarla.\n\n"
+                    ."Si ya la enviaste, podés volver a entrar y editarla (queda precargada con lo que mandaste).",
+                'suggestions' => [
+                    '¿Por qué no me aparece la evaluación?',
+                    '¿Cómo veo el estado de mi autoevaluación?',
+                    '¿Olvidé mi contraseña?',
+                ],
+            ],
+
+            [
+                'id' => 'evaluations_coordinator',
+                'keywords' => [
+                    'evaluar instructor', 'evaluar a mi instructor', 'evaluar tutor',
+                    'calificar instructor', 'evaluacion del coordinador',
+                    'como evaluo a un instructor', 'evaluar a un instructor',
+                    'completar evaluacion del coordinador',
+                ],
+                'restricted_to' => ['coordinator'],
+                'restricted_response' => 'La evaluación de coordinador la hace el coordinador encargado del instructor desde su panel.',
+                'response' => "Para evaluar a un instructor que tengas a cargo:\n\n"
+                    ."1. Ve a Evaluaciones desde tu menú lateral.\n"
+                    ."2. Verás la lista de instructorías FINALIZADAS de tus instructores.\n"
+                    ."3. Pulsa \"Evaluar\" en la fila del instructor que quieras.\n"
+                    ."4. Completa las preguntas (1 a 5) y, si hay, los comentarios.\n"
+                    ."5. Pulsa \"Guardar evaluación\".\n\n"
+                    ."Notas importantes:\n"
+                    ."- Solo ves a TUS instructores (los que tu cuenta creó o el admin te asignó).\n"
+                    ."- Si la instructoría aún está \"Activo\" no aparecerá el botón \"Evaluar\". Primero finalízala desde Instructorías.\n"
+                    ."- Tu evaluación reemplaza la anterior si la editas.",
+                'suggestions' => [
+                    '¿Cómo finalizo una instructoría?',
+                    '¿Cómo importo evaluaciones de estudiantes?',
+                    '¿Cómo importo la evaluación del docente?',
+                ],
+            ],
+
+            [
+                'id' => 'evaluations_import_students',
+                'keywords' => [
+                    'importar evaluaciones estudiantes', 'importar evaluacion estudiantes',
+                    'subir evaluaciones estudiantes', 'evaluacion de estudiantes',
+                    'evaluaciones de los estudiantes', 'cargar evaluaciones de estudiantes',
+                    'plantilla evaluacion estudiantes', 'plantilla estudiantes evaluacion',
+                    'excel evaluacion estudiantes', 'subir excel estudiantes',
+                ],
+                'restricted_to' => ['coordinator'],
+                'restricted_response' => 'La importación de evaluaciones de estudiantes la hace el coordinador desde su panel.',
+                'response' => "Para subir las evaluaciones que llenaron los estudiantes:\n\n"
+                    ."1. Ve a Evaluaciones → entra a la instructoría.\n"
+                    ."2. En la card del instructor verás el chip \"Estudiantes (n)\". Pulsalo.\n"
+                    ."3. Paso 1: pulsa \"Descarga el formulario\" para bajar el .xlsx con un encabezado por pregunta. Pasalo a tus estudiantes o pegá las respuestas que ya tengas (una fila por estudiante).\n"
+                    ."4. Paso 2: subí el archivo lleno y pulsa \"Importar\".\n\n"
+                    ."Reglas:\n"
+                    ."- Cada fila se guarda como una evaluación independiente con source = csv_import.\n"
+                    ."- Si una fila tiene valores fuera de rango (no 1-5), se ajusta al rango y se reporta.\n"
+                    ."- Podés importar el mismo tipo varias veces (no reemplaza, suma).",
+                'suggestions' => [
+                    '¿Cómo importo la evaluación del docente?',
+                    '¿Cómo veo todas las evaluaciones (admin)?',
+                    '¿Cómo evalúo a un instructor?',
+                ],
+            ],
+
+            [
+                'id' => 'evaluations_import_teacher',
+                'keywords' => [
+                    'importar evaluacion docente', 'importar evaluacion del docente',
+                    'evaluacion del docente titular', 'subir evaluacion docente',
+                    'cargar evaluacion docente', 'evaluacion catedratico',
+                    'evaluacion del catedratico', 'evaluacion profesor titular',
+                    'plantilla evaluacion docente', 'excel evaluacion docente',
+                ],
+                'restricted_to' => ['coordinator'],
+                'restricted_response' => 'La importación de la evaluación del docente la hace el coordinador desde su panel.',
+                'response' => "Para subir la evaluación que llenó el docente titular del curso:\n\n"
+                    ."1. Ve a Evaluaciones → entra a la instructoría del instructor.\n"
+                    ."2. Pulsa el chip \"Docente (n)\" en su card.\n"
+                    ."3. Paso 1: \"Descarga el formulario\" .xlsx. Pasalo al docente titular o pegá vos mismo sus respuestas.\n"
+                    ."4. Paso 2: subí el archivo y pulsa \"Importar\".\n\n"
+                    ."Reglas:\n"
+                    ."- Normalmente es una sola fila (un docente por curso).\n"
+                    ."- Se guarda con source = csv_import.\n"
+                    ."- Podés volver a importar si necesitás corregirla.",
+                'suggestions' => [
+                    '¿Cómo importo evaluaciones de estudiantes?',
+                    '¿Cómo evalúo a un instructor?',
+                    '¿Cómo veo todas las evaluaciones (admin)?',
+                ],
+            ],
+
+            [
+                'id' => 'evaluations_admin_panel',
+                'keywords' => [
+                    'ver todas las evaluaciones', 'panel evaluaciones admin',
+                    'panel de evaluaciones', 'todas las evaluaciones',
+                    'evaluaciones de toda la facultad', 'reporte de evaluaciones',
+                    'evaluaciones por instructor', 'historial de evaluaciones',
+                    'exportar evaluaciones', 'descargar evaluaciones consolidadas',
+                    'excel evaluaciones consolidado', 'admin evaluaciones',
+                ],
+                'restricted_to' => ['admin'],
+                'restricted_response' => 'El panel global de evaluaciones solo está en el menú del administrador. Si necesitas algo de ahí, escalo con un admin.',
+                'response' => "Como admin tenés tres vistas sobre evaluaciones:\n\n"
+                    ."1. Evaluaciones (menú lateral): tabla con todas las instructorías evaluadas. Filtros por instructor y por semestre, métricas (total, promedio, pendientes de revisión) y un botón \"Exportar Excel\" por fila que arma un consolidado multi-hoja (resumen + una hoja por tipo).\n"
+                    ."2. Detalle de una evaluación: clic en \"Ver\" → vés todas las respuestas agrupadas por tipo (self, coord, students, teacher), promedio por tipo y podés marcarlas como \"Revisado\".\n"
+                    ."3. Reporte por instructor: botón \"Por instructor\" → tabla con promedios históricos por tipo y promedio general de cada uno.\n\n"
+                    ."Además, podés gestionar las preguntas desde \"Plantillas de preguntas\".",
+                'suggestions' => [
+                    '¿Cómo gestiono las preguntas de evaluación?',
+                    '¿Cómo veo el reporte por instructor?',
+                    '¿Cómo finalizo una instructoría?',
+                ],
+            ],
+
+            [
+                'id' => 'evaluations_questions_crud',
+                'keywords' => [
+                    'preguntas de evaluacion', 'plantilla de preguntas',
+                    'plantillas de preguntas', 'crear pregunta', 'editar pregunta',
+                    'agregar pregunta', 'desactivar pregunta', 'eliminar pregunta',
+                    'reordenar preguntas', 'orden de preguntas', 'crud preguntas',
+                    'preguntas autoevaluacion', 'preguntas coordinador',
+                    'preguntas estudiantes', 'preguntas docente',
+                ],
+                'restricted_to' => ['admin'],
+                'restricted_response' => 'La gestión de preguntas de evaluación solo está disponible para administradores.',
+                'response' => "Para gestionar las preguntas:\n\n"
+                    ."1. Menú lateral → Evaluaciones → botón \"Plantillas de preguntas\".\n"
+                    ."2. Arriba hay 4 tabs (Autoevaluación, Coordinador, Estudiante, Docente). Cambiá entre ellas para editar las preguntas de cada tipo.\n"
+                    ."3. En la barra lateral derecha tenés el formulario para agregar una pregunta nueva (texto, tipo: score 1-5 o texto libre).\n"
+                    ."4. En cada pregunta existente:\n"
+                    ."   - Lápiz: editar texto / tipo.\n"
+                    ."   - Flechas arriba/abajo: cambiar el orden en que aparece.\n"
+                    ."   - Switch: activar/desactivar (las inactivas no se muestran en los formularios pero conservan sus respuestas).\n"
+                    ."   - Papelera: eliminar (si la pregunta ya tiene respuestas históricas, en lugar de borrar se desactiva para no perder datos).",
+                'suggestions' => [
+                    '¿Cómo veo todas las evaluaciones (admin)?',
+                    '¿Cómo exporto las evaluaciones de un instructor?',
+                    '¿Cómo evalúo a un instructor?',
+                ],
+            ],
+
+            [
+                'id' => 'evaluations_notifications',
+                'keywords' => [
+                    'notificacion autoevaluacion', 'aviso autoevaluacion',
+                    'notificacion al coordinador', 'me llega notificacion evaluacion',
+                    'aviso cuando instructor evalua', 'notificacion cuando se envia evaluacion',
+                ],
+                'response' => "Cuando un instructor envía su autoevaluación, su coordinador encargado recibe una notificación en su burbuja (campanita) arriba a la derecha.\n\n"
+                    ."La notificación dice algo como: \"[Instructor] envió su autoevaluación · Grupo: [Materia] · Puntaje: X.XX/5\".\n\n"
+                    ."Si el coordinador pulsa la notificación, va directo a su panel de Evaluaciones para revisarla y agregar la suya.\n\n"
+                    ."Si el instructor no tiene coordinador asignado, no se envía nada (caso poco común; pasa solo con instructores heredados de antes del aislamiento por coordinación).",
+                'suggestions' => [
+                    '¿Cómo envío mi autoevaluación?',
+                    '¿Cómo evalúo a un instructor?',
                 ],
             ],
 
@@ -1649,6 +1854,50 @@ class FicabotKnowledgeBase
                 'suggestions' => [
                     '¿Cómo exporto la asistencia a Excel?',
                     '¿Cómo exporto las instructorías a Excel?',
+                ],
+            ],
+
+            [
+                'id' => 'topic_overview_evaluaciones',
+                'keywords' => [
+                    'que puedo hacer con evaluaciones',
+                    'gestion de evaluaciones', 'gestionar evaluaciones',
+                    'menu de evaluaciones', 'modulo de evaluaciones general',
+                ],
+                'response' => "Sobre evaluaciones puedo guiarte en:\n\n"
+                    ."- Cómo funciona el módulo (los 4 tipos: self / coordinador / estudiantes / docente)\n"
+                    ."- Cómo se habilitan (instructoría debe estar FINALIZADO)\n"
+                    ."- Autoevaluación del instructor\n"
+                    ."- Evaluación del coordinador\n"
+                    ."- Importar evaluaciones de estudiantes o del docente titular\n"
+                    ."- Panel global del admin y reporte por instructor\n"
+                    ."- Gestionar las preguntas (solo admin)\n\n"
+                    ."¿Cuál te interesa?",
+                'suggestions' => [
+                    '¿Cómo funcionan las evaluaciones?',
+                    '¿Cómo envío mi autoevaluación?',
+                    '¿Cómo evalúo a un instructor?',
+                    '¿Cómo importo evaluaciones de estudiantes?',
+                ],
+            ],
+
+            [
+                'id' => 'topic_overview_autoevaluacion',
+                'keywords' => [
+                    'que puedo hacer con autoevaluacion',
+                    'menu de autoevaluacion', 'opciones de autoevaluacion',
+                ],
+                'restricted_to' => ['instructor'],
+                'restricted_response' => "La autoevaluación es del instructor. Si tu rol no es instructor, puedo explicarte el flujo igual.",
+                'response' => "Sobre tu autoevaluación puedo guiarte en:\n\n"
+                    ."- Cómo enviarla paso a paso\n"
+                    ."- Por qué a veces no aparece habilitada (instructoría aún Activo)\n"
+                    ."- Cómo editar una autoevaluación ya enviada\n\n"
+                    ."¿Cuál te interesa?",
+                'suggestions' => [
+                    '¿Cómo envío mi autoevaluación?',
+                    '¿Por qué no me aparece la evaluación?',
+                    '¿Cómo veo el estado de mi autoevaluación?',
                 ],
             ],
 

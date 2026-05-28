@@ -1,8 +1,24 @@
 {{--
   Vista "Mi perfil": datos del usuario autenticado ($user, $memberSince, $lastUpdate, $breadcrumbs)
-  desde ProfileController@index. Formularios envían a profile.update y profile.password (PUT).
+  desde ProfileController@index.
+
+  El layout se elige dinámicamente según el rol para que la sidebar y la
+  topbar sean las del panel correcto (admin / coordinator / instructor).
+
+  El panel "Información personal" SOLO se muestra editable al admin; el
+  coordinador y el instructor ven sus datos en modo lectura y únicamente
+  pueden cambiar su contraseña.
 --}}
-@extends('layouts.admin', ['title' => 'Mi perfil'])
+@php
+    $userRole = auth()->user()->roleSlug();
+    $profileLayout = match ($userRole) {
+        'coordinator' => 'layouts.coordinator',
+        'instructor' => 'layouts.instructor',
+        default => 'layouts.admin',
+    };
+    $canEditName = $userRole === 'admin';
+@endphp
+@extends($profileLayout, ['title' => 'Mi perfil'])
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/profile.css') }}">
@@ -81,7 +97,8 @@
     ══════════════════════ --}}
     <div class="forms-col">
 
-        {{-- Editar nombre --}}
+        {{-- Informacion personal: editable solo para admin; coordinador
+             e instructor lo ven en modo lectura. --}}
         <div class="panel">
             <div class="panel-header">
                 <div class="panel-header-icon">
@@ -89,57 +106,88 @@
                 </div>
                 <div>
                     <div class="panel-header-title">Informacion personal</div>
-                    <div class="panel-header-sub">Solo puedes editar tu nombre</div>
+                    <div class="panel-header-sub">
+                        @if($canEditName)
+                            Solo puedes editar tu nombre
+                        @else
+                            Solo el administrador puede modificar estos datos
+                        @endif
+                    </div>
                 </div>
             </div>
 
-            {{-- Solo actualiza users.name; el correo no se envía ni se edita --}}
-            <form method="POST" action="{{ route('profile.update') }}">
-                @csrf
-                @method('PUT')
+            @if($canEditName)
+                {{-- ADMIN: formulario funcional para cambiar el nombre. --}}
+                <form method="POST" action="{{ route('profile.update') }}">
+                    @csrf
+                    @method('PUT')
 
+                    <div class="panel-body">
+                        <div class="field">
+                            <label class="field-label" for="name">Nombre completo</label>
+                            <input
+                                class="input @error('name') input-error @enderror"
+                                id="name"
+                                name="name"
+                                type="text"
+                                value="{{ old('name', $user->name) }}"
+                                placeholder="Tu nombre completo"
+                                required
+                            >
+                            @error('name')
+                                <span class="field-error">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="email">Correo electronico</label>
+                            <input
+                                class="input"
+                                id="email"
+                                type="email"
+                                value="{{ $user->email }}"
+                                disabled
+                                readonly
+                                autocomplete="email"
+                            >
+                            <span class="field-hint">
+                                El correo no puede ser modificado. Contacta al administrador si necesitas cambiarlo.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="panel-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-device-floppy" aria-hidden="true"></i>
+                            Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            @else
+                {{-- COORDINADOR / INSTRUCTOR: solo lectura, sin formulario. --}}
                 <div class="panel-body">
                     <div class="field">
-                        <label class="field-label" for="name">Nombre completo</label>
-                        <input
-                            class="input @error('name') input-error @enderror"
-                            id="name"
-                            name="name"
-                            type="text"
-                            value="{{ old('name', $user->name) }}"
-                            placeholder="Tu nombre completo"
-                            required
-                        >
-                        @error('name')
-                            <span class="field-error">{{ $message }}</span>
-                        @enderror
+                        <label class="field-label" for="name-ro">Nombre completo</label>
+                        <input class="input" id="name-ro" type="text"
+                               value="{{ $user->name }}" disabled readonly>
                     </div>
 
                     <div class="field">
-                        <label class="field-label" for="email">Correo electronico</label>
-                        {{-- Solo lectura: el cambio de correo no está expuesto en este formulario --}}
-                        <input
-                            class="input"
-                            id="email"
-                            type="email"
-                            value="{{ $user->email }}"
-                            disabled
-                            readonly
-                            autocomplete="email"
-                        >
+                        <label class="field-label" for="email-ro">Correo electronico</label>
+                        <input class="input" id="email-ro" type="email"
+                               value="{{ $user->email }}" disabled readonly autocomplete="email">
+                    </div>
+
+                    <div class="field" style="margin-bottom:0">
+                        <label class="field-label" for="role-ro">Rol</label>
+                        <input class="input" id="role-ro" type="text"
+                               value="{{ $user->roleDisplayLabel() }}" disabled readonly>
                         <span class="field-hint">
-                            El correo no puede ser modificado. Contacta al administrador si necesitas cambiarlo.
+                            Si necesitas cambiar tu nombre o correo, contacta al administrador.
                         </span>
                     </div>
                 </div>
-
-                <div class="panel-footer">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-device-floppy" aria-hidden="true"></i>
-                        Guardar cambios
-                    </button>
-                </div>
-            </form>
+            @endif
         </div>
 
         {{-- Cambiar contrasena --}}

@@ -49,27 +49,40 @@ class InstructorController extends Controller
 
         $viewName = 'instructors.index';
         if (auth()->user()->roleSlug() === 'coordinator') {
-            // El coordinador ve:
-            //  - los instructores que él mismo administra (coordinator_id = su id), y
-            //  - los instructores "huérfanos" que aún no están asignados a ningún coordinador
-            //    (coordinator_id IS NULL), típicamente los creados desde el panel admin
-            //    o antes de que existiera la columna coordinator_id.
+            // Aislamiento por coordinador: cada uno ve SOLO los instructores
+            // que él mismo creó (coordinator_id = su id). Los instructores
+            // creados por otro coordinador o por un admin sin coordinador
+            // asignado no aparecen en su panel.
             $coordId = $this->currentCoordinatorId();
-            $query->where(function ($q) use ($coordId) {
-                $q->whereNull('coordinator_id');
-                if ($coordId !== null) {
-                    $q->orWhere('coordinator_id', $coordId);
-                }
-            });
+            // Si no se pudo resolver el id, devolvemos vacío para evitar
+            // mostrar accidentalmente todos los instructores.
+            $query->where('coordinator_id', $coordId ?? -1);
             $viewName = 'coordinator.instructors.index';
         }
 
         $instructors = $query->paginate(10);
 
+        // Lista de coordinadores que el admin puede elegir al crear/editar
+        // un instructor. Aquí NO se aplica HIDDEN_COORDINATIONS porque ese
+        // filtro existe para el select de "carrera" (donde Coordinación Demo
+        // no debe aparecer como opción), pero como coordinador encargado
+        // todas las coordinaciones registradas son válidas.
+        $coordinators = [];
+        if (auth()->user()->roleSlug() === 'admin' && Schema::hasTable('coordinators')) {
+            $hasCoordinationName = Schema::hasColumn('coordinators', 'coordination_name');
+            $labelExpr = $hasCoordinationName ? 'COALESCE(coordination_name, name)' : 'name';
+            $coordinators = Coordinator::query()
+                ->whereRaw($labelExpr.' IS NOT NULL')
+                ->orderByRaw($labelExpr)
+                ->with('user:id,name,email')
+                ->get();
+        }
+
         return view($viewName, [
             'instructors' => $instructors,
             'carreras' => $this->carreraOptions(),
             'hasStatusColumn' => Schema::hasColumn('instructors', 'status'),
+            'coordinators' => $coordinators,
         ]);
     }
 
@@ -82,6 +95,25 @@ class InstructorController extends Controller
         return Coordinator::query()
             ->where('user_id', auth()->id())
             ->value('id');
+    }
+
+    /**
+     * Si quien está logueado es coordinador, valida que el instructor le
+     * pertenezca (coordinator_id === su id). Los admins pueden tocar a
+     * cualquier instructor del sistema sin restricción.
+     *
+     * Aborta con 404 (no 403) para no filtrar la existencia del recurso.
+     */
+    private function ensureCoordinatorOwns(Instructor $instructor): void
+    {
+        if (auth()->user()->roleSlug() !== 'coordinator') {
+            return;
+        }
+
+        $coordId = $this->currentCoordinatorId();
+        if ($coordId === null || (int) $instructor->coordinator_id !== (int) $coordId) {
+            abort(404);
+        }
     }
 
     /**
@@ -143,7 +175,12 @@ class InstructorController extends Controller
                 'user_id' => $user->id,
                 'major' => $validated['major'],
             ];
-            if (auth()->user()->roleSlug() === 'coordinator') {
+            // Asignación de coordinador:
+            //  - admin: se elige obligatoriamente desde el formulario (no más huérfanos)
+            //  - coordinador: siempre se autoasigna a sí mismo
+            if (auth()->user()->roleSlug() === 'admin') {
+                $data['coordinator_id'] = $validated['coordinator_id'];
+            } else {
                 $data['coordinator_id'] = $this->currentCoordinatorId();
             }
             if (Schema::hasColumn('instructors', 'status')) {
@@ -197,6 +234,7 @@ class InstructorController extends Controller
     {
         /** @var Instructor $instructor */
         $instructor = Instructor::query()->with('user')->findOrFail($id);
+        $this->ensureCoordinatorOwns($instructor);
 
         $validated = $this->validatedInstructorRequest($request, $instructor);
 
@@ -216,6 +254,10 @@ class InstructorController extends Controller
             if (Schema::hasColumn('instructors', 'status')) {
                 $data['status'] = $validated['status'];
             }
+            // Solo el admin puede reasignar el coordinador al editar.
+            if (auth()->user()->roleSlug() === 'admin' && isset($validated['coordinator_id'])) {
+                $data['coordinator_id'] = $validated['coordinator_id'];
+            }
             $instructor->fill($data);
             $instructor->save();
         });
@@ -229,6 +271,7 @@ class InstructorController extends Controller
     {
         /** @var Instructor $instructor */
         $instructor = Instructor::query()->with('user')->findOrFail($id);
+        $this->ensureCoordinatorOwns($instructor);
 
         // Si el instructor tiene tutorías (filas en `instructor_assignments`),
         // NO podemos borrarlo porque rompe la FK. Mostramos un mensaje amistoso.
@@ -284,6 +327,13 @@ class InstructorController extends Controller
             $emailUnique->ignore($instructor->user_id);
         }
 
+        // Solo el admin elige a qué coordinador pertenece el instructor;
+        // los coordinadores siempre se autoasignan.
+        $isAdmin = auth()->user()->roleSlug() === 'admin';
+        $coordinatorRules = $isAdmin
+            ? ['required', 'integer', Rule::exists('coordinators', 'id')]
+            : ['nullable'];
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -295,6 +345,7 @@ class InstructorController extends Controller
             'password' => $passwordRules,
             'major' => ['required', 'string', 'max:255'],
             'status' => $statusRules,
+            'coordinator_id' => $coordinatorRules,
         ], [
             'name.required' => 'Debe ingresar el nombre completo.',
             'email.required' => 'Debe ingresar el correo electrónico.',
@@ -305,10 +356,17 @@ class InstructorController extends Controller
             'major.required' => 'Debe seleccionar la carrera.',
             'status.required' => 'Debe seleccionar el estado.',
             'status.in' => 'El estado debe ser Activo o Inactivo.',
+            'coordinator_id.required' => 'Debe seleccionar la coordinación a cargo del instructor.',
+            'coordinator_id.exists' => 'La coordinación seleccionada no es válida.',
         ]);
 
         if (! Schema::hasColumn('instructors', 'status')) {
             unset($validated['status']);
+        }
+
+        // Si quien envía NO es admin, no respetamos lo que venga en coordinator_id.
+        if (! $isAdmin) {
+            unset($validated['coordinator_id']);
         }
 
         return $validated;

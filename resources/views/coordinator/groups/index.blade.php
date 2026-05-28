@@ -436,8 +436,15 @@
 
     @if($errors->any())
     document.addEventListener('DOMContentLoaded', function () {
-        openModal('modalForm');
-        toggleClassroom();
+        @if($errors->has('instructor_id'))
+            {{-- El error viene del POST de assignInstructor: mostramos un
+                 banner global y NO reabrimos ningún modal automáticamente,
+                 porque al volver no sabemos a qué grupo se intentó asignar. --}}
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        @else
+            openModal('modalForm');
+            toggleClassroom();
+        @endif
     });
     @endif
 </script>

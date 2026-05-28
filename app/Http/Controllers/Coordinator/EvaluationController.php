@@ -26,9 +26,8 @@ use RuntimeException;
  *  - store($assignment): valida y delega al EvaluationService.
  *
  * El coordinador solo puede evaluar instructorías cuyo instructor le pertenezca
- * (coordinator_id de la tabla instructors). Para flexibilidad, también permite
- * evaluar instructores "huérfanos" (coordinator_id NULL), igual que el resto
- * del panel del coordinador.
+ * (coordinator_id de la tabla instructors). Cada coordinador ve únicamente
+ * los instructores que él mismo creó, sin compartir entre coordinadores.
  */
 class EvaluationController extends Controller
 {
@@ -36,17 +35,12 @@ class EvaluationController extends Controller
     {
         $coordinatorId = $this->coordinatorIdFor($request);
 
-        // Instructorías finalizadas de instructores a su cargo (o sin coordinador asignado).
+        // Instructorías finalizadas SOLO de los instructores creados por este coordinador.
         $assignments = InstructorAssignment::query()
             ->with(['classGroup', 'instructor.user'])
             ->where('status', EvaluationService::FINALIZED_STATUS)
             ->whereHas('instructor', function ($q) use ($coordinatorId) {
-                $q->where(function ($qq) use ($coordinatorId) {
-                    $qq->whereNull('coordinator_id');
-                    if ($coordinatorId) {
-                        $qq->orWhere('coordinator_id', $coordinatorId);
-                    }
-                });
+                $q->where('coordinator_id', $coordinatorId ?? -1);
             })
             ->orderByDesc('id')
             ->get();
@@ -200,8 +194,8 @@ class EvaluationController extends Controller
         }
 
         $coordinatorId = $this->coordinatorIdFor($request);
-        $owned = $instructor->coordinator_id === null
-            || ($coordinatorId && (int) $instructor->coordinator_id === (int) $coordinatorId);
+        $owned = $coordinatorId !== null
+            && (int) $instructor->coordinator_id === (int) $coordinatorId;
 
         if (! $owned) {
             abort(403, 'No tienes permiso para evaluar a este instructor.');

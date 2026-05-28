@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- Necesario para el chatbot Lumi (POST a /ficabot/ask requiere CSRF). --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'Instructor Hub'))</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     @php

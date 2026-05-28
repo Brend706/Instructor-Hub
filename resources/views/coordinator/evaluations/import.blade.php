@@ -61,19 +61,14 @@
     {{-- Paso 1: descargar plantilla --}}
     <div class="ev-import-card">
         <div class="ev-import-step">1</div>
-        <h2 class="ev-import-title">Descargá la plantilla</h2>
+        <h2 class="ev-import-title">Descargá el formulario de evaluación</h2>
         <p class="ev-import-desc">
-            La plantilla tiene un encabezado por cada pregunta. Una fila = una evaluación.
-            @if($isStudent)
-                Mandala a tus estudiantes o copiá las respuestas que ya tengas.
-            @else
-                Pasala al docente titular del curso (o copia sus respuestas vos).
-            @endif
+            Descargá el formulario de evaluación correspondiente y completá la información solicitada antes de subir el archivo.
         </p>
         <a href="{{ route('coordinator.evaluations.import.template', [$assignment, $type->slug]) }}"
            class="ev-btn-ghost">
             <i class="ti ti-file-download" aria-hidden="true"></i>
-            Descargar plantilla
+            Descarga el formulario
         </a>
     </div>
 

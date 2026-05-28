@@ -8,10 +8,13 @@ use App\Models\EvaluationResult;
 use App\Models\EvaluationType;
 use App\Models\Instructor;
 use App\Models\InstructorAssignment;
+use App\Models\User;
+use App\Notifications\SelfEvaluationSubmitted;
 use App\Services\EvaluationService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -133,7 +136,7 @@ class EvaluationController extends Controller
         }
 
         try {
-            $service->submitEvaluation(
+            $result = $service->submitEvaluation(
                 assignment: $assignment,
                 type: $type,
                 answersByTemplateId: $data['answers'],
@@ -144,9 +147,42 @@ class EvaluationController extends Controller
             return back()->withInput()->withErrors(['general' => $e->getMessage()]);
         }
 
+        // Notificar al coordinador encargado del instructor.
+        // Si el instructor no tiene coordinador asignado (caso de huérfanos
+        // heredados), simplemente no se envía nada y no se rompe el flujo.
+        $this->notifyCoordinator($instructor, $assignment, $result);
+
         return redirect()
             ->route('instructor.evaluations.index')
             ->with('status', 'Tu autoevaluación se envió correctamente.');
+    }
+
+    /**
+     * Envía la notificación al usuario User del coordinador propietario
+     * del instructor. Aislada en un helper para que el `store()` quede
+     * limpio y para poder protegerla con un try/catch (la notificación
+     * nunca debe romper el envío de la evaluación).
+     */
+    private function notifyCoordinator(Instructor $instructor, InstructorAssignment $assignment, EvaluationResult $result): void
+    {
+        if (! $instructor->coordinator_id) {
+            return;
+        }
+
+        try {
+            $instructor->loadMissing('coordinator.user');
+            $coordinatorUser = $instructor->coordinator?->user;
+
+            if ($coordinatorUser instanceof User) {
+                Notification::send(
+                    $coordinatorUser,
+                    new SelfEvaluationSubmitted($instructor, $assignment, $result),
+                );
+            }
+        } catch (\Throwable) {
+            // Silencioso: no interrumpimos el flujo principal si la
+            // notificación falla por cualquier razón secundaria.
+        }
     }
 
     private function currentInstructor(Request $request): Instructor

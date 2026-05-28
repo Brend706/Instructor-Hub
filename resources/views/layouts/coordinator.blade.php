@@ -77,12 +77,18 @@
                     <i class="ti ti-star nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Evaluaciones</span>
                 </a>
+                <a href="{{ route('profile.index') }}"
+                   class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}"
+                   data-label="Mi perfil">
+                    <i class="ti ti-user nav-icon" aria-hidden="true"></i>
+                    <span class="nav-text">Mi perfil</span>
+                </a>
             </div>
 
         </nav>
 
         <div class="sidebar-footer">
-            <a href="" class="user-card">
+            <a href="{{ route('profile.index') }}" class="user-card">
                 <div class="avatar" aria-hidden="true">
                     {{ strtoupper(substr(auth()->user()->name ?? 'CO', 0, 2)) }}
                 </div>
@@ -122,12 +128,92 @@
 
             <div class="topbar-right">
                 <x-dark-toggle />
-                <button class="icon-btn" aria-label="Notificaciones">
-                    <i class="ti ti-bell" aria-hidden="true"></i>
-                    @if(($notifCount ?? 0) > 0)
-                        <span class="notif-dot"></span>
-                    @endif
-                </button>
+
+                {{-- Notificaciones (campanita) del coordinador.
+                     $notifications y $notifCount los inyecta el View::composer
+                     de layouts.coordinator en AppServiceProvider. --}}
+                <div class="notif-wrap" id="notifWrap">
+                    <button type="button" class="icon-btn" aria-label="Notificaciones" id="notifBtn"
+                            onclick="toggleNotifications(event)">
+                        <i class="ti ti-bell" aria-hidden="true"></i>
+                        @if(($notifCount ?? 0) > 0)
+                            <span class="notif-dot" aria-label="{{ $notifCount }} notificaciones"></span>
+                            <span class="notif-count">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
+                        @endif
+                    </button>
+
+                    <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Lista de notificaciones">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            @if(($notifCount ?? 0) > 0)
+                                <form method="POST" action="{{ route('coordinator.notifications.read-all') }}" style="margin:0">
+                                    @csrf
+                                    <button type="submit" class="notif-mark-all">Marcar todas como leídas</button>
+                                </form>
+                            @endif
+                        </div>
+
+                        <div class="notif-list">
+                            @forelse(($notifications ?? collect()) as $notif)
+                                @php
+                                    $data = $notif->data;
+                                    $isUnread = is_null($notif->read_at);
+                                    $kind = $data['kind'] ?? '';
+                                    $when = \Illuminate\Support\Carbon::parse($data['created_at'] ?? $notif->created_at);
+                                @endphp
+                                <form method="POST"
+                                      action="{{ route('coordinator.notifications.read', $notif->id) }}"
+                                      class="notif-item-form">
+                                    @csrf
+                                    <button type="submit" class="notif-item {{ $isUnread ? 'is-unread' : '' }}">
+                                        @if($kind === 'self_evaluation.submitted')
+                                            {{-- ── Autoevaluación enviada por un instructor ── --}}
+                                            @php
+                                                $instructorName = $data['instructor']['name'] ?? 'Instructor';
+                                                $groupName = $data['assignment']['group_name'] ?? 'Sin grupo';
+                                                $score = $data['result']['total_score'] ?? null;
+                                            @endphp
+                                            <span class="notif-icon" style="background:#DBEAFE;color:#1D4ED8">
+                                                <i class="ti ti-clipboard-check" aria-hidden="true"></i>
+                                            </span>
+                                            <span class="notif-body">
+                                                <span class="notif-title">
+                                                    <strong>{{ $instructorName }}</strong> envió su autoevaluación
+                                                </span>
+                                                <span class="notif-meta">
+                                                    Grupo: {{ $groupName }}
+                                                    @if($score !== null) · Puntaje: {{ number_format((float) $score, 2) }}/5 @endif
+                                                </span>
+                                                <span class="notif-time">
+                                                    {{ $when->translatedFormat('d M Y · H:i') }}
+                                                </span>
+                                            </span>
+                                        @else
+                                            {{-- Fallback genérico para cualquier otra notificación futura --}}
+                                            <span class="notif-icon"><i class="ti ti-bell" aria-hidden="true"></i></span>
+                                            <span class="notif-body">
+                                                <span class="notif-title">Nueva notificación</span>
+                                                <span class="notif-time">
+                                                    {{ $when->translatedFormat('d M Y · H:i') }}
+                                                </span>
+                                            </span>
+                                        @endif
+
+                                        @if($isUnread)
+                                            <span class="notif-pill">Nuevo</span>
+                                        @endif
+                                    </button>
+                                </form>
+                            @empty
+                                <div class="notif-empty">
+                                    <i class="ti ti-bell-off" aria-hidden="true"></i>
+                                    <p>No tienes notificaciones</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
                 <button class="icon-btn" aria-label="Ayuda">
                     <i class="ti ti-help-circle" aria-hidden="true"></i>
                 </button>
@@ -138,7 +224,7 @@
                         {{ strtoupper(substr(auth()->user()->name ?? 'CO', 0, 2)) }}
                     </div>
                     <div id="user-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:160px;overflow:hidden;z-index:200;">
-                        <a href="" class="user-dropdown-link" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--text);text-decoration:none;transition:background .15s">
+                        <a href="{{ route('profile.index') }}" class="user-dropdown-link" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--text);text-decoration:none;transition:background .15s">
                             <i class="ti ti-user" style="font-size:15px"></i> Mi perfil
                         </a>
                         <div style="height:1px;background:var(--border)"></div>
@@ -187,6 +273,23 @@
         document.querySelector('[onclick*="user-dropdown"]')?.addEventListener('click', function() {
             const d = document.getElementById('user-dropdown');
             d.style.display = d.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Toggle del dropdown de notificaciones (campanita).
+        // Usa la clase .open del CSS de layouts/admin.css (mismo estilo que el admin).
+        function toggleNotifications(e) {
+            e.stopPropagation();
+            const wrap = document.getElementById('notifWrap');
+            wrap?.classList.toggle('open');
+        }
+        window.toggleNotifications = toggleNotifications;
+
+        // Cerrar el dropdown si se hace clic fuera.
+        document.addEventListener('click', function (e) {
+            const wrap = document.getElementById('notifWrap');
+            if (wrap && !wrap.contains(e.target)) {
+                wrap.classList.remove('open');
+            }
         });
     </script>
 

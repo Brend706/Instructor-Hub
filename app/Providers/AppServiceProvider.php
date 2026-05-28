@@ -50,5 +50,26 @@ class AppServiceProvider extends ServiceProvider
                 'notifCount' => $notifCount,
             ]);
         });
+
+        // Campanita del coordinador: actualmente solo recibe la notificación
+        // SelfEvaluationSubmitted cuando uno de sus instructores envía su
+        // autoevaluación, pero está abierta para crecer (p. ej. import de
+        // estudiantes / docente, etc.).
+        View::composer('layouts.coordinator', function ($view): void {
+            $user = auth()->user();
+            $user?->loadMissing('role');
+
+            $notifications = collect();
+            $notifCount = 0;
+            if ($user && $user->roleSlug() === 'coordinator') {
+                $notifications = $user->notifications()->limit(15)->get();
+                $notifCount = $user->unreadNotifications()->count();
+            }
+
+            $view->with([
+                'notifications' => $notifications,
+                'notifCount' => $notifCount,
+            ]);
+        });
     }
 }

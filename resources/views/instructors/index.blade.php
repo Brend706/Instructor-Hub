@@ -79,6 +79,7 @@
                         data-major="{{ $instructor->major }}"
                         data-status="{{ $statusLabel }}"
                         data-since="{{ $since }}"
+                        data-coordinator-id="{{ $instructor->coordinator_id ?? '' }}"
                     >
                         <td>
                             <div style="display:flex;align-items:center;gap:10px">
@@ -264,6 +265,30 @@
                     @enderror
                 </div>
 
+                {{-- El admin elige a qué coordinación pertenece el instructor.
+                     Para coordinadores este bloque no aparece: el sistema
+                     los autoasigna a sí mismos en el controller. --}}
+                @if(auth()->user()->roleSlug() === 'admin')
+                    <div class="field">
+                        <label class="field-label" for="coordinator_id">Coordinador encargado</label>
+                        <select class="input @error('coordinator_id') is-invalid @enderror" id="coordinator_id" name="coordinator_id">
+                            <option value="">Seleccionar coordinador...</option>
+                            @foreach(($coordinators ?? []) as $coord)
+                                @php
+                                    $label = $coord->coordination_name ?? $coord->name ?? ($coord->user?->name ?? 'Coord. '.$coord->id);
+                                @endphp
+                                <option value="{{ $coord->id }}" @selected((string) old('coordinator_id') === (string) $coord->id)>
+                                    {{ $label }}@if($coord->user) — {{ $coord->user->name }}@endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="field-msg field-msg--error" id="coordinatorClientError" aria-live="polite"></span>
+                        @error('coordinator_id')
+                            <span class="field-msg field-msg--error">{{ $message }}</span>
+                        @enderror
+                    </div>
+                @endif
+
                 @if($hasStatusColumn ?? false)
                     <div class="field">
                         <label class="field-label" for="status">Estado</label>
@@ -441,6 +466,13 @@
         document.getElementById('name').value = row.dataset.userName || '';
         document.getElementById('email').value = row.dataset.userEmail || '';
         document.getElementById('major').value = row.dataset.major || '';
+
+        // Si existe el select de coordinador (panel admin), precargar
+        // con el coordinator_id que ya tiene el instructor.
+        const coordEl = document.getElementById('coordinator_id');
+        if (coordEl) {
+            coordEl.value = row.dataset.coordinatorId || '';
+        }
 
         const statusEl = document.getElementById('status');
         if (statusEl && HAS_STATUS) {

@@ -60,18 +60,29 @@ class ProfileController extends Controller
     }
 
     /**
-     * Actualiza solo el nombre del usuario en `users`; el correo no se modifica desde aquí.
+     * Actualiza solo el nombre del usuario en `users`.
+     *
+     * Restricción de roles:
+     *  - admin: puede editar su propio nombre.
+     *  - coordinator / instructor: solo pueden VER su perfil; cualquier
+     *    POST a este endpoint se rechaza con 403, aunque alguien manipule
+     *    el formulario en el navegador.
      */
     public function update(Request $request): RedirectResponse
     {
+        /** @var User $user */
+        $user = auth()->user();
+
+        if ($user->roleSlug() !== 'admin') {
+            abort(403, 'No puedes modificar tu información personal. Solo el administrador puede cambiarla.');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
         ], [
             'name.required' => 'Debe ingresar su nombre completo.',
         ]);
 
-        /** @var User $user */
-        $user = auth()->user();
         $user->fill(['name' => $validated['name']]);
         $user->save();
 

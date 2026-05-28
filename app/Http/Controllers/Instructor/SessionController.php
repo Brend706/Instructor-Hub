@@ -35,6 +35,13 @@ class SessionController extends Controller
         $group = $assignment?->classGroup;
         $stats = ['sessions_count' => 0, 'attendance_avg' => 0, 'total_attendances' => 0];
 
+        // Si la instructoría está finalizada por el coordinador, el botón
+        // "Generar QR" se deshabilita en la vista y `store()` rechaza la
+        // petición aunque alguien intente forzarla desde el navegador.
+        $assignmentFinalized = $assignment
+            && Schema::hasColumn('instructor_assignments', 'status')
+            && $assignment->status === 'Finalizado';
+
         if ($assignment) {
             $sessionIds = ClassSession::query()
                 ->where('instructor_assignment_id', $assignment->id)
@@ -88,6 +95,7 @@ class SessionController extends Controller
             'openSession' => $openSession,
             'openAttendanceCount' => $openAttendanceCount,
             'openAttendanceUrl' => $openAttendanceUrl,
+            'assignmentFinalized' => $assignmentFinalized,
         ]);
     }
 
@@ -97,6 +105,17 @@ class SessionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $assignment = $this->currentAssignment($request);
+
+        // Doble candado: el coordinador puede haber finalizado la
+        // instructoría mientras el instructor tenía la pantalla abierta.
+        // En ese caso no se permite generar QR aunque pulse el botón.
+        if (Schema::hasColumn('instructor_assignments', 'status')
+            && $assignment->status === 'Finalizado'
+        ) {
+            return response()->json([
+                'message' => 'Esta instructoría fue finalizada por tu coordinador. No puedes iniciar nuevas sesiones.',
+            ], 422);
+        }
 
         $existing = ClassSession::query()
             ->where('instructor_assignment_id', $assignment->id)

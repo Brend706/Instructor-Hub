@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Coordinator;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClassSession;
+use App\Models\Coordinator;
 use App\Models\Instructor;
 use App\Models\StudentAttendance;
 use App\Services\AttendanceExcelExportService;
@@ -22,12 +23,18 @@ class InstructoriaController extends Controller
     /**
      * Lista de instructores que tienen al menos un grupo asignado,
      * más conteos de instructorías dadas y asistencias totales.
+     *
+     * Aislamiento por coordinador: solo se listan los instructores creados
+     * por el coordinador autenticado (coordinator_id = id del coordinador).
      */
     public function index(): View
     {
+        $coordinatorId = $this->currentCoordinatorId();
+
         $instructors = Instructor::query()
             ->with(['user', 'instructorAssignments.classGroup'])
             ->whereHas('instructorAssignments')
+            ->where('coordinator_id', $coordinatorId ?? -1)
             ->get();
 
         $sessionsByInstructor = [];
@@ -57,9 +64,12 @@ class InstructoriaController extends Controller
     /**
      * Detalle por instructor: lista todas sus class_sessions con hora de inicio/fin,
      * grupo correspondiente y cantidad de asistentes que marcaron.
+     *
+     * Solo se permite acceder si el instructor pertenece al coordinador logueado.
      */
     public function show(Instructor $instructor): View
     {
+        $this->ensureOwns($instructor);
         $instructor->load(['user', 'instructorAssignments.classGroup']);
 
         $assignmentIds = $instructor->instructorAssignments->pluck('id');
@@ -94,6 +104,7 @@ class InstructoriaController extends Controller
      */
     public function export(Instructor $instructor, AttendanceExcelExportService $exporter): Response
     {
+        $this->ensureOwns($instructor);
         $file = $exporter->buildCoordinatorSessions($instructor);
 
         return response($file['content'], 200, [
@@ -101,5 +112,24 @@ class InstructoriaController extends Controller
             'Content-Disposition' => 'attachment; filename="'.$file['filename'].'"',
             'Cache-Control' => 'no-store, no-cache',
         ]);
+    }
+
+    /**
+     * Aborta con 404 si el instructor no pertenece al coordinador logueado.
+     * Devolvemos 404 (no 403) para no filtrar la existencia del recurso.
+     */
+    private function ensureOwns(Instructor $instructor): void
+    {
+        $coordId = $this->currentCoordinatorId();
+        if ((int) $instructor->coordinator_id !== (int) $coordId) {
+            abort(404);
+        }
+    }
+
+    private function currentCoordinatorId(): ?int
+    {
+        return Coordinator::query()
+            ->where('user_id', auth()->id())
+            ->value('id');
     }
 }

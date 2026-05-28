@@ -76,12 +76,18 @@
                         <i class="ti ti-star nav-icon"></i>
                         <span class="nav-text">Evaluaciones</span>
                     </a>
+                    <a href="{{ route('profile.index') }}"
+                       class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}"
+                       data-label="Mi perfil">
+                        <i class="ti ti-user nav-icon"></i>
+                        <span class="nav-text">Mi perfil</span>
+                    </a>
             </div>
 
         </nav>
 
         <div class="sidebar-footer">
-            <a href="" class="user-card">
+            <a href="{{ route('profile.index') }}" class="user-card">
                 <div class="avatar" aria-hidden="true">
                     {{ strtoupper(substr(auth()->user()->name ?? 'IN', 0, 2)) }}
                 </div>
@@ -137,7 +143,7 @@
                         {{ strtoupper(substr(auth()->user()->name ?? 'IN', 0, 2)) }}
                     </div>
                     <div id="user-dropdown" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border);border-radius:10px;min-width:160px;overflow:hidden;z-index:200;">
-                        <a href="" class="user-dropdown-link" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--text);text-decoration:none;transition:background .15s">
+                        <a href="{{ route('profile.index') }}" class="user-dropdown-link" style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;color:var(--text);text-decoration:none;transition:background .15s">
                             <i class="ti ti-user" style="font-size:15px"></i> Mi perfil
                         </a>
                         <div style="height:1px;background:var(--border)"></div>

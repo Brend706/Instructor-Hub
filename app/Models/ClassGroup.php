@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -17,7 +18,19 @@ class ClassGroup extends Model
         'modality',
         'schedule',
         'classroom',
+        'coordinator_id',
     ];
+
+    /**
+     * Coordinador propietario del grupo. Si es NULL el grupo es "huérfano"
+     * y solo los admins pueden gestionarlo.
+     *
+     * @return BelongsTo<Coordinator, $this>
+     */
+    public function coordinator(): BelongsTo
+    {
+        return $this->belongsTo(Coordinator::class);
+    }
 
     /**
      * Estudiantes del grupo (tabla `students`).

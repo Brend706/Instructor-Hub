@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Coordinator;
 
 use App\Http\Controllers\Controller;
+use App\Models\Coordinator;
 use App\Models\Instructor;
 use App\Models\InstructorAssignment;
 use Illuminate\Http\RedirectResponse;
@@ -26,6 +27,7 @@ class AssignmentStatusController extends Controller
     public function finalize(Request $request, Instructor $instructor, InstructorAssignment $assignment): RedirectResponse
     {
         $this->ensureBelongsTo($instructor, $assignment);
+        $this->ensureOwnedByCurrentCoordinator($instructor);
 
         $assignment->status = 'Finalizado';
         $assignment->save();
@@ -36,6 +38,7 @@ class AssignmentStatusController extends Controller
     public function reactivate(Request $request, Instructor $instructor, InstructorAssignment $assignment): RedirectResponse
     {
         $this->ensureBelongsTo($instructor, $assignment);
+        $this->ensureOwnedByCurrentCoordinator($instructor);
 
         $assignment->status = 'Activo';
         $assignment->save();
@@ -51,6 +54,21 @@ class AssignmentStatusController extends Controller
     private function ensureBelongsTo(Instructor $instructor, InstructorAssignment $assignment): void
     {
         if ((int) $assignment->instructor_id !== (int) $instructor->id) {
+            abort(404);
+        }
+    }
+
+    /**
+     * Verifica que el instructor sea uno creado por el coordinador autenticado;
+     * impide modificar instructores ajenos pasando un id manualmente.
+     */
+    private function ensureOwnedByCurrentCoordinator(Instructor $instructor): void
+    {
+        $coordinatorId = Coordinator::query()
+            ->where('user_id', auth()->id())
+            ->value('id');
+
+        if ($coordinatorId === null || (int) $instructor->coordinator_id !== (int) $coordinatorId) {
             abort(404);
         }
     }

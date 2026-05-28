@@ -15,6 +15,7 @@ use App\Http\Controllers\Coordinator\EvaluationController as CoordinatorEvaluati
 use App\Http\Controllers\Coordinator\EvaluationImportController as CoordinatorEvaluationImportController;
 use App\Http\Controllers\Coordinator\GroupStudentsController;
 use App\Http\Controllers\Coordinator\InstructoriaController;
+use App\Http\Controllers\Coordinator\NotificationController as CoordinatorNotificationController;
 use App\Http\Controllers\Coordinator\StudentImportController;
 use App\Http\Controllers\FicabotController;
 use App\Http\Controllers\Instructor\AttendanceController as InstructorAttendanceController;
@@ -195,6 +196,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/evaluaciones/{assignment}/importar/{tipo}',
             [CoordinatorEvaluationImportController::class, 'store'])
             ->name('evaluations.import.store');
+
+        // Campanita de notificaciones (autoevaluaciones de instructores, etc.).
+        Route::post('/notificaciones/{id}/leer',
+            [CoordinatorNotificationController::class, 'markRead'])
+            ->name('notifications.read');
+        Route::post('/notificaciones/leer-todas',
+            [CoordinatorNotificationController::class, 'markAllRead'])
+            ->name('notifications.read-all');
     });
     Route::middleware('role:instructor')->group(function () {
         Route::get('/instructor/dashboard', InstructorDashboardController::class)->name('instructor.dashboard');
