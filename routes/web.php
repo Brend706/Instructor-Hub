@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EvaluationController as AdminEvaluationController;
 use App\Http\Controllers\Admin\EvaluationQuestionController as AdminEvaluationQuestionController;
 use App\Http\Controllers\Admin\InstructorController;
+use App\Http\Controllers\Admin\InstructorAssignmentController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
@@ -90,6 +91,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::resource('coordinadores', CoordinatorController::class)->except(['create', 'show', 'edit']);
         Route::resource('instructores', InstructorController::class)->except(['create', 'show', 'edit']);
+        Route::get('/instructorias', [InstructorAssignmentController::class, 'index'])->name('instructorias.index');
+        Route::get('/instructorias/{assignment}', [InstructorAssignmentController::class, 'show'])->name('instructorias.show');
 
         // Campanita de notificaciones del admin.
         // POST /admin/notifications/{id}/read  → marca una notificación como leída al hacer clic.

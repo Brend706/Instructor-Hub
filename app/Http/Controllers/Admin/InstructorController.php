@@ -21,11 +21,17 @@ class InstructorController extends Controller
 {
     /** Carreras sugeridas si aún no hay datos en BD */
     private const DEFAULT_MAJORS = [
-        'Ing. Sistemas',
+        'Técnico en Ingeniería de Software',
+        'Técnico en Ciberseguridad',
+        'Técnico en Logística',
+        'Técnico en Ingeniería de Redes Computacionales',
+        'Técnico en Diseño Gráfico',
+        'Licenciatura en Diseño Gráfico',
+        'Licenciatura en Informática',
         'Arquitectura',
-        'Diseño Gráfico',
-        'Ing. Civil',
-        'Ing. Industrial',
+        'Ingeniería Industrial',
+        'Ingeniería en Sistemas y Computación',
+        'Técnico en Automatización Industrial',
     ];
 
     /** Coordinaciones a ocultar en los selects (datos de prueba, etc.). */
@@ -123,35 +129,8 @@ class InstructorController extends Controller
      */
     private function carreraOptions(): array
     {
-        $fromInstructors = Instructor::query()
-            ->whereNotNull('major')
-            ->where('major', '!=', '')
-            ->distinct()
-            ->orderBy('major')
-            ->pluck('major')
-            ->all();
-
-        $fromCoordinators = [];
-        if (Schema::hasTable('coordinators')) {
-            $hasCoordinationName = Schema::hasColumn('coordinators', 'coordination_name');
-            $coordinationExpr = $hasCoordinationName ? 'COALESCE(coordination_name, name)' : 'name';
-            $fromCoordinators = Coordinator::query()
-                ->selectRaw($coordinationExpr.' as coordination')
-                ->whereRaw($coordinationExpr.' IS NOT NULL')
-                ->whereNotIn(DB::raw($coordinationExpr), self::HIDDEN_COORDINATIONS)
-                ->distinct()
-                ->orderBy('coordination')
-                ->pluck('coordination')
-                ->values()
-                ->all();
-        }
-
-        return collect($fromInstructors)
-            ->merge($fromCoordinators)
-            ->merge(self::DEFAULT_MAJORS)
+        return collect(self::DEFAULT_MAJORS)
             ->filter()
-            // Quitamos también coordinaciones ocultas si aparecieran en carreras de instructores.
-            ->reject(fn ($value) => in_array($value, self::HIDDEN_COORDINATIONS, true))
             ->unique()
             ->sort()
             ->values()

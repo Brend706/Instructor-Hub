@@ -104,7 +104,7 @@
                         name="email"
                         type="email"
                         value="{{ old('email') }}"
-                        placeholder="usuario@fica.edu.sv"
+                        placeholder="usuario@mail.utec.edu.sv"
                         required
                         autocomplete="username"
                         class="input @error('email') input-error @enderror"

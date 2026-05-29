@@ -240,7 +240,7 @@
                         id="email"
                         name="email"
                         type="email"
-                        placeholder="correo@fica.edu.sv"
+                        placeholder="correo@mail.utec.edu.sv"
                         value="{{ old('email') }}"
                         autocomplete="email"
                     >

@@ -76,9 +76,9 @@
                     <span class="nav-text">Instructores</span>
                     <span class="nav-badge">{{ $totalInstructores ?? '' }}</span>
                 </a>
-                <a href=""
-                   class="nav-item {{ request()->routeIs('admin.instructorias.*') ? 'active' : '' }}"
-                   data-label="Instructorías">
+                     <a href="{{ route('admin.instructorias.index') }}"
+                         class="nav-item {{ request()->routeIs('admin.instructorias.*') ? 'active' : '' }}"
+                         data-label="Instructorías">
                     <i class="ti ti-calendar-event nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Instructorías</span>
                 </a>

@@ -112,10 +112,10 @@
                                     Acciones <i class="ti ti-chevron-down" style="font-size:12px" aria-hidden="true"></i>
                                 </button>
                                 <div class="dropdown-menu">
-                                    <button type="button" class="dropdown-item"
-                                        onclick="openInstructorModal({{ $group['id'] }})">
-                                        <i class="ti ti-user-check" style="color:var(--primary)" aria-hidden="true"></i>
-                                        Asignar instructor
+                                    {{-- Pasar true si el grupo ya tiene instructor asignado --}}
+                                    <button class="dropdown-item"
+                                        onclick="openInstructor('{{ $group['subject'] }}', '{{ $group['cycle'] }}', {{ $group['instructor'] ? 'true' : 'false' }})">
+                                        <i class="ti ti-user-check" style="color:var(--primary)"></i> Asignar instructor
                                     </button>
                                     <a class="dropdown-item" href="{{ route('coordinator.groups.enrolled', $group['id']) }}">
                                         <i class="ti ti-users" style="color:var(--primary)"></i>
@@ -239,52 +239,142 @@
     </div>
 </div>
 
-{{-- MODAL ASIGNAR INSTRUCTOR --}}
-{{-- Proximo a actualizar para poder actualizar la asignacion y desasignar al instructor del grupo --}}
+{{-- MODAL GESTIONAR INSTRUCTORIA * Asigna y desasigna instructor del grupo y registra los detalles de la instructoria --}}
 <div class="modal-overlay" id="modalInstructor" role="dialog" aria-modal="true">
-    <div class="modal" style="max-width:440px">
+    <div class="modal" style="max-width:460px">
         <div class="modal-header">
             <div>
-                <div class="modal-title">Asignar instructor</div>
+                <div class="modal-title">Gestionar instructor</div>
                 <div class="modal-subtitle" id="instructorGroupName"></div>
             </div>
             <button class="modal-close" onclick="closeModal('modalInstructor')" aria-label="Cerrar">
                 <i class="ti ti-x" aria-hidden="true"></i>
             </button>
         </div>
-        <form method="POST" id="assignInstructorForm" action="">
+
+        {{-- Tabs --}}
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchInstructorTab('instructor', this)">
+                <i class="ti ti-user-check"></i> Asignar instructor
+            </button>
+            <button class="tab-btn" onclick="switchInstructorTab('assignment', this)">
+                <i class="ti ti-settings"></i> Datos de asignación
+            </button>
+        </div>
+
+        <form method="POST" id="assignInstructorForm" action="#">
             @csrf
-            <div class="modal-body">
-                <div class="field" style="margin-bottom:14px">
-                    <label class="field-label">Elegir instructor</label>
-                    <p class="field-hint" style="margin-top:0">Lista desde la tabla <code>instructors</code> (usuarios con rol instructor).</p>
-                </div>
-                <div id="instructorList">
-                    @forelse($instructors as $instructor)
-                        @php
-                            $u = $instructor->user;
-                            $label = $u?->name ?? 'Sin usuario';
-                            $initials = strtoupper(mb_substr($label, 0, 2));
-                        @endphp
-                        <label class="instructor-option" style="cursor:pointer;display:flex">
-                            <input type="radio" name="instructor_id" value="{{ $instructor->id }}" class="inst-radio" style="margin-right:10px" @if($loop->first && $instructors->isNotEmpty()) required @endif>
-                            <div class="inst-avatar">{{ $initials }}</div>
-                            <div style="flex:1">
-                                <div class="inst-name">{{ $label }}</div>
-                                <div class="inst-career">{{ $instructor->major ?? '—' }}</div>
-                            </div>
-                        </label>
-                    @empty
-                        <p class="field-hint">No hay instructores en la base de datos. Crea uno desde administración.</p>
-                    @endforelse
+
+            {{-- Tab 1: Instructor --}}
+            <div class="tab-panel active" id="itab-instructor">
+                <div style="padding:20px">
+
+                    {{-- Buscador --}}
+                    <div class="search-box" style="position:relative;margin-bottom:10px">
+                        <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:15px;pointer-events:none"></i>
+                        <input
+                            type="search"
+                            id="instructorSearch"
+                            class="input"
+                            style="padding-left:34px"
+                            placeholder="Buscar por nombre o carrera..."
+                            oninput="filterInstructors()"
+                        >
+                    </div>
+
+                    {{-- Contador --}}
+                    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">
+                        Mostrando <span id="visibleCount">0</span> de
+                        <span id="totalCount">0</span> instructores
+                    </div>
+
+                    {{-- Lista con scroll --}}
+                    <div id="instructorListWrap" style="max-height:220px;overflow-y:auto;padding-right:2px">
+                        <div id="instructorList">
+                            @forelse($instructors as $instructor)
+                                <label class="instructor-option" data-name="{{ strtolower($instructor->user?->name ?? '') }}" data-career="{{ strtolower($instructor->major ?? '') }}">
+                                    <input type="radio" name="instructor_id" value="{{ $instructor->id }}" class="inst-radio" style="display:none" onchange="onInstructorSelect('{{ $instructor->user?->name }}', this)">
+                                    <div class="inst-avatar">{{ strtoupper(substr($instructor->user?->name ?? 'IN', 0, 2)) }}</div>
+                                    <div style="flex:1">
+                                        <div class="inst-name">{{ $instructor->user?->name ?? '—' }}</div>
+                                        <div class="inst-career">{{ $instructor->major ?? '—' }}</div>
+                                    </div>
+                                    <div class="inst-check"><i class="ti ti-check" style="font-size:10px"></i></div>
+                                </label>
+                            @empty
+                                <p style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px 0">
+                                    No hay instructores disponibles.
+                                </p>
+                            @endforelse
+                        </div>
+                        <div id="emptySearch" style="display:none;text-align:center;padding:24px 0;color:var(--text-muted);font-size:13px">
+                            <i class="ti ti-user-search" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
+                            No se encontraron instructores
+                        </div>
+                    </div>
+
+                    {{-- Preview seleccionado --}}
+                    <div id="selectedPreview" style="display:none;align-items:center;gap:8px;background:var(--primary-50);border:1px solid var(--primary-100);border-radius:8px;padding:8px 12px;margin-top:12px;font-size:12px;color:var(--primary)">
+                        <i class="ti ti-circle-check" style="font-size:14px;flex-shrink:0"></i>
+                        <span id="selectedName"></span>
+                    </div>
+
                 </div>
             </div>
+
+            {{-- Tab 2: Datos de asignación --}}
+            <div class="tab-panel" id="itab-assignment" style="display:none;padding:20px">
+
+                <div class="field">
+                    <label class="field-label" for="assign-schedule">Horario</label>
+                    <input class="input" id="assign-schedule" name="schedule" type="text" placeholder="Ej. Lunes y Mié 7:00 - 9:00am">
+                </div>
+
+                <div class="field">
+                    <label class="field-label" for="assign-modality">Modalidad</label>
+                    <select class="input" id="assign-modality" name="modality" onchange="toggleAssignClassroom()">
+                        <option value="">Seleccionar...</option>
+                        <option value="presencial">Presencial</option>
+                        <option value="linea">En línea</option>
+                    </select>
+                </div>
+
+                <div class="field" id="assignClassroomField" style="display:none">
+                    <label class="field-label" for="assign-classroom">Aula física</label>
+                    <input class="input" id="assign-classroom" name="classroom" type="text" placeholder="Ej. Aula 204 — Edificio A">
+                </div>
+
+                <div class="field" id="assignLinkField" style="display:none">
+                    <label class="field-label" for="assign-link">Plataforma / Enlace virtual</label>
+                    <input class="input" id="assign-link" name="link" type="url" placeholder="Ej. https://meet.google.com/abc-xyz">
+                    <span class="field-hint">Google Meet, Teams, Zoom u otro enlace.</span>
+                </div>
+
+                <div class="field" style="margin-bottom:0">
+                    <label class="field-label" for="assign-status">Estado de la asignación</label>
+                    <select class="input" id="assign-status" name="status">
+                        <option value="active" selected>Activo</option>
+                        <option value="finished">Finalizado</option>
+                    </select>
+                    <span class="field-hint">El estado "Finalizado" indica que el instructor ya no imparte este grupo.</span>
+                </div>
+
+            </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-ghost" onclick="closeModal('modalInstructor')">Cancelar</button>
-                <button type="submit" class="btn btn-primary" @if($instructors->isEmpty()) disabled @endif>
-                    <i class="ti ti-user-check" aria-hidden="true"></i> Confirmar asignación
-                </button>
+                <div>
+                    <button type="button" class="btn btn-unassign" id="btnUnassign" style="display:none" onclick="confirmUnassign()">
+                        <i class="ti ti-user-minus"></i> Desasignar
+                    </button>
+                </div>
+                <div style="display:flex;gap:8px">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('modalInstructor')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ti ti-device-floppy"></i> Guardar
+                    </button>
+                </div>
             </div>
+
         </form>
     </div>
 </div>
@@ -447,5 +537,73 @@
         @endif
     });
     @endif
+
+    // ── Modal gestionar instructor ─────────────────────────
+function openInstructor(subject, cycle, hasInstructor = false) {
+    document.getElementById('instructorGroupName').textContent = subject + ' — ' + cycle;
+    document.getElementById('btnUnassign').style.display = hasInstructor ? 'inline-flex' : 'none';
+
+    // Reset búsqueda
+    document.getElementById('instructorSearch').value = '';
+    filterInstructors();
+
+    // Reset tabs
+    switchInstructorTab('instructor', document.querySelector('.tab-btn'));
+
+    openModal('modalInstructor');
+}
+
+function switchInstructorTab(name, btn) {
+    document.querySelectorAll('#modalInstructor .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#modalInstructor .tab-panel').forEach(p => p.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('itab-' + name).style.display = 'block';
+}
+
+function filterInstructors() {
+    const q = document.getElementById('instructorSearch').value.toLowerCase().trim();
+    const options = document.querySelectorAll('#instructorList .instructor-option');
+    let visible = 0;
+
+    options.forEach(opt => {
+        const name   = opt.dataset.name   || '';
+        const career = opt.dataset.career || '';
+        const match  = !q || name.includes(q) || career.includes(q);
+        opt.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    document.getElementById('visibleCount').textContent = visible;
+    document.getElementById('totalCount').textContent   = options.length;
+    document.getElementById('emptySearch').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function onInstructorSelect(name, input) {
+    document.querySelectorAll('#instructorList .instructor-option').forEach(o => o.classList.remove('selected'));
+    input.closest('.instructor-option').classList.add('selected');
+    const preview = document.getElementById('selectedPreview');
+    preview.style.display = 'flex';
+    document.getElementById('selectedName').textContent = name + ' seleccionado/a';
+}
+
+function toggleAssignClassroom() {
+    const val = document.getElementById('assign-modality').value;
+    document.getElementById('assignClassroomField').style.display = val === 'presencial' ? 'flex' : 'none';
+    document.getElementById('assignLinkField').style.display      = val === 'linea'      ? 'flex' : 'none';
+}
+
+function confirmUnassign() {
+    if (confirm('Desasignar al instructor de este grupo? Esta acción no se puede deshacer.')) {
+        // Al integrar backend: hacer DELETE a la ruta de desasignación
+        closeModal('modalInstructor');
+    }
+}
+
+// Inicializar contadores al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    const total = document.querySelectorAll('#instructorList .instructor-option').length;
+    document.getElementById('visibleCount').textContent = total;
+    document.getElementById('totalCount').textContent   = total;
+});
 </script>
 @endpush

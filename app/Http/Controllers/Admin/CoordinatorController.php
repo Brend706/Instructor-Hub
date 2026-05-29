@@ -15,12 +15,8 @@ use Illuminate\View\View;
 
 class CoordinatorController extends Controller
 {
-    private const ALLOWED_COORDINATIONS = [
-        'Industrial',
-        'Catedra de Informática',
-        'Arquitectura',
-        'Diseño',
-    ];
+    // Las escuelas y sus cátedras se definen en la vista
+    // El controlador solo valida que los valores recibidos sean válidos
 
     /**
      * Display a listing of the resource.
@@ -32,20 +28,16 @@ class CoordinatorController extends Controller
             ->latest()
             ->paginate(10);
 
-        // `coordination_name` (nuevo) vs `name` (legado): expresión compatible si falta la columna.
-        $hasCoordinationName = Schema::hasColumn('coordinators', 'coordination_name');
-        $coordinationExpr = $hasCoordinationName ? 'COALESCE(coordination_name, name)' : 'name';
-
-        // Lista de coordinaciones para el filtro del select en la UI.
-        // Se ocultan coordinaciones de prueba (datos seeder) para que no aparezcan en el dropdown.
+        // Lista de cátedras/coordinaciones para el filtro del select en la UI.
+        // Ahora se obtienen del campo `name` que contiene las cátedras.
         $hiddenCoordinations = ['Coordinación Demo'];
         $coordinaciones = Coordinator::query()
-            ->selectRaw($coordinationExpr.' as coordination')
-            ->whereRaw($coordinationExpr.' IS NOT NULL')
-            ->whereNotIn(DB::raw($coordinationExpr), $hiddenCoordinations)
+            ->select('name as catedra')
+            ->whereNotNull('name')
+            ->whereNotIn('name', $hiddenCoordinations)
             ->distinct()
-            ->orderBy('coordination')
-            ->pluck('coordination')
+            ->orderBy('name')
+            ->pluck('catedra')
             ->values()
             ->all();
 
@@ -64,7 +56,8 @@ class CoordinatorController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'max:255'],
-            'coordination_name' => ['required', 'string', 'max:255', Rule::in(self::ALLOWED_COORDINATIONS)],
+            'school' => ['required', 'string', 'max:255'],
+            'coordination' => ['required', 'string', 'max:255'],
         ], [
             'name.required' => 'Debe ingresar el nombre completo.',
             'email.required' => 'Debe ingresar el correo electrónico.',
@@ -72,8 +65,8 @@ class CoordinatorController extends Controller
             'email.unique' => 'Ese correo ya está registrado en el sistema.',
             'password.required' => 'Debe ingresar una contraseña.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'coordination_name.required' => 'Debe seleccionar una coordinación válida.',
-            'coordination_name.in' => 'Debe seleccionar una coordinación válida.',
+            'school.required' => 'Debe seleccionar una escuela.',
+            'coordination.required' => 'Debe seleccionar una cátedra.',
         ]);
 
         /**
@@ -92,17 +85,12 @@ class CoordinatorController extends Controller
                 'role_id' => Role::idForSlug('coordinator'),
             ]);
 
-            // Compatibilidad de columnas (BD migrada vs no migrada):
-            // Siempre guardamos la coordinación en `name` (columna antigua).
-            // Si la columna nueva `coordination_name` existe, también la llenamos.
+            // Guardar escuela en `coordination_name` y cátedra en `name`
             $data = [
                 'user_id' => $user->id,
-                'name' => $validated['coordination_name'],
+                'name' => $validated['coordination'],
+                'coordination_name' => $validated['school'],
             ];
-
-            if (Schema::hasColumn('coordinators', 'coordination_name')) {
-                $data['coordination_name'] = $validated['coordination_name'];
-            }
 
             Coordinator::query()->create($data);
         });
@@ -131,15 +119,16 @@ class CoordinatorController extends Controller
                 $emailUnique,
             ],
             'password' => ['nullable', 'string', 'min:8', 'max:255'],
-            'coordination_name' => ['required', 'string', 'max:255', Rule::in(self::ALLOWED_COORDINATIONS)],
+            'school' => ['required', 'string', 'max:255'],
+            'coordination' => ['required', 'string', 'max:255'],
         ], [
             'name.required' => 'Debe ingresar el nombre completo.',
             'email.required' => 'Debe ingresar el correo electrónico.',
             'email.email' => 'El correo electrónico no es válido.',
             'email.unique' => 'Ese correo ya está registrado en el sistema.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'coordination_name.required' => 'Debe seleccionar una coordinación válida.',
-            'coordination_name.in' => 'Debe seleccionar una coordinación válida.',
+            'school.required' => 'Debe seleccionar una escuela.',
+            'coordination.required' => 'Debe seleccionar una cátedra.',
         ]);
 
         DB::transaction(function () use ($coordinator, $validated) {
@@ -155,14 +144,11 @@ class CoordinatorController extends Controller
             }
             $coordinator->user->save();
 
-            $data = [
-                'name' => $validated['coordination_name'],
-            ];
-            if (Schema::hasColumn('coordinators', 'coordination_name')) {
-                $data['coordination_name'] = $validated['coordination_name'];
-            }
-
-            $coordinator->fill($data);
+            // Guardar escuela en `coordination_name` y cátedra en `name`
+            $coordinator->fill([
+                'name' => $validated['coordination'],
+                'coordination_name' => $validated['school'],
+            ]);
             $coordinator->save();
         });
 

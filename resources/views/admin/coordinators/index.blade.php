@@ -54,10 +54,7 @@
         >
     </div>
     <select class="filter-select" id="filterCoordination" onchange="filterTable()">
-        <option value="">Todas las coordinaciones</option>
-        @foreach(($coordinaciones ?? []) as $coord)
-            <option value="{{ $coord }}">{{ $coord }}</option>
-        @endforeach
+        <option value="">Todas las cátedras</option>
     </select>
 </div>
 
@@ -79,7 +76,8 @@
                 @forelse($coordinators as $coordinator)
                     @php
                         $user = $coordinator->user;
-                        $coordination = $coordinator->coordination_name ?? $coordinator->name ?? '';
+                        $school = $coordinator->coordination_name ?? '';
+                        $coordination = $coordinator->name ?? '';
                         $since = optional($coordinator->created_at)->format('M Y');
                     @endphp
                     <tr
@@ -88,6 +86,7 @@
                         data-email="{{ strtolower($user?->email ?? '') }}"
                         data-user-name="{{ $user?->name ?? '' }}"
                         data-user-email="{{ $user?->email ?? '' }}"
+                        data-school="{{ $school }}"
                         data-coordination="{{ $coordination }}"
                         data-since="{{ $since }}"
                     >
@@ -105,7 +104,12 @@
                             </div>
                         </td>
                         <td>{{ $user?->email ?? '—' }}</td>
-                        <td>{{ $coordination }}</td>
+                        <td>
+                            <div style="display:flex;flex-direction:column;gap:4px">
+                                <div style="font-size:11px;color:var(--text-muted)">{{ $school ?? '—' }}</div>
+                                <div class="td-main">{{ $coordination ?? '—' }}</div>
+                            </div>
+                        </td>
                         <td>
                             <div class="actions">
                                 {{-- Ver detalle --}}
@@ -239,7 +243,7 @@
                         id="email"
                         name="email"
                         type="email"
-                        placeholder="correo@fica.edu.sv"
+                        placeholder="correo@mail.utec.edu.sv"
                         value="{{ old('email') }}"
                         autocomplete="email"
                     >
@@ -250,16 +254,23 @@
                 </div>
 
                 <div class="field">
-                    <label class="field-label" for="coordination_name">Coordinación</label>
-                    <select class="input @error('coordination_name') is-invalid @enderror" id="coordination_name" name="coordination_name">
-                        <option value="">Seleccionar...</option>
-                        <option value="Industrial" {{ old('coordination_name') === 'Industrial' ? 'selected' : '' }}>Industrial</option>
-                        <option value="Catedra de Informática" {{ old('coordination_name') === 'Catedra de Informática' ? 'selected' : '' }}>Catedra de Informática</option>
-                        <option value="Arquitectura" {{ old('coordination_name') === 'Arquitectura' ? 'selected' : '' }}>Arquitectura</option>
-                        <option value="Diseño" {{ old('coordination_name') === 'Diseño' ? 'selected' : '' }}>Diseño</option>
-                    </select> 
+                    <label class="field-label" for="school">Escuela</label>
+                    <select class="input @error('school') is-invalid @enderror" id="school" name="school" onchange="updateCoordinationOptions()">
+                        <option value="">Seleccionar escuela...</option>
+                    </select>
+                    <span class="field-msg field-msg--error" id="schoolClientError" aria-live="polite"></span>
+                    @error('school')
+                        <span class="field-msg field-msg--error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="field">
+                    <label class="field-label" for="coordination">Cátedra</label>
+                    <select class="input @error('coordination') is-invalid @enderror" id="coordination" name="coordination">
+                        <option value="">Seleccionar cátedra...</option>
+                    </select>
                     <span class="field-msg field-msg--error" id="coordinationClientError" aria-live="polite"></span>
-                    @error('coordination_name')
+                    @error('coordination')
                         <span class="field-msg field-msg--error">{{ $message }}</span>
                     @enderror
                 </div>
@@ -339,8 +350,24 @@
 <script>
     const BASE_URL = @json(url('/admin/coordinadores'));
 
+    /**
+     * ═══════════════════════════════════════════════════════
+     * ESTRUCTURA DE DATOS: ESCUELAS Y CATEDRAS
+     * ═══════════════════════════════════════════════════════
+     */
+    const schoolsData = {
+        "Escuela de Informática": {
+            name: "Escuela de Informática",
+            catedras: ["Programación", "Sistemas Informáticos", "Electrónica", "Redes", "Desarrollo de Sistemas"]
+        },
+        "Escuela de Ciencias Aplicadas": {
+            name: "Escuela de Ciencias Aplicadas",
+            catedras: ["Matemáticas", "Estadística y Física", "Diseño y Tecnicas manuales", "Diseño Gráfico y Tecnología", "Diseño Ambiental y Estructural", "Dibujo Arquitectónico y Construcción", "Procesos Industriales", "Gestión de Calidad y Logística", "Calidad, Inocuidad, Metrología y Normalización CCIMN"]
+        }
+    };
+
     function clearCoordinatorClientErrors() {
-        ['name', 'email', 'coordination', 'password'].forEach((key) => {
+        ['name', 'email', 'school', 'coordination', 'password'].forEach((key) => {
             const el = document.getElementById(key + 'ClientError');
             if (el) el.textContent = '';
         });
@@ -351,10 +378,55 @@
 
     function setCoordinatorClientError(inputId, message) {
         const input = document.getElementById(inputId);
-        const suffix = inputId === 'coordination_name' ? 'coordination' : inputId;
-        const err = document.getElementById(suffix + 'ClientError');
+        const err = document.getElementById(inputId + 'ClientError');
         if (input) input.classList.add('is-invalid');
         if (err) err.textContent = message;
+    }
+
+    function updateCoordinationOptions() {
+        const schoolSelect = document.getElementById('school');
+        const coordinationSelect = document.getElementById('coordination');
+        const selectedSchool = schoolSelect.value;
+
+        // Limpiar opciones actuales excepto la primera
+        coordinationSelect.innerHTML = '<option value="">Seleccionar cátedra...</option>';
+
+        if (selectedSchool && schoolsData[selectedSchool]) {
+            const catedras = schoolsData[selectedSchool].catedras || [];
+            catedras.forEach(catedra => {
+                const option = document.createElement('option');
+                option.value = catedra;
+                option.textContent = catedra;
+                coordinationSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Llenar el select de escuelas al cargar
+    function initializeSchoolSelect() {
+        const schoolSelect = document.getElementById('school');
+        Object.keys(schoolsData).forEach(schoolKey => {
+            const option = document.createElement('option');
+            option.value = schoolKey;
+            option.textContent = schoolsData[schoolKey].name;
+            schoolSelect.appendChild(option);
+        });
+    }
+
+    function initializeFilterSelect() {
+        const filterSelect = document.getElementById('filterCoordination');
+        const catedras = new Set();
+
+        Object.values(schoolsData).forEach(school => {
+            (school.catedras || []).forEach(catedra => catedras.add(catedra));
+        });
+
+        Array.from(catedras).sort().forEach(catedra => {
+            const option = document.createElement('option');
+            option.value = catedra;
+            option.textContent = catedra;
+            filterSelect.appendChild(option);
+        });
     }
 
     // La UI abre un mismo modal para crear/editar.
@@ -418,6 +490,7 @@
         const showPwd = document.getElementById('showCoordinatorPassword');
         if (showPwd) showPwd.checked = false;
         document.getElementById('passwordHint').textContent = '';
+        updateCoordinationOptions(); // Limpiar coordinaciones (vacías en crear nuevo)
     }
 
     // ── Abrir editar ───────────────────────────────────────
@@ -435,7 +508,15 @@
 
         document.getElementById('name').value = row.dataset.userName || '';
         document.getElementById('email').value = row.dataset.userEmail || '';
-        document.getElementById('coordination_name').value = row.dataset.coordination || '';
+        
+        // Nota: Aquí deberías mapear row.dataset.coordination a la escuela y coordinación correspondientes
+        // Por ahora, asegúrate de que tu backend envíe los datos de escuela en row.dataset.school
+        const schoolValue = row.dataset.school || '';
+        document.getElementById('school').value = schoolValue;
+        updateCoordinationOptions();
+        
+        const coordinationValue = row.dataset.coordination || '';
+        document.getElementById('coordination').value = coordinationValue;
 
         // Contraseña opcional al editar
         const pwd = document.getElementById('password');
@@ -488,7 +569,8 @@
 
         const name = document.getElementById('name').value.trim();
         const email = document.getElementById('email').value.trim();
-        const coordination = document.getElementById('coordination_name').value;
+        const school = document.getElementById('school').value;
+        const coordination = document.getElementById('coordination').value;
         const password = document.getElementById('password').value;
 
         let ok = true;
@@ -504,8 +586,12 @@
             setCoordinatorClientError('email', 'El correo electrónico no es válido.');
             ok = false;
         }
+        if (!school) {
+            setCoordinatorClientError('school', 'Debe seleccionar una escuela.');
+            ok = false;
+        }
         if (!coordination) {
-            setCoordinatorClientError('coordination_name', 'Debe seleccionar una coordinación.');
+            setCoordinatorClientError('coordination', 'Debe seleccionar una coordinación.');
             ok = false;
         }
 
@@ -527,11 +613,10 @@
         }
     });
 
-    ['name', 'email', 'coordination_name', 'password'].forEach((id) => {
+    ['name', 'email', 'school', 'coordination', 'password'].forEach((id) => {
         document.getElementById(id)?.addEventListener('input', () => {
             const input = document.getElementById(id);
-            const suffix = id === 'coordination_name' ? 'coordination' : id;
-            const err = document.getElementById(suffix + 'ClientError');
+            const err = document.getElementById(id + 'ClientError');
             if (input) input.classList.remove('is-invalid');
             if (err) err.textContent = '';
         });
@@ -546,7 +631,14 @@
 
     @if ($errors->any())
     document.addEventListener('DOMContentLoaded', function () {
+        initializeSchoolSelect();
+        initializeFilterSelect();
         openModal('modalForm');
+    });
+    @else
+    document.addEventListener('DOMContentLoaded', function () {
+        initializeSchoolSelect();
+        initializeFilterSelect();
     });
     @endif
 </script>

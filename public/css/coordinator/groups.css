@@ -105,3 +105,45 @@ select.input { cursor:pointer; }
     .page-header { flex-direction:column; gap:12px; }
     .field-row   { grid-template-columns:1fr; }
 }
+/* ── Tabs del modal instructor ── */
+.tab-bar {
+    display: flex;
+    padding: 12px 20px 0;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-radius: 8px 8px 0 0;
+    font-family: inherit;
+    transition: color .15s, background .15s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.tab-btn:hover {
+    color: var(--text-soft);
+    background: rgba(0,0,0,.03);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: var(--surface);
+    font-weight: 600;
+}
+
+.tab-btn i {
+    font-size: 14px;
+}
