@@ -1,13 +1,19 @@
-/* Grid principal de dos columnas */
+/* ============================================================
+   Login — Instructor Hub
+   Paleta: Borgoña · Gris cálido · Lavanda
+   Usa las variables de app.css — no redefinir aquí.
+   ============================================================ */
+
+/* ── Grid principal ── */
 .login-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     min-height: 100vh;
 }
 
-/* ─────────────────────────────────────────
+/* ═════════════════════════════════════════
    PANEL IZQUIERDO
-───────────────────────────────────────── */
+═════════════════════════════════════════ */
 .login-left {
     background: var(--primary);
     display: flex;
@@ -18,30 +24,93 @@
     overflow: hidden;
 }
 
-/* Círculos decorativos */
+/* Patrón de puntos sutil sobre el fondo */
 .login-left::before {
     content: '';
-    position: absolute;
-    top: -80px; right: -80px;
-    width: 320px; height: 320px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, .04);
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
     pointer-events: none;
+    z-index: 0;
 }
+
+/* Arco decorativo — esquina superior izquierda */
 .login-left::after {
     content: '';
     position: absolute;
-    bottom: -60px; left: -60px;
-    width: 240px; height: 240px;
+    top: -30px; left: -30px;
+    width: 140px; height: 140px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 50%;
-    background: rgba(255, 255, 255, .04);
     pointer-events: none;
+    z-index: 0;
 }
 
-.login-left-top  { position: relative; z-index: 1; }
+.login-left-top    { position: relative; z-index: 1; }
 .login-left-bottom { position: relative; z-index: 1; }
 
-/* Marca */
+/* Hexágono decorativo — esquina superior derecha (SVG inline en blade) */
+.login-hex-deco {
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Arco interior — esquina superior izquierda */
+.login-arc-inner {
+    position: absolute;
+    top: -10px; left: -10px;
+    width: 90px; height: 90px;
+    border: 0.5px solid rgba(255, 255, 255, 0.04);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Líneas diagonales lavanda — zona inferior izquierda */
+.login-accent-line {
+    position: absolute;
+    bottom: 120px; left: -20px;
+    width: 140px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159, 153, 232, 0.5), transparent);
+    transform: rotate(-35deg);
+    pointer-events: none;
+    z-index: 0;
+}
+.login-accent-line-2 {
+    position: absolute;
+    bottom: 100px; left: 20px;
+    width: 80px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(159, 153, 232, 0.3), transparent);
+    transform: rotate(-35deg);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Rombos — esquina inferior derecha */
+.login-diamond {
+    position: absolute;
+    bottom: 60px; right: 36px;
+    width: 48px; height: 48px;
+    border: 1.5px solid rgba(159, 153, 232, 0.25);
+    transform: rotate(45deg);
+    pointer-events: none;
+    z-index: 0;
+}
+.login-diamond-inner {
+    position: absolute;
+    bottom: 72px; right: 48px;
+    width: 24px; height: 24px;
+    border: 1px solid rgba(159, 153, 232, 0.15);
+    transform: rotate(45deg);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ── Marca ── */
 .brand {
     display: flex;
     align-items: center;
@@ -50,78 +119,111 @@
 }
 .brand-mark {
     width: 42px; height: 42px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, .15);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 0.5px solid rgba(255, 255, 255, 0.18);
     display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 700; color: #fff;
+    font-size: 15px; font-weight: 700; color: #fff;
     flex-shrink: 0;
+    letter-spacing: -0.5px;
 }
-.brand-name { font-size: 18px; font-weight: 600; color: #fff; }
-.brand-sub  { font-size: 11px; color: rgba(255, 255, 255, .5); margin-top: 1px; }
+.brand-name { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: -0.2px; }
+.brand-sub  { font-size: 11px; color: rgba(255, 255, 255, 0.38); margin-top: 2px; letter-spacing: 0.04em; text-transform: uppercase; }
 
-/* Titular */
-.left-headline {
-    font-size: 32px;
-    font-weight: 600;
-    color: #fff;
-    line-height: 1.3;
+/* ── Titular con barra lateral lavanda ── */
+.headline-wrap {
+    border-left: 2px solid var(--accent);
+    padding-left: 14px;
     margin-bottom: 16px;
 }
-.left-headline span { color: #5DD5E3; }
-
-.left-desc {
-    font-size: 14px;
-    color: rgba(255, 255, 255, .6);
-    line-height: 1.7;
-    max-width: 320px;
+.left-headline {
+    font-size: 30px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.28;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+.left-headline span {
+    color: var(--accent-hover);
+    font-style: italic;
+    font-weight: 400;
 }
 
-/* Features */
+.left-desc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.48);
+    line-height: 1.75;
+    max-width: 300px;
+}
+
+/* ── Features con línea conectora vertical ── */
 .features {
-    margin-top: 40px;
+    margin-top: 36px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 0;
 }
 .feat {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
+    padding: 9px 0;
+    position: relative;
+}
+/* Línea vertical que conecta los features */
+.feat:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 15px; top: 38px;
+    width: 1px; height: calc(100% - 14px);
+    background: rgba(255, 255, 255, 0.08);
 }
 .feat-icon {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, .1);
+    width: 30px; height: 30px;
+    border-radius: 8px; flex-shrink: 0;
+    background: rgba(127, 119, 221, 0.13);
+    border: 0.5px solid rgba(127, 119, 221, 0.22);
     display: flex; align-items: center; justify-content: center;
-    font-size: 15px; color: rgba(255, 255, 255, .8);
-    flex-shrink: 0;
+    font-size: 14px; color: var(--accent-hover);
+    position: relative; z-index: 1;
+    transition: background var(--transition);
 }
-.feat-text { font-size: 13px; color: rgba(255, 255, 255, .65); }
+.feat:hover .feat-icon {
+    background: rgba(127, 119, 221, 0.24);
+}
+.feat-text {
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.55);
+    padding-top: 7px;
+    font-weight: 300;
+}
 
-/* Badge facultad */
+/* ── Badge facultad ── */
 .faculty-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, .08);
-    border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, 0.05);
+    border: 0.5px solid rgba(255, 255, 255, 0.09);
     border-radius: 20px;
-    padding: 6px 14px;
+    padding: 7px 15px;
     font-size: 12px;
-    color: rgba(255, 255, 255, .7);
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 300;
 }
-.faculty-badge i { font-size: 14px; }
+.faculty-badge i { font-size: 14px; color: var(--accent); }
 
-/* ─────────────────────────────────────────
+/* ═════════════════════════════════════════
    PANEL DERECHO
-───────────────────────────────────────── */
+═════════════════════════════════════════ */
 .login-right {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 48px 56px;
-    background: var(--surface);
+    background: var(--bg);
 }
 
 .form-wrap {
@@ -129,19 +231,23 @@
     max-width: 360px;
 }
 
-/* Encabezado del form */
+/* ── Encabezado ── */
 .form-header  { margin-bottom: 28px; }
-.form-title   { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-.form-sub     { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.form-title {
+    font-size: 22px; font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px; letter-spacing: -0.3px;
+}
+.form-sub { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
 
-/* Error */
+/* ── Error ── */
 .error-box {
-    background: #FEE2E2;
+    background: var(--danger-bg);
     border: 1px solid #FECACA;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 10px 14px;
     font-size: 12px;
-    color: #991B1B;
+    color: var(--danger-text);
     margin-bottom: 20px;
     display: flex;
     align-items: center;
@@ -149,7 +255,7 @@
 }
 .error-box i { font-size: 15px; flex-shrink: 0; }
 
-/* Campos */
+/* ── Campos ── */
 .field {
     display: flex;
     flex-direction: column;
@@ -160,97 +266,104 @@
     font-size: 12px;
     font-weight: 500;
     color: var(--text-soft);
+    letter-spacing: 0.01em;
 }
 .input {
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 9px;
     padding: 10px 14px;
     font-size: 13px;
     color: var(--text);
-    outline: none;
-    transition: border .15s, box-shadow .15s;
-    font-family: inherit;
-    width: 100%;
     background: var(--surface);
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+    transition: border-color var(--transition), box-shadow var(--transition);
 }
 .input:focus {
-    border-color: var(--primary-400);
-    box-shadow: 0 0 0 3px var(--primary-50);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-50);
 }
 .input::placeholder { color: var(--text-muted); }
 .input-error {
     border-color: #FECACA;
-    box-shadow: 0 0 0 3px #FEE2E2;
+    box-shadow: 0 0 0 3px var(--danger-bg);
 }
 
-/* Mostrar contraseña */
+/* ── Mostrar contraseña ── */
 .show-pass {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-top: 6px;
+    margin-top: 7px;
     cursor: pointer;
     font-size: 12px;
     color: var(--text-muted);
     user-select: none;
 }
-.show-pass input { accent-color: var(--primary); }
+.show-pass input { accent-color: var(--accent); }
 
-/* Recordarme */
+/* ── Recordarme ── */
 .remember {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 12px;
     color: var(--text-soft);
-    margin-bottom: 20px;
+    margin-bottom: 22px;
     cursor: pointer;
 }
-.remember input { accent-color: var(--primary); }
+.remember input { accent-color: var(--accent); }
 
-/* Botón submit */
+/* ── Botón submit ── */
 .btn-submit {
     width: 100%;
     padding: 11px;
     background: var(--primary);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: 9px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     font-family: inherit;
-    transition: background .15s, transform .1s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    letter-spacing: 0.01em;
+    transition: background var(--transition), transform .1s;
+    position: relative;
+    overflow: hidden;
+}
+.btn-submit::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(127, 119, 221, 0.15) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity var(--transition);
 }
 .btn-submit:hover  { background: var(--primary-700); }
-.btn-submit:active { transform: scale(.98); }
+.btn-submit:hover::after { opacity: 1; }
+.btn-submit:active { transform: scale(0.98); }
 
-/* Footer */
+/* ── Footer ── */
 .footer-form {
     text-align: center;
     font-size: 11px;
     color: var(--text-muted);
     margin-top: 32px;
-    line-height: 1.8;
+    line-height: 1.85;
 }
-.footer-form strong { color: var(--text-soft); }
+.footer-form strong { color: var(--text-soft); font-weight: 500; }
 
-/* ─────────────────────────────────────────
-   RESPONSIVE — tablet / móvil
-───────────────────────────────────────── */
+/* ═════════════════════════════════════════
+   RESPONSIVE
+═════════════════════════════════════════ */
 @media (max-width: 768px) {
-    .login-grid {
-        grid-template-columns: 1fr;
-    }
-    .login-left {
-        padding: 32px 24px;
-        min-height: auto;
-    }
-    .left-headline { font-size: 24px; }
-    .features      { display: none; }
-    .login-right   { padding: 40px 24px; }
+    .login-grid      { grid-template-columns: 1fr; }
+    .login-left      { padding: 32px 24px; min-height: auto; }
+    .left-headline   { font-size: 24px; }
+    .features        { display: none; }
+    .login-right     { padding: 40px 24px; background: var(--surface); }
 }

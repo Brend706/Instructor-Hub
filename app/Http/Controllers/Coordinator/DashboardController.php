@@ -142,10 +142,14 @@ class DashboardController extends Controller
     private function coordinatorCoordinationName(Coordinator $coordinator): ?string
     {
         // Compatibilidad con BD antiguas/nuevas.
+        if (Schema::hasColumn('coordinators', 'school_name')) {
+            return $coordinator->school_name ?: $coordinator->catedra ?: $coordinator->name;
+        }
+
         if (Schema::hasColumn('coordinators', 'coordination_name')) {
             return $coordinator->coordination_name ?: $coordinator->name;
         }
 
-        return $coordinator->name;
+        return $coordinator->catedra ?: $coordinator->name;
     }
 }

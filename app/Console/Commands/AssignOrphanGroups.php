@@ -32,7 +32,7 @@ class AssignOrphanGroups extends Command
 
         $this->info("Coordinadores disponibles:");
         foreach ($coordinators as $c) {
-            $label = $c->coordination_name ?? $c->name ?? 'Sin nombre';
+            $label = $c->school_name ?? $c->coordination_name ?? $c->catedra ?? $c->name ?? 'Sin nombre';
             $this->line("  [{$c->id}] {$label} — {$c->user?->name}");
         }
 

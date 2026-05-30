@@ -75,8 +75,18 @@ class InstructorController extends Controller
         // todas las coordinaciones registradas son válidas.
         $coordinators = [];
         if (auth()->user()->roleSlug() === 'admin' && Schema::hasTable('coordinators')) {
-            $hasCoordinationName = Schema::hasColumn('coordinators', 'coordination_name');
-            $labelExpr = $hasCoordinationName ? 'COALESCE(coordination_name, name)' : 'name';
+            $hasSchoolName = Schema::hasColumn('coordinators', 'school_name');
+            $hasCatedra = Schema::hasColumn('coordinators', 'catedra');
+            $hasName = Schema::hasColumn('coordinators', 'name');
+
+            if ($hasSchoolName) {
+                $labelExpr = 'COALESCE(school_name'.($hasCatedra ? ', catedra' : '').($hasName ? ', name' : '').')';
+            } elseif ($hasCatedra) {
+                $labelExpr = 'COALESCE(catedra'.($hasName ? ', name' : '').')';
+            } else {
+                $labelExpr = 'name';
+            }
+
             $coordinators = Coordinator::query()
                 ->whereRaw($labelExpr.' IS NOT NULL')
                 ->orderByRaw($labelExpr)

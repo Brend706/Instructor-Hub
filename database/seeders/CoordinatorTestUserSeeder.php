@@ -33,10 +33,12 @@ class CoordinatorTestUserSeeder extends Seeder
 
             $data = [
                 'user_id' => $user->id,
-                'name' => $coordination,
+                'catedra' => $coordination,
             ];
 
-            if (Schema::hasColumn('coordinators', 'coordination_name')) {
+            if (Schema::hasColumn('coordinators', 'school_name')) {
+                $data['school_name'] = $coordination;
+            } elseif (Schema::hasColumn('coordinators', 'coordination_name')) {
                 $data['coordination_name'] = $coordination;
             }
 

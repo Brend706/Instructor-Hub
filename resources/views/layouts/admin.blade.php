@@ -46,8 +46,14 @@
     <aside class="sidebar" id="sidebar" aria-label="Menú principal">
 
         <div class="sidebar-header">
-            <div class="logo-mark" aria-hidden="true">FICA</div>
-            <span class="logo-text">Instructor Hub</span>
+            <div class="logo-mark" aria-hidden="true">
+                <span class="logo-initials">IH</span>
+                <span class="logo-dot"></span>
+            </div>
+            <div class="logo-text-wrap">
+                <span class="logo-name">Instructor Hub</span>
+                <span class="logo-sub">FICA · UTEC</span>
+            </div>
         </div>
 
         <nav class="sidebar-nav">
@@ -120,7 +126,8 @@
 
         <div class="sidebar-footer">
             {{-- Tarjeta inferior: enlace al perfil; rol legible vía User::roleDisplayLabel() --}}
-            <a href="{{ route('profile.index') }}" class="user-card">
+            <a href="{{ route('profile.index') }}" class="user-card"
+                title="{{ auth()->user()->name ?? 'Admin Demo' }}">
                 <div class="avatar" aria-hidden="true">
                     {{ strtoupper(substr(auth()->user()->name ?? 'Admin Demo', 0, 2)) }}
                 </div>

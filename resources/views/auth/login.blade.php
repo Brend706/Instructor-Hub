@@ -14,6 +14,17 @@
          PANEL IZQUIERDO — Presentación
     ═══════════════════════════════════ --}}
     <div class="login-left">
+        {{-- Decoraciones geométricas --}}
+            <svg class="login-hex-deco" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                <polygon points="100,10 182,55 182,145 100,190 18,145 18,55" stroke="white" stroke-width="1"/>
+                <polygon points="100,30 165,67 165,133 100,170 35,133 35,67" stroke="white" stroke-width="0.5"/>
+                <polygon points="100,50 148,78 148,122 100,150 52,122 52,78" stroke="white" stroke-width="0.3"/>
+            </svg>
+            <div class="login-arc-inner" aria-hidden="true"></div>
+            <div class="login-accent-line" aria-hidden="true"></div>
+            <div class="login-accent-line-2" aria-hidden="true"></div>
+            <div class="login-diamond" aria-hidden="true"></div>
+            <div class="login-diamond-inner" aria-hidden="true"></div>
         <div class="login-left-top">
 
             {{-- Marca --}}
@@ -26,9 +37,11 @@
             </div>
 
             {{-- Titular --}}
-            <h1 class="left-headline">
-                Bienvenido al<br>sistema de <span>instructorías</span>
-            </h1>
+            <div class="headline-wrap">
+                <h1 class="left-headline">
+                    Bienvenido al<br>sistema de <span>instructorías</span>
+                </h1>
+            </div>
             <p class="left-desc">
                 Gestiona instructores, coordina sesiones y da seguimiento
                 a la asistencia desde un solo lugar.

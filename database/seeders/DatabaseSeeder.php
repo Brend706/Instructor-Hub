@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CoordinatorSeeder::class,
             InstructorSeeder::class,
+            ClassGroupsSeeder::class,
+            InstructorAssigmentsSeeder::class,
             EvaluationsSeeder::class,
         ]);
     }

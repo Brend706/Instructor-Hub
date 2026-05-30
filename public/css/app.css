@@ -6,26 +6,44 @@
    Todo el resto de archivos consume `var(--xxx)`, así que cambiar
    estas variables propaga el cambio a toda la UI sin tocar cada CSS. */
 :root {
-    --primary:       #1B4E8B;
-    --primary-50:    #EBF2FB;
-    --primary-100:   #C2D9F4;
-    --primary-400:   #4C8FD4;
-    --primary-700:   #133870;
-    --primary-900:   #071630;
-    --accent:        #0B7080;
-    --accent-50:     #E3F7FA;
-    --bg:            #F8F9FB;
+    /* Borgoña institucional — primario / sidebar */
+    --primary:       #5A1533;
+    --primary-50:    #F9EFF2;
+    --primary-100:   #EEC4CF;
+    --primary-400:   #C47A90;
+    --primary-700:   #3D0D22;
+    --primary-900:   #220812;
+
+    /* Lavanda — acento / CTA */
+    --accent:        #7F77DD;
+    --accent-hover:  #9F99E8;
+    --accent-50:     #EEEDF9;
+    --accent-100:    #D3D1F0;
+
+    /* Fondos cálidos claros */
+    --bg:            #F1EFE8;
     --surface:       #FFFFFF;
-    --surface-hover: #FAFBFC;   /* hover de filas de tabla, items de listas */
-    --border:        #E2E8F0;
-    --text:          #1E293B;
-    --text-muted:    #94A3B8;
-    --text-soft:     #475569;
-    --shadow:        rgba(0,0,0,.12);
-    --topbar-h:      56px;
-    --transition:    .22s cubic-bezier(.4, 0, .2, 1);
+    --border:        #E8E4DC;
+    --border-soft:   #D8D4CC;
+
+    /* Texto */
+    --text:          #2C2C32;
+    --text-soft:     #6B6472;
+    --text-muted:    #9A8FA0;
+
+    /* Semánticos */
+    --success-bg:    #E8F5EE;
+    --success-text:  #166534;
+    --warning-bg:    #FEF9C3;
+    --warning-text:  #854D0E;
+    --danger-bg:     #FEE2E2;
+    --danger-text:   #991B1B;
+
+    /* Layout — no cambian */
     --sidebar-w:     240px;
     --sidebar-w-col: 64px;
+    --topbar-h:      56px;
+    --transition:    .22s cubic-bezier(.4, 0, .2, 1);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -36,22 +54,38 @@
    blanco al cargar la página. El sidebar (azul) NO se redefine
    acá a propósito: queda igual en ambos modos como identidad visual. */
 :root.dark {
-    --primary:       #4C8FD4;                /* subimos un escalón para mejor contraste */
-    --primary-50:    rgba(76,143,212,.16);   /* fondos tenues azules */
-    --primary-100:   rgba(76,143,212,.28);
-    --primary-400:   #6BAEEC;
-    --primary-700:   #1B4E8B;
-    --primary-900:   #071630;
-    --accent:        #2BB1C4;
-    --accent-50:     rgba(43,177,196,.18);
-    --bg:            #0F1729;                 /* azul casi negro */
-    --surface:       #1A2237;                 /* card / topbar */
-    --surface-hover: rgba(255,255,255,.04);   /* hover sutil */
-    --border:        rgba(255,255,255,.08);
-    --text:          #E2E8F0;
-    --text-muted:    #64748B;
-    --text-soft:     #94A3B8;
-    --shadow:        rgba(0,0,0,.55);
+    /* Borgoña — se aclara para contrastar sobre fondo oscuro */
+    --primary:       #C47A90;
+    --primary-50:    #2A0F1C;
+    --primary-100:   #3D1528;
+    --primary-400:   #8C2845;
+    --primary-700:   #EEC4CF;
+    --primary-900:   #F9EFF2;
+
+    /* Lavanda — se aclara ligeramente */
+    --accent:        #9F99E8;
+    --accent-hover:  #B8B4EF;
+    --accent-50:     #1E1D35;
+    --accent-100:    #2A2848;
+
+    /* Fondos oscuros cálidos — no fríos */
+    --bg:            #1C1A20;
+    --surface:       #252229;
+    --border:        #38343E;
+    --border-soft:   #2E2B33;
+
+    /* Texto */
+    --text:          #F1EFE8;
+    --text-soft:     #C8C0CC;
+    --text-muted:    #7A7082;
+
+    /* Semánticos oscuros */
+    --success-bg:    #0F2418;
+    --success-text:  #86C99A;
+    --warning-bg:    #2A1F08;
+    --warning-text:  #D4B870;
+    --danger-bg:     #2A0F0F;
+    --danger-text:   #D47070;
     color-scheme: dark;
 }
 

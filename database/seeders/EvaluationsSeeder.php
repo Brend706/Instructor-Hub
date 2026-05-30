@@ -36,13 +36,13 @@ class EvaluationsSeeder extends Seeder
             [
                 'slug' => EvaluationType::STUDENT,
                 'name' => 'Evaluación de estudiantes',
-                'description' => 'Respuestas anónimas de los estudiantes, importadas desde Excel/Forms.',
+                'description' => 'Respuestas de los estudiantes, importadas desde Excel/Forms.',
                 'questions' => $this->studentQuestions(),
             ],
             [
                 'slug' => EvaluationType::TEACHER,
                 'name' => 'Evaluación del docente titular',
-                'description' => 'El docente titular del curso evalúa al instructor (importado).',
+                'description' => 'El docente titular del grupo evalúa al instructor (importado).',
                 'questions' => $this->teacherQuestions(),
             ],
         ];
@@ -98,25 +98,25 @@ class EvaluationsSeeder extends Seeder
     private function selfQuestions(): array
     {
         return [
-            $this->score('Cumplí con los horarios de instructoría acordados.'),
-            $this->score('Preparé adecuadamente el material para cada sesión.'),
-            $this->score('Logré que los estudiantes comprendieran los temas.'),
-            $this->score('Atendí las dudas de los estudiantes con claridad.'),
-            $this->score('Mantuve una buena comunicación con el docente titular.'),
-            $this->score('Fomenté la participación activa de los estudiantes.'),
-            $this->score('Apliqué estrategias adecuadas a distintos ritmos de aprendizaje.'),
-            $this->score('Generé un ambiente de respeto y confianza.'),
-            $this->score('Cumplí con los temas planificados del ciclo.'),
-            $this->score('Identifiqué a tiempo a estudiantes con dificultades.'),
-            $this->score('Apliqué actividades de refuerzo cuando fue necesario.'),
-            $this->score('Usé recursos visuales o digitales adecuados.'),
-            $this->score('Acepté retroalimentación de la coordinación.'),
-            $this->score('Documenté correctamente la asistencia.'),
-            $this->score('Demostré dominio del tema durante las instructorías.'),
-            $this->text('¿Qué aspecto destacarías de tu instructoría?'),
-            $this->text('¿Qué dificultades encontraste?'),
-            $this->text('¿Qué mejorarías para el próximo ciclo?'),
-            $this->text('Observaciones adicionales.'),
+            $this->score('Asiste o se conecta puntualmente a las clases como los demás estudiantes.'),
+            $this->score('Planifica sus instructorías según el formato de Sesión de Instructoría.'),
+            $this->score('Envía oportunamente la planificación al Coordinador de instructores.'),
+
+            $this->text('¿Cuáles herramientas tecnológicas utiliza para impartir los contenidos de la instructoría y las actividades evaluadas?'),
+            $this->text('¿Cuáles recursos digitales utiliza para impartir sus instructorías?'),
+            $this->text('¿Cuál o cuáles estrategias metodológicas aplica para impartir su instructoría?'),
+
+            $this->score('Explica a los estudiantes la competencia y los elementos de competencia a desarrollar en la asignatura y en la instructoría.'),
+            $this->score('Motiva a los estudiantes para que adquieran el dominio de las habilidades, conocimientos y actitudes.'),
+            $this->score('Brinda apoyo y resuelve dudas sobre los contenidos que el profesor desarrolla en la clase.'),
+            $this->score('Cumple con el horario de instructoría que se ha establecido.'),
+            $this->score('Responde mensajería o correos oportunamente (en un período no mayor a 24 horas).'),
+            $this->score('Mantiene con el Docente, Estudiantes y Coordinador una buena comunicación basada en la responsabilidad, respeto y confianza.'),
+            $this->score('Trabaja en equipo con el Docente para desarrollar en los estudiantes las competencias que demanda la asignatura.'),
+            $this->score('Presenta materiales, ejemplos y ejercicios idóneos para desarrollar las competencias establecidas en el Diseño Instruccional de la asignatura.'),
+            $this->score('Los contenidos vistos en la instructoría son coherentes con los contenidos evaluados en el parcial.'),
+            $this->score('Asiste a reuniones, actividades académicas y administrativas según convocatoria del Coordinador de Instructores.'),
+            $this->score('Tiene vocación para ejercer la labor docente.'),
         ];
     }
 
@@ -124,50 +124,95 @@ class EvaluationsSeeder extends Seeder
     private function coordinatorQuestions(): array
     {
         return [
-            $this->score('Puntualidad en los horarios de instructoría.'),
-            $this->score('Calidad del material preparado.'),
-            $this->score('Dominio del tema.'),
-            $this->score('Trato y comunicación con los estudiantes.'),
-            $this->score('Comunicación con la coordinación.'),
-            $this->score('Cumplimiento de los temas planificados.'),
-            $this->score('Compromiso general con la instructoría.'),
-            $this->text('Fortalezas que destacarías del instructor.'),
-            $this->text('Áreas de mejora.'),
-            $this->text('Observaciones generales.'),
+            $this->score('El instructor asiste o se conecta puntualmente a las clases como los demás estudiantes.'),
+            $this->score('El instructor planifica sus instructorías según el formato de Sesión de Instructoría.'),
+            $this->score('El instructor utiliza las herramientas tecnológicas y recursos didácticos adecuados para desarrollar en los estudiantes las competencias que demanda la asignatura.'),
+            $this->score('El instructor implementa las estrategias metodológicas adecuadas para desarrollar en los estudiantes las competencias que demanda la asignatura.'),
+            $this->score('El instructor envía al Coordinador oportunamente la planificación de las instructorías.'),
+            $this->score('El instructor responde al Coordinador, mensajería o correos oportunamente (en un período no mayor a 24 horas).'),
+            $this->score('El instructor mantiene con el Coordinador una buena comunicación basada en la responsabilidad, respeto y confianza.'),
+            $this->score('El instructor asiste a reuniones, actividades académicas y administrativas, según convocatoria del Coordinador.'),
+            $this->score('Se observa que el instructor tiene vocación para ejercer la labor docente.'),
         ];
     }
 
     /** @return array<int, array{text:string,type:string}> */
     private function studentQuestions(): array
-    {
-        return [
-            $this->score('El instructor explica con claridad.'),
-            $this->score('Resuelve mis dudas adecuadamente.'),
-            $this->score('Es puntual en las instructorías.'),
-            $this->score('Demuestra dominio del tema.'),
-            $this->score('Fomenta la participación.'),
-            $this->score('Me trata con respeto.'),
-            $this->score('Recomendaría al instructor a otros compañeros.'),
-            $this->score('Calificación general del instructor.'),
-            $this->text('¿Qué te gustó de la instructoría?'),
-            $this->text('¿Qué mejorarías?'),
-        ];
-    }
+{
+    return [
+        $this->text(
+            'Herramientas tecnológicas que el instructor utiliza para impartir los contenidos de la instructoría y las actividades evaluadas.'
+        ),
+
+        $this->text(
+            'Recursos digitales que el instructor utiliza.'
+        ),
+
+        $this->text(
+            'Estrategia metodológica que el instructor aplica.'
+        ),
+
+        $this->score(
+            'El instructor asiste o se conecta puntualmente a las clases como los demás estudiantes.'
+        ),
+
+        $this->score(
+            'Al inicio de la instructoría, el instructor presentó la competencia y los elementos de competencia que se esperan desarrollar en la asignatura (habilidades, conocimientos y actitudes).'
+        ),
+
+        $this->score(
+            'El instructor motiva a los estudiantes para que adquieran el dominio de las habilidades, conocimientos y actitudes.'
+        ),
+
+        $this->score(
+            'El instructor brinda apoyo y resuelve dudas sobre los contenidos que el profesor desarrolla en la clase.'
+        ),
+
+        $this->score(
+            'El instructor cumple con el horario de instructoría que se ha establecido.'
+        ),
+
+        $this->score(
+            'El instructor responde mensajería o correos oportunamente (en un período no mayor a 24 horas).'
+        ),
+
+        $this->score(
+            'El instructor mantiene una comunicación respetuosa con los estudiantes.'
+        ),
+
+        $this->score(
+            'El instructor presenta materiales, ejemplos y ejercicios idóneos para desarrollar las competencias establecidas en el Diseño Instruccional de la asignatura.'
+        ),
+
+        $this->score(
+            'Los contenidos desarrollados en la instructoría son coherentes con los contenidos evaluados en el parcial.'
+        ),
+
+        $this->score(
+            'Se observa que el instructor tiene vocación para ejercer la labor docente.'
+        ),
+
+        $this->text(
+            'Comentarios generales sobre su experiencia en esta instructoría. Pueden ser sugerencias o comentarios generales para mejorar el proceso de instructorías.'
+        ),
+    ];
+}
 
     /** @return array<int, array{text:string,type:string}> */
     private function teacherQuestions(): array
     {
         return [
-            $this->score('Cumplió con el plan de trabajo acordado.'),
-            $this->score('Demostró dominio del tema.'),
-            $this->score('Mantuvo buena coordinación con el docente.'),
-            $this->score('Brindó apoyo de calidad a los estudiantes.'),
-            $this->score('Mostró disponibilidad y compromiso.'),
-            $this->score('Capacidad de explicación clara.'),
-            $this->score('Tuvo iniciativa propia.'),
-            $this->text('Aportes destacados del instructor.'),
-            $this->text('Áreas de mejora.'),
-            $this->text('Observaciones generales.'),
+            $this->text('Al inicio del ciclo académico, el docente facilitó el Diseño Instruccional al instructor.'),
+
+            $this->score('El instructor asiste o se conecta puntualmente a las clases como los demás estudiantes.'),
+            $this->score('El instructor brinda apoyo y resuelve dudas sobre los contenidos que el docente desarrolla en la clase.'),
+            $this->score('El instructor responde mensajería o correos oportunamente (en un período no mayor a 24 horas).'),
+            $this->score('El instructor mantiene buena comunicación con el docente basada en la responsabilidad, respeto y confianza.'),
+            $this->score('El Instructor trabaja en equipo con el Docente para desarrollar en los estudiantes las competencias que demanda la asignatura.'),
+            $this->score('El instructor apoya al docente en las actividades académicas y administrativas que le corresponden.'),
+            $this->score('Se observa que el instructor tiene vocación para ejercer la labor docente.'),
+
+            $this->text('Comentarios generales sobre el desempeño del instructor. Pueden ser sugerencias o comentarios para mejorar el proceso de instructorías.'),
         ];
     }
 }

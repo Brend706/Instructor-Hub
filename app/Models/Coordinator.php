@@ -9,9 +9,11 @@ class Coordinator extends Model
 {
     protected $fillable = [
         'user_id',
-        // Columna nueva (cuando la migración 2026_05_08... ya fue ejecutada)
+        // Columnas nuevas tras las migraciones más recientes.
+        'school_name',
+        'catedra',
+        // Compatibilidad con versiones anteriores.
         'coordination_name',
-        // Compatibilidad: migración antigua usaba `name` para guardar la coordinación
         'name',
     ];
 

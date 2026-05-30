@@ -29,14 +29,15 @@ class CoordinatorController extends Controller
             ->paginate(10);
 
         // Lista de cátedras/coordinaciones para el filtro del select en la UI.
-        // Ahora se obtienen del campo `name` que contiene las cátedras.
         $hiddenCoordinations = ['Coordinación Demo'];
+        $nameColumn = Schema::hasColumn('coordinators', 'catedra') ? 'catedra' : 'name';
+
         $coordinaciones = Coordinator::query()
-            ->select('name as catedra')
-            ->whereNotNull('name')
-            ->whereNotIn('name', $hiddenCoordinations)
+            ->select("{$nameColumn} as catedra")
+            ->whereNotNull($nameColumn)
+            ->whereNotIn($nameColumn, $hiddenCoordinations)
             ->distinct()
-            ->orderBy('name')
+            ->orderBy($nameColumn)
             ->pluck('catedra')
             ->values()
             ->all();
@@ -85,11 +86,11 @@ class CoordinatorController extends Controller
                 'role_id' => Role::idForSlug('coordinator'),
             ]);
 
-            // Guardar escuela en `coordination_name` y cátedra en `name`
+            // Guardar escuela en `school_name` y cátedra en `catedra`
             $data = [
                 'user_id' => $user->id,
-                'name' => $validated['coordination'],
-                'coordination_name' => $validated['school'],
+                'catedra' => $validated['coordination'],
+                'school_name' => $validated['school'],
             ];
 
             Coordinator::query()->create($data);
@@ -144,10 +145,10 @@ class CoordinatorController extends Controller
             }
             $coordinator->user->save();
 
-            // Guardar escuela en `coordination_name` y cátedra en `name`
+            // Guardar escuela en `school_name` y cátedra en `catedra`
             $coordinator->fill([
-                'name' => $validated['coordination'],
-                'coordination_name' => $validated['school'],
+                'catedra' => $validated['coordination'],
+                'school_name' => $validated['school'],
             ]);
             $coordinator->save();
         });
