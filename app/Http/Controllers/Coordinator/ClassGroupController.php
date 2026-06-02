@@ -171,8 +171,18 @@ class ClassGroupController extends Controller
                     $q->where('coordinator_id', $coordinatorId ?? -1);
                 }),
             ],
+            'schedule' => ['required', 'string', 'max:255'],
+            'modality' => ['required', Rule::in(['presencial', 'linea'])],
+            'classroom' => [Rule::requiredIf($request->input('modality') === 'presencial'), 'nullable', 'string', 'max:255'],
+            'link' => [Rule::requiredIf($request->input('modality') === 'linea'), 'nullable', 'string', 'max:2048'],
+            'status' => ['required', Rule::in(['active', 'finished'])],
         ], [
             'instructor_id.exists' => 'El instructor seleccionado no pertenece a tu coordinación.',
+            'schedule.required' => 'Indica el horario de la instructoría.',
+            'modality.required' => 'Selecciona la modalidad de la instructoría.',
+            'classroom.required' => 'Indica el aula física.',
+            'link.required' => 'Indica el enlace virtual.',
+            'status.required' => 'Selecciona el estado de la instructoría.',
         ]);
 
         // Regla: un instructor solo puede tener UNA instructoría ACTIVA por
@@ -188,10 +198,24 @@ class ClassGroupController extends Controller
                 ->withInput();
         }
 
-        DB::transaction(function () use ($group, $validated) {
+        $assignmentModality = $validated['modality'] === 'presencial' ? 'Presencial' : 'En línea';
+        $assignmentStatus = $validated['status'] === 'active' ? 'Activo' : 'Finalizado';
+        $assignmentClassroom = $assignmentModality === 'Presencial'
+            ? $validated['classroom']
+            : null;
+        $assignmentVirtualLink = $assignmentModality === 'En línea'
+            ? $validated['link']
+            : null;
+
+        DB::transaction(function () use ($group, $validated, $assignmentModality, $assignmentStatus, $assignmentClassroom, $assignmentVirtualLink) {
             $group->instructorAssignments()->delete();
             $group->instructorAssignments()->create([
                 'instructor_id' => $validated['instructor_id'],
+                'schedule' => $validated['schedule'],
+                'modality' => $assignmentModality,
+                'status' => $assignmentStatus,
+                'classroom' => $assignmentClassroom,
+                'virtual_link' => $assignmentVirtualLink,
             ]);
         });
 
