@@ -22,9 +22,11 @@
 
     /* Fondos cálidos claros */
     --bg:            #F1EFE8;
-    --surface:       #FFFFFF;
+    --surface:       #FAF8F4;
+    --surface-alt:   #FAFAF8;   /* ← tabla fondo */
     --border:        #E8E4DC;
     --border-soft:   #D8D4CC;
+    --border-table:  #E4E1D9;   /* ← tabla borde */
 
     /* Texto */
     --text:          #2C2C32;
@@ -44,7 +46,10 @@
     --sidebar-w-col: 64px;
     --topbar-h:      56px;
     --transition:    .22s cubic-bezier(.4, 0, .2, 1);
+
+    --input-bg: #FAF8F4;
 }
+
 
 /* ─────────────────────────────────────────────────────────────
    PALETA DEL TEMA OSCURO
@@ -55,12 +60,12 @@
    acá a propósito: queda igual en ambos modos como identidad visual. */
 :root.dark {
     /* Borgoña — se aclara para contrastar sobre fondo oscuro */
-    --primary:       #C47A90;
-    --primary-50:    #2A0F1C;
-    --primary-100:   #3D1528;
-    --primary-400:   #8C2845;
-    --primary-700:   #EEC4CF;
-    --primary-900:   #F9EFF2;
+    --primary:       #5A1533;
+    --primary-50:    #F9EFF2;
+    --primary-100:   #EEC4CF;
+    --primary-400:   #C47A90;
+    --primary-700:   #3D0D22;
+    --primary-900:   #220812;
 
     /* Lavanda — se aclara ligeramente */
     --accent:        #9F99E8;
@@ -115,3 +120,16 @@ body {
 :root.dark .badge-success { background: rgba(34,197,94,.18);  color: #86efac; }
 :root.dark .badge-warning { background: rgba(234,179,8,.18);  color: #fde68a; }
 :root.dark .badge-danger  { background: rgba(239,68,68,.18);  color: #fca5a5; }
+
+/* ── Global: encabezados de tablas en tono lavanda ──
+   Se aplica a todas las tablas del sistema para homogeneizar el look. */
+table thead tr { border-bottom: 1px solid var(--accent-100); }
+table thead th,
+table thead td {
+    background: var(--accent-50);
+    color: var(--accent);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+}

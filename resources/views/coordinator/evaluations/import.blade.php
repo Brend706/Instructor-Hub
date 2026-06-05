@@ -101,8 +101,8 @@
         @if($previousImports->isNotEmpty())
             <span class="ev-history-sub">
                 {{ $previousImports->count() }} evaluación(es) registradas
-                @if($averageScore !== null)
-                    · Promedio general: <strong>{{ number_format($averageScore, 2) }} / 5</strong>
+                    @if($averageScore !== null)
+                    · Promedio general: <strong>{{ number_format($averageScore, 2) }} / 10</strong>
                 @endif
             </span>
         @endif
@@ -126,7 +126,7 @@
                         <td>{{ $r->submitted_at?->translatedFormat('d M Y H:i') ?? '—' }}</td>
                         <td>
                             @if($r->total_score !== null)
-                                <strong>{{ number_format((float) $r->total_score, 2) }}</strong> / 5
+                                <strong>{{ number_format((float) $r->total_score, 2) }}</strong> / 10
                             @else
                                 —
                             @endif

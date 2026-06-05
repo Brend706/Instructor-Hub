@@ -46,8 +46,8 @@
 
     <div class="ev-form-card">
         <p class="ev-help">
-            Calificá del 1 al 5, donde
-            <strong>1 = muy bajo</strong> y <strong>5 = excelente</strong>.
+            Calificá del 1 al 10, donde
+            <strong>1 = muy bajo</strong> y <strong>10 = excelente</strong>.
             Los comentarios al final son opcionales pero recomendados.
         </p>
 
@@ -68,7 +68,7 @@
                         {{ $q->question_text }}
                     </div>
                     <div class="ev-likert" role="radiogroup" aria-label="{{ $q->question_text }}">
-                        @for($n = 1; $n <= ($q->max_score ?? 5); $n++)
+                        @for($n = 1; $n <= ($q->max_score ?? 10); $n++)
                             <label class="ev-likert-opt">
                                 <input type="radio"
                                        name="answers[{{ $q->id }}][score]"

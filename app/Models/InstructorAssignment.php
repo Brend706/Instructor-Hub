@@ -20,6 +20,7 @@ class InstructorAssignment extends Model
         'modality',
         'classroom',
         'virtual_link',
+        'admin_student_verdict',
     ];
 
     /**

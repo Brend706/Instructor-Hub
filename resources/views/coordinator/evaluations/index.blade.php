@@ -66,7 +66,7 @@
                                     Evaluación enviada
                                 </span>
                                 <span class="ev-card-sub">
-                                    Promedio: <strong>{{ number_format((float) $result->total_score, 2) }} / 5</strong>
+                                    Promedio: <strong>{{ number_format((float) $result->total_score, 2) }} / 10</strong>
                                     · {{ $result->submitted_at?->translatedFormat('d M Y') }}
                                 </span>
                             @else

@@ -286,6 +286,17 @@
     padding: 8px 10px;
     border-bottom: 1px solid var(--border);
 }
+
+/* For consistent lavender thead in evaluation tables */
+.ev-history-table thead tr { border-bottom: 1px solid var(--accent-100); }
+.ev-history-table thead th,
+.ev-history-table thead td {
+    background: var(--accent-50);
+    color: var(--accent);
+    padding: 8px 10px;
+    font-weight: 600;
+    font-size: 11px;
+}
 .ev-history-table td {
     padding: 10px;
     border-bottom: 1px solid var(--border);

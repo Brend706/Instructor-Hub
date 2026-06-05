@@ -120,6 +120,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/evaluaciones/resultado/{result}/revisar',
             [AdminEvaluationController::class, 'markReviewed'])
             ->name('evaluations.results.review');
+        Route::post('/evaluaciones/{assignment}/veredicto',
+            [AdminEvaluationController::class, 'saveVerdict'])
+            ->name('evaluations.verdict');
 
         // CRUD de plantillas de preguntas (4 tipos: self/coordinator/student/teacher).
         // Permite agregar, editar, reordenar y desactivar preguntas sin tocar código.

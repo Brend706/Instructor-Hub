@@ -68,7 +68,7 @@
                 <tr>
                     <th>Coordinador</th>
                     <th>Correo</th>
-                    <th>Coordinación</th>
+                    <th>Escuela / Cátedra</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -76,8 +76,8 @@
                 @forelse($coordinators as $coordinator)
                     @php
                         $user = $coordinator->user;
-                        $school = $coordinator->coordination_name ?? '';
-                        $coordination = $coordinator->name ?? '';
+                        $school = $coordinator->school_name ?? $coordinator->coordination_name ?? '';
+                        $coordination = $coordinator->catedra ?? $coordinator->name ?? '';
                         $since = optional($coordinator->created_at)->format('M Y');
                     @endphp
                     <tr

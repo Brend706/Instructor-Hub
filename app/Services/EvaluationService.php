@@ -84,7 +84,7 @@ class EvaluationService
                     'evaluation_result_id' => $result->id,
                     'question_template_id' => $template->id,
                     'score_value' => $template->question_type === EvaluationQuestionTemplate::TYPE_SCORE
-                        ? $this->clampScore($raw['score'] ?? null, $template->max_score ?? 5)
+                        ? $this->clampScore($raw['score'] ?? null, $template->max_score ?? 10)
                         : null,
                     'text_value' => $template->question_type === EvaluationQuestionTemplate::TYPE_TEXT
                         ? (isset($raw['text']) ? trim((string) $raw['text']) : null)

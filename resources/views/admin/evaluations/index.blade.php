@@ -15,10 +15,10 @@
         </p>
     </div>
     <div class="ev-header-actions">
-        <a href="{{ route('admin.evaluations.questions.index', 'self') }}" class="ev-btn-ghost">
+        <a href="{{ route('admin.evaluations.questions.index', 'self') }}" class="ev-btn-lavender">
             <i class="ti ti-list-details" aria-hidden="true"></i> Plantillas de preguntas
         </a>
-        <a href="{{ route('admin.evaluations.by_instructor') }}" class="ev-btn-ghost">
+        <a href="{{ route('admin.evaluations.by_instructor') }}" class="ev-btn-lavender">
             <i class="ti ti-chart-bar" aria-hidden="true"></i> Reporte por instructor
         </a>
     </div>

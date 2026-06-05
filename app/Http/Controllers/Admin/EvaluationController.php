@@ -149,6 +149,16 @@ class EvaluationController extends Controller
         ]);
     }
 
+    public function saveVerdict(Request $request, InstructorAssignment $assignment): RedirectResponse
+    {
+        $request->validate(['verdict' => ['nullable', 'string', 'max:4000']]);
+
+        $assignment->admin_student_verdict = $request->input('verdict');
+        $assignment->save();
+
+        return back()->with('status', 'Veredicto guardado correctamente.');
+    }
+
     public function markReviewed(EvaluationResult $result): RedirectResponse
     {
         $result->reviewed_by_admin = ! $result->reviewed_by_admin;

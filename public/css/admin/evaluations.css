@@ -20,7 +20,8 @@
 
 /* Botones */
 .ev-btn-primary,
-.ev-btn-ghost {
+.ev-btn-ghost,
+.ev-btn-lavender {
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 13px; font-weight: 500; font-family: inherit;
     padding: 8px 14px; border-radius: 9px;
@@ -30,6 +31,15 @@
 }
 .ev-btn-primary { background: var(--primary); color: #fff; }
 .ev-btn-primary:hover { background: var(--primary-700); }
+.ev-btn-lavender {
+    background: var(--accent-50);
+    color: var(--accent);
+    border-color: var(--accent-100);
+}
+.ev-btn-lavender:hover {
+    background: var(--accent-hover);
+    color: #fff;
+}
 .ev-btn-ghost {
     background: transparent;
     color: var(--text-soft);
@@ -110,12 +120,12 @@
 .ev-table th {
     text-align: left;
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--accent);
     text-transform: uppercase;
     font-size: 10px;
     padding: 12px 14px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    border-bottom: 1px solid var(--accent-100);
+    background: var(--accent-50);
 }
 .ev-table td {
     padding: 14px;
@@ -319,4 +329,202 @@ details[open] > .ev-result-summary .ev-chevron { transform: rotate(180deg); }
     .ev-type-pill { font-size: 9px; padding: 2px 6px; }
     .ev-answers li { grid-template-columns: 1fr; }
     .ev-answer-a { text-align: left; }
+}
+
+/* ────────────────────────────────────────────────────────────
+   SHOW (v2) — Diseño tabbed con lavanda
+   ──────────────────────────────────────────────────────────── */
+
+/* Summary card — variante acento (estudiantes) */
+.ev-summary-card.ev-accent-card {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-50);
+}
+.ev-summary-card.ev-accent-card .ev-summary-value { color: var(--accent); }
+.ev-summary-overall {
+    border-left: 4px solid var(--primary);
+    background: var(--primary-50);
+}
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.ev-tabs-bar {
+    display: flex; gap: 4px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 20px;
+}
+.ev-tab-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 16px;
+    font-size: 13px; font-weight: 500; font-family: inherit;
+    border: none; background: transparent;
+    cursor: pointer; color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    border-radius: 6px 6px 0 0;
+    transition: color .15s;
+}
+.ev-tab-btn:hover { color: var(--text-soft); }
+.ev-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.ev-tab-count {
+    background: var(--accent-50); color: var(--accent);
+    font-size: 10px; font-weight: 600;
+    padding: 2px 7px; border-radius: 20px;
+}
+.ev-tab-btn.active .ev-tab-count { background: var(--accent); color: #fff; }
+.ev-tab-panel { display: none; }
+.ev-tab-panel.active { display: block; }
+
+/* ── Tab stat row ─────────────────────────────────────────── */
+.ev-tab-stat-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+.ev-tab-stat-item { display: flex; flex-direction: column; gap: 2px; }
+.ev-tab-stat-val { font-size: 18px; font-weight: 600; color: var(--text); }
+.ev-tab-stat-val.accent { color: var(--accent); }
+.ev-tab-stat-val.success { color: var(--success-text); }
+.ev-tab-stat-val.warn { color: var(--warning-text); }
+.ev-tab-stat-label { font-size: 10px; color: var(--text-muted); }
+.ev-tab-stat-divider { width: 1px; height: 32px; background: var(--border); }
+
+/* ── Acordeón v2 (show) ───────────────────────────────────── */
+.ev-result[open] { border-color: var(--accent-100); }
+.ev-result-summary {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; cursor: pointer; list-style: none; gap: 12px;
+    transition: background .15s;
+}
+.ev-result-summary:hover { background: var(--bg); }
+.ev-result[open] .ev-result-summary { background: var(--accent-50); border-bottom: 1px solid var(--accent-100); }
+.ev-result-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+.ev-result-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.ev-result-av {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: #fff; flex-shrink: 0;
+}
+.ev-result-av.alt { background: var(--primary-400); }
+.ev-result-av.accent { background: var(--accent); }
+.ev-result-score { font-size: 18px; font-weight: 700; color: var(--primary); }
+.ev-result-score small { font-size: 12px; font-weight: 400; color: var(--text-muted); }
+
+/* Respuestas v2 */
+.ev-answers-v2 { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.ev-answer-item { padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+.ev-answer-q { font-size: 12px; font-weight: 500; color: var(--text-soft); margin-bottom: 8px; }
+.ev-answer-row { display: flex; align-items: center; gap: 10px; }
+.ev-score-pill-v2 {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: var(--primary-50); color: var(--primary);
+    font-size: 13px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    border: 1px solid var(--primary-100); flex-shrink: 0;
+}
+.ev-score-pill-v2 small { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+.ev-score-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; }
+.ev-score-bar { height: 100%; border-radius: 10px; background: var(--primary); }
+.ev-text-answer-v2 { font-size: 13px; color: var(--text); font-style: italic; line-height: 1.6; }
+.ev-result-actions { display: flex; justify-content: flex-end; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+/* ── Sección agregada (estudiantes) ──────────────────────── */
+.ev-agg-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+}
+.ev-agg-header {
+    padding: 14px 18px;
+    background: var(--accent-50); border-bottom: 1px solid var(--accent-100);
+    display: flex; align-items: center; justify-content: space-between;
+}
+.ev-agg-title { font-size: 13px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.ev-agg-body { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.ev-agg-question { border-bottom: 1px solid var(--border); padding-bottom: 14px; }
+.ev-agg-question:last-child { border-bottom: none; padding-bottom: 0; }
+.ev-agg-q-text { font-size: 12px; font-weight: 500; color: var(--text-soft); margin-bottom: 10px; }
+.ev-agg-q-avg { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.ev-agg-avg-val { font-size: 22px; font-weight: 700; color: var(--primary); }
+.ev-agg-avg-val small { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+.ev-agg-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; }
+.ev-agg-bar { height: 100%; border-radius: 10px; background: var(--primary); }
+.ev-dist-grid { display: flex; flex-direction: column; gap: 4px; }
+.ev-dist-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+.ev-dist-star { color: var(--text-muted); width: 20px; text-align: right; flex-shrink: 0; }
+.ev-dist-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 10px; overflow: hidden; }
+.ev-dist-bar { height: 100%; border-radius: 10px; background: var(--accent); }
+.ev-dist-count { color: var(--text-muted); width: 24px; text-align: right; flex-shrink: 0; }
+
+/* ── Comentarios de estudiantes ───────────────────────────── */
+.ev-comments-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+}
+.ev-comments-header {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+}
+.ev-comments-title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text); }
+.ev-comments-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+.ev-comment-item {
+    padding: 10px 12px; background: var(--bg);
+    border-radius: 8px; border-left: 3px solid var(--accent);
+    font-size: 12px; color: var(--text-soft);
+    font-style: italic; line-height: 1.6;
+}
+.ev-see-more {
+    font-size: 12px; color: var(--accent);
+    cursor: pointer; text-align: center;
+    padding: 8px; font-weight: 500; background: none; border: none; font-family: inherit; width: 100%;
+}
+.ev-see-more:hover { text-decoration: underline; }
+.ev-comments-hidden { display: none; }
+
+/* ── Veredicto del administrador ─────────────────────────── */
+.ev-verdict-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-top: 4px solid var(--accent);
+    border-radius: 12px; padding: 18px; margin-top: 16px;
+}
+.ev-verdict-title {
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.ev-verdict-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.ev-verdict-label { font-size: 11px; font-weight: 500; color: var(--text-soft); }
+.ev-verdict-textarea {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; color: var(--text);
+    outline: none; width: 100%; font-family: inherit;
+    resize: vertical; min-height: 80px;
+    background: var(--surface); transition: border .15s, box-shadow .15s;
+}
+.ev-verdict-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-50); }
+.ev-verdict-footer { display: flex; justify-content: flex-end; }
+.ev-btn-accent {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    font-size: 13px; font-weight: 500;
+    border: none; cursor: pointer; font-family: inherit;
+    transition: background .15s;
+}
+.ev-btn-accent:hover { background: var(--accent-hover); }
+
+/* ── Empty state en tab ───────────────────────────────────── */
+.ev-tab-empty {
+    background: var(--surface); border: 1px dashed var(--border);
+    border-radius: 12px; text-align: center; padding: 36px 20px;
+    color: var(--text-muted); font-size: 13px;
+}
+.ev-tab-empty i { font-size: 28px; margin-bottom: 8px; display: block; color: var(--border); }
+
+@media (max-width: 720px) {
+    .ev-tabs-bar { overflow-x: auto; }
+    .ev-tab-btn { padding: 8px 10px; font-size: 12px; white-space: nowrap; }
+    .ev-tab-stat-row { gap: 8px; }
+    .ev-agg-body { padding: 12px; }
 }

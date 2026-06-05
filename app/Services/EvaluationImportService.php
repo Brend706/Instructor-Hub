@@ -54,7 +54,7 @@ class EvaluationImportService
         $headers = ['Identificador (opcional)', 'Nombre (opcional)'];
         foreach ($questions as $q) {
             $suffix = $q->question_type === EvaluationQuestionTemplate::TYPE_SCORE
-                ? ' ('.'1-'.($q->max_score ?? 5).')'
+                ? ' ('.'1-'.($q->max_score ?? 10).')'
                 : ' (texto)';
             $headers[] = $q->question_text.$suffix;
         }
@@ -100,7 +100,7 @@ class EvaluationImportService
             [''],
             ['Cada fila = 1 evaluación completa.'],
             ['Las dos primeras columnas son opcionales y sirven solo para identificar al evaluador.'],
-            ['Las preguntas marcadas con "(1-5)" aceptan un número del 1 al 5.'],
+            ['Las preguntas marcadas con "(1-10)" aceptan un número del 1 al 10.'],
             ['Las preguntas marcadas con "(texto)" aceptan texto libre.'],
             ['Las filas vacías se ignoran al importar.'],
             [''],
@@ -113,7 +113,7 @@ class EvaluationImportService
         ];
         foreach ($questions as $i => $q) {
             $kind = $q->question_type === EvaluationQuestionTemplate::TYPE_SCORE
-                ? 'puntaje 1-'.($q->max_score ?? 5)
+                ? 'puntaje 1-'.($q->max_score ?? 10)
                 : 'texto libre';
             $lines[] = ['  '.($i + 1).'. '.$q->question_text.' ('.$kind.')'];
         }
@@ -200,7 +200,7 @@ class EvaluationImportService
                         $raw = $rowPayload['questions'][$i] ?? null;
 
                         if ($template->question_type === EvaluationQuestionTemplate::TYPE_SCORE) {
-                            $score = $this->parseScore($raw, $template->max_score ?? 5);
+                            $score = $this->parseScore($raw, $template->max_score ?? 10);
                             if ($score !== null) {
                                 $sumScore += $score;
                                 $scoreCount++;

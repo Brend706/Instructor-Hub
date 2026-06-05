@@ -79,7 +79,7 @@
                                     @if($q->question_type === 'score')
                                         <span class="qt-badge qt-badge-score">
                                             <i class="ti ti-star"></i>
-                                            Score 1–{{ $q->max_score ?? 5 }}
+                                            Score 1–{{ $q->max_score ?? 10 }}
                                         </span>
                                     @else
                                         <span class="qt-badge qt-badge-text">
@@ -114,12 +114,12 @@
                                         <option value="score" {{ $q->question_type === 'score' ? 'selected' : '' }}>Score</option>
                                         <option value="text"  {{ $q->question_type === 'text'  ? 'selected' : '' }}>Texto</option>
                                     </select>
-                                    <input type="number"
-                                           name="max_score"
-                                           min="1" max="10"
-                                           value="{{ $q->max_score ?? 5 }}"
-                                           class="js-qt-max"
-                                           {{ $q->question_type === 'text' ? 'disabled' : '' }}>
+                                     <input type="number"
+                                         name="max_score"
+                                         min="1" max="10"
+                                         value="{{ $q->max_score ?? 10 }}"
+                                         class="js-qt-max"
+                                         {{ $q->question_type === 'text' ? 'disabled' : '' }}>
                                     <button type="submit" class="ev-btn-primary ev-btn-sm">
                                         <i class="ti ti-check"></i> Guardar
                                     </button>
@@ -206,12 +206,12 @@
             </select>
 
             <label class="qt-label" for="new_max_score">Escala máxima</label>
-            <input type="number"
-                   id="new_max_score"
-                   name="max_score"
-                   min="1" max="10"
-                   value="{{ old('max_score', 5) }}"
-                   class="js-qt-new-max">
+                 <input type="number"
+                     id="new_max_score"
+                     name="max_score"
+                     min="1" max="10"
+                     value="{{ old('max_score', 10) }}"
+                     class="js-qt-new-max">
 
             <button type="submit" class="ev-btn-primary qt-new-submit">
                 <i class="ti ti-circle-plus"></i> Agregar pregunta

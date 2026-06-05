@@ -88,8 +88,8 @@
     transition: border .15s, box-shadow .15s;
 }
 .search-input:focus {
-    border-color: var(--primary-400);
-    box-shadow: 0 0 0 3px var(--primary-50);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-50);
 }
 .filter-select {
     border: 1px solid var(--border);
@@ -103,7 +103,7 @@
     cursor: pointer;
     transition: border .15s;
 }
-.filter-select:focus { border-color: var(--primary-400); }
+.filter-select:focus { border-color: var(--accent); }
 
 /* Alerta éxito */
 .alert-success {
@@ -119,35 +119,51 @@
     margin-bottom: 14px;
 }
 
-/* Tabla */
+/* ── Tabla ── */
 .table-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--surface-alt);
+    border: 1px solid var(--border-table);
     border-radius: 12px;
     overflow: hidden;
 }
 .table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th {
+
+.table-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+/* thead — fondo lavanda suave */
+.table-card thead tr {
+    border-bottom: 1px solid var(--accent-100);
+}
+.table-card th {
+    background: var(--accent-50);
+    color: #534AB7;
     text-align: left;
     font-size: 10px; font-weight: 600;
-    color: var(--text-muted);
     text-transform: uppercase; letter-spacing: .06em;
     padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
     white-space: nowrap;
-    background: var(--bg);
 }
-td {
+
+/* tbody */
+.table-card td {
     padding: 11px 14px;
-    border-bottom: 1px solid var(--border);
     color: var(--text-soft);
     vertical-align: middle;
+    background: var(--surface-alt);
+    border-bottom: 1px solid #EEEDE7;
 }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #FAFBFC; }
+.table-card tr:last-child td { border-bottom: none; }
+.table-card tr:hover td {
+    background: var(--accent-50);
+    transition: background var(--transition);
+}
 .td-main { font-weight: 500; color: var(--text); }
 
+/* Avatar */
 .avatar {
     width: 30px; height: 30px;
     border-radius: 8px;
@@ -155,6 +171,8 @@ tr:hover td { background: #FAFBFC; }
     font-size: 11px; font-weight: 600; color: #fff;
     flex-shrink: 0;
 }
+
+/* Badges */
 .badge {
     display: inline-block;
     font-size: 10px; font-weight: 500;
@@ -162,7 +180,7 @@ tr:hover td { background: #FAFBFC; }
 }
 .badge-success { background: #DCFCE7; color: #166534; }
 .badge-warning  { background: #FEF9C3; color: #854D0E; }
-.badge-info     { background: var(--primary-50); color: var(--primary); }
+.badge-info     { background: var(--accent-50); color: var(--accent); }
 
 .actions { display: flex; gap: 6px; align-items: center; }
 
@@ -178,7 +196,7 @@ tr:hover td { background: #FAFBFC; }
 /* Paginación */
 .pagination-wrap {
     padding: 12px 14px;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--border-table);
     display: flex;
     justify-content: flex-end;
 }
@@ -219,12 +237,12 @@ tr:hover td { background: #FAFBFC; }
     border: 1px solid var(--border);
     background: transparent; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    color: var(--text-muted); font-size:16px;
+    color: var(--text-muted); font-size: 16px;
     transition: background .15s;
 }
 .modal-close:hover { background: var(--bg); }
 
-.modal-body { padding: 20px; }
+.modal-body   { padding: 20px; }
 .modal-footer {
     padding: 14px 20px;
     border-top: 1px solid var(--border);
@@ -247,8 +265,8 @@ tr:hover td { background: #FAFBFC; }
     transition: border .15s, box-shadow .15s;
 }
 .input:focus {
-    border-color: var(--primary-400);
-    box-shadow: 0 0 0 3px var(--primary-50);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-50);
 }
 .input::placeholder { color: var(--text-muted); }
 select.input { cursor: pointer; }
@@ -265,7 +283,7 @@ select.input { cursor: pointer; }
 .confirm-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
 .confirm-desc  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
 
-/* Validación de formulario */
+/* Validación */
 .field-msg { font-size: 12px; margin-top: 6px; display: block; line-height: 1.4; }
 .field-msg--error { color: #991b1b; }
 .input.is-invalid { border-color: #dc2626; }
@@ -281,9 +299,8 @@ select.input { cursor: pointer; }
     user-select: none;
 }
 .show-password-checkbox {
-    width: 14px;
-    height: 14px;
-    accent-color: var(--primary);
+    width: 14px; height: 14px;
+    accent-color: var(--accent);
     cursor: pointer;
 }
 

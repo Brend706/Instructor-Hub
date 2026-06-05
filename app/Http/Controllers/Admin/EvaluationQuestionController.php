@@ -70,7 +70,7 @@ class EvaluationQuestionController extends Controller
             'question_text' => $data['question_text'],
             'question_type' => $data['question_type'],
             'max_score' => $data['question_type'] === 'score'
-                ? ($data['max_score'] ?? 5)
+                ? ($data['max_score'] ?? 10)
                 : null,
             'order_index' => ((int) ($maxOrder ?? 0)) + 1,
             'is_active' => true,
@@ -90,7 +90,7 @@ class EvaluationQuestionController extends Controller
         $question->question_text = $data['question_text'];
         $question->question_type = $data['question_type'];
         $question->max_score = $data['question_type'] === 'score'
-            ? ($data['max_score'] ?? 5)
+            ? ($data['max_score'] ?? 10)
             : null;
         $question->save();
 

@@ -1,19 +1,133 @@
 @extends('layouts.admin', ['title' => 'Instructorías'])
 
-@section('content')
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/admin/coordinators.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/instructor-assignments.css') }}">
 @endpush
-<div class="page-header">
+
+@section('content')
+
+@php
+    $total    = $assignments instanceof \Illuminate\Pagination\LengthAwarePaginator
+        ? $assignments->total()
+        : $assignments->count();
+    $active   = $assignments->filter(fn($a) => strtolower($a->status ?? '') === 'activo')->count();
+    $finished = $assignments->filter(fn($a) => strtolower($a->status ?? '') === 'finalizado')->count();
+    $groups   = $assignments->pluck('class_group_id')->unique()->count();
+@endphp
+
+{{-- ── Encabezado ─────────────────────────────────────────── --}}
+<div class="ia-header">
+    <div class="ia-header-left">
+        <h1>Instructorías</h1>
+        <p>Asignaciones de instructoría registradas en el sistema</p>
+    </div>
     <div>
-        <h1 class="page-title">Instructorías</h1>
-        <p class="page-sub">Todas las asignaciones de instructoría registradas</p>
+        @if(isset($showAll) && $showAll)
+            <a href="{{ route('admin.instructorias.index', array_filter(['semester' => $semester])) }}"
+               class="ia-btn ia-btn-ghost">
+                <i class="ti ti-list" aria-hidden="true"></i> Ver paginado
+            </a>
+        @else
+            <a href="{{ route('admin.instructorias.index', array_filter(['all' => 1, 'semester' => $semester])) }}"
+               class="ia-btn ia-btn-ghost">
+                <i class="ti ti-list" aria-hidden="true"></i> Ver todas
+            </a>
+        @endif
     </div>
 </div>
 
-<div class="table-card">
-    <div class="table-wrap">
-        <table id="assignmentsTable">
+{{-- ── Stat cards ──────────────────────────────────────────── --}}
+<div class="ia-stats">
+    <div class="ia-stat-card">
+        <div class="ia-stat-icon primary"><i class="ti ti-clipboard-list"></i></div>
+        <div>
+            <div class="ia-stat-val">{{ $total }}</div>
+            <div class="ia-stat-label">Total asignaciones</div>
+        </div>
+    </div>
+    <div class="ia-stat-card">
+        <div class="ia-stat-icon success"><i class="ti ti-circle-check"></i></div>
+        <div>
+            <div class="ia-stat-val">{{ $active }}</div>
+            <div class="ia-stat-label">Activas</div>
+        </div>
+    </div>
+    <div class="ia-stat-card">
+        <div class="ia-stat-icon accent"><i class="ti ti-check"></i></div>
+        <div>
+            <div class="ia-stat-val">{{ $finished }}</div>
+            <div class="ia-stat-label">Finalizadas</div>
+        </div>
+    </div>
+    <div class="ia-stat-card">
+        <div class="ia-stat-icon warn"><i class="ti ti-users"></i></div>
+        <div>
+            <div class="ia-stat-val">{{ $groups }}</div>
+            <div class="ia-stat-label">Grupos distintos</div>
+        </div>
+    </div>
+</div>
+
+{{-- ── Toolbar ─────────────────────────────────────────────── --}}
+<div class="ia-toolbar">
+    {{-- Búsqueda client-side --}}
+    <div class="ia-search-wrap">
+        <i class="ti ti-search"></i>
+        <input
+            id="iaSearch"
+            type="search"
+            class="ia-search"
+            placeholder="Buscar instructor o grupo…"
+            oninput="iaFilterTable()"
+        >
+    </div>
+
+    {{-- Filtro de ciclo --}}
+    <form method="GET" action="{{ route('admin.instructorias.index') }}" id="iaFilterForm" style="display:contents">
+        @if(isset($showAll) && $showAll)
+            <input type="hidden" name="all" value="1">
+        @endif
+        <div class="ia-filter-wrap">
+            <i class="ti ti-calendar"></i>
+            <select
+                name="semester"
+                class="ia-select"
+                onchange="document.getElementById('iaFilterForm').submit()"
+                aria-label="Filtrar por ciclo"
+            >
+                <option value="">Todos los ciclos</option>
+                @foreach($semesters as $sem)
+                    <option value="{{ $sem }}" {{ $semester === $sem ? 'selected' : '' }}>
+                        Ciclo {{ $sem }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+    </form>
+
+    {{-- Chip de filtro activo --}}
+    @if($semester)
+        <div class="ia-active-filter">
+            <i class="ti ti-filter"></i>
+            Ciclo {{ $semester }}
+            <button
+                type="button"
+                onclick="window.location='{{ route('admin.instructorias.index', array_filter(['all' => $showAll ? 1 : null])) }}'"
+                title="Quitar filtro"
+                aria-label="Quitar filtro de ciclo"
+            ><i class="ti ti-x"></i></button>
+        </div>
+    @endif
+
+    <span class="ia-results-count" id="iaCount">
+        {{ $total }} resultado(s)
+    </span>
+</div>
+
+{{-- ── Tabla ────────────────────────────────────────────────── --}}
+<div class="ia-table-card">
+    <div class="ia-table-wrap">
+        <table class="ia-table" id="iaTable">
             <thead>
                 <tr>
                     <th>Instructor</th>
@@ -21,76 +135,190 @@
                     <th>Ciclo</th>
                     <th>Horario</th>
                     <th>Modalidad</th>
-                    <th>Aula / Enlace</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="iaTableBody">
                 @forelse($assignments as $a)
                     @php
-                        $instr = $a->instructor?->user;
-                        $group = $a->classGroup;
+                        $instr      = $a->instructor?->user;
+                        $group      = $a->classGroup;
+                        $statusRaw  = strtolower($a->status ?? '');
+                        $badgeClass = match($statusRaw) {
+                            'activo'      => 'ia-badge-active',
+                            'finalizado'  => 'ia-badge-finished',
+                            'inactivo'    => 'ia-badge-inactive',
+                            default       => 'ia-badge-default',
+                        };
+                        $initials = collect(explode(' ', $instr?->name ?? '-'))
+                            ->filter()->take(2)
+                            ->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
                     @endphp
-                    <tr data-id="{{ $a->id }}">
+                    <tr data-id="{{ $a->id }}" data-search="{{ strtolower(($instr?->name ?? '') . ' ' . ($group?->name ?? '')) }}">
                         <td>
                             <div style="display:flex;align-items:center;gap:10px">
-                                <div class="avatar">{{ strtoupper(substr($instr?->name ?? '-', 0, 1)) }}</div>
+                                <div class="ia-avatar">{{ $initials ?: '?' }}</div>
                                 <div>
-                                    <div class="td-main">{{ $instr?->name ?? '—' }}</div>
-                                    <div style="font-size:11px;color:var(--text-muted)">{{ $instr?->email ?? '—' }}</div>
+                                    <div class="ia-td-main">{{ $instr?->name ?? '—' }}</div>
+                                    <div class="ia-td-sub">{{ $instr?->email ?? '—' }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="td-main">{{ $group?->name ?? '—' }}</td>
-                        <td style="font-size:11px;color:var(--text-muted)">Ciclo: {{ $group?->semester ?? '—' }}</td>
-                        <td>{{ $a->schedule ?? $group?->schedule ?? '—' }}</td>
-                        <td>{{ $a->modality ?? $group?->modality ?? '—' }}</td>
-                        <td>{{ $a->classroom ?? $group?->classroom ?? ($a->virtual_link ? 'Enlace' : '—') }}</td>
-                        <td><span class="badge">{{ ucfirst($a->status ?? '—') }}</span></td>
-                        <td class="actions">
-                            <button class="btn btn-ghost btn-sm" onclick="openAssignment({{ $a->id }})">Ver</button>
+                        <td>
+                            <div class="ia-td-main">{{ $group?->name ?? '—' }}</div>
+                            @if($group?->professor)
+                                <div class="ia-td-sub">{{ $group->professor }}</div>
+                            @endif
+                        </td>
+                        <td>
+                            @if($group?->semester)
+                                <span class="ia-cycle-pill">{{ $group->semester }}</span>
+                            @else
+                                <span class="ia-td-muted">—</span>
+                            @endif
+                        </td>
+                        <td class="ia-td-muted">
+                            {{ $a->schedule ?? $group?->schedule ?? '—' }}
+                        </td>
+                        <td class="ia-td-muted">
+                            {{ $a->modality ?? $group?->modality ?? '—' }}
+                        </td>
+                        <td>
+                            <span class="ia-badge {{ $badgeClass }}">
+                                {{ ucfirst($a->status ?? '—') }}
+                            </span>
+                        </td>
+                        <td>
+                            <button
+                                class="ia-btn ia-btn-ghost ia-btn-sm"
+                                onclick="iaOpenDetail({{ $a->id }})"
+                                title="Ver detalles"
+                            >
+                                <i class="ti ti-eye" aria-hidden="true"></i> Ver
+                            </button>
                         </td>
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="8" class="empty-state">
-                            <i class="ti ti-calendar-event" aria-hidden="true"></i>
-                            <p>No hay asignaciones registradas</p>
+                    <tr id="iaEmptyRow">
+                        <td colspan="7">
+                            <div class="ia-empty">
+                                <i class="ti ti-calendar-off"></i>
+                                <p>No hay asignaciones registradas{{ $semester ? ' para el ciclo ' . $semester : '' }}.</p>
+                            </div>
                         </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
+    @if(method_exists($assignments, 'hasPages') && $assignments->hasPages())
+        <div class="ia-pagination">
+            {{ $assignments->links() }}
+        </div>
+    @endif
 </div>
 
-@if($assignments->hasPages())
-    <div class="pagination-wrap">
-        {{ $assignments->links() }}
-    </div>
-@endif
+{{-- ══════════════════════════════════════════════════════════
+     MODAL DETALLE INSTRUCTORÍA
+     ══════════════════════════════════════════════════════════ --}}
+<div class="ia-modal-overlay" id="iaModalOverlay" role="dialog" aria-modal="true" aria-labelledby="iaModalTitle">
+    <div class="ia-modal" id="iaModal">
 
-{{-- Modal detalles --}}
-<div class="modal-overlay" id="modalAssignment" role="dialog" aria-modal="true">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title">Detalle de la instructoría</div>
-            <button class="modal-close" onclick="closeModal('modalAssignment')" aria-label="Cerrar">&times;</button>
+        {{-- Hero: datos del instructor --}}
+        <div class="ia-modal-hero">
+            <button class="ia-modal-hero-close" onclick="iaCloseDetail()" aria-label="Cerrar">
+                <i class="ti ti-x"></i>
+            </button>
+            <div class="ia-modal-hero-av" id="ia_av">??</div>
+            <div class="ia-modal-hero-name"  id="ia_name">—</div>
+            <div class="ia-modal-hero-email" id="ia_email">—</div>
+            <div class="ia-modal-hero-meta">
+                <span class="ia-modal-hero-pill" id="ia_status_pill">
+                    <i class="ti ti-circle"></i> <span id="ia_status">—</span>
+                </span>
+                <span class="ia-modal-hero-pill" id="ia_semester_pill">
+                    <i class="ti ti-calendar"></i> <span id="ia_semester">—</span>
+                </span>
+                <span class="ia-modal-hero-pill">
+                    <i class="ti ti-users"></i> <span id="ia_students">—</span> estudiantes
+                </span>
+            </div>
         </div>
-        <div class="modal-body">
-            <div class="field"><label>Instructor</label><div id="a_instructor"></div></div>
-            <div class="field"><label>Correo</label><div id="a_email"></div></div>
-            <div class="field"><label>Grupo / Materia</label><div id="a_group"></div></div>
-            <div class="field"><label>Ciclo</label><div id="a_semester"></div></div>
-            <div class="field"><label>Horario</label><div id="a_schedule"></div></div>
-            <div class="field"><label>Modalidad</label><div id="a_modality"></div></div>
-            <div class="field"><label>Aula / Enlace</label><div id="a_classroom"></div></div>
-            <div class="field"><label>Estado</label><div id="a_status"></div></div>
-            <div class="field"><label>Sesiones</label><div id="a_sessions"></div></div>
+
+        {{-- Body con secciones --}}
+        <div class="ia-modal-body">
+
+            {{-- Sección: Grupo / Materia --}}
+            <div class="ia-modal-section">
+                <div class="ia-modal-section-header">
+                    <i class="ti ti-school" aria-hidden="true"></i> Grupo / Materia
+                </div>
+                <div class="ia-modal-section-body cols-2">
+                    <div class="ia-modal-field">
+                        <span class="ia-modal-field-label">Nombre del grupo</span>
+                        <span class="ia-modal-field-val" id="ia_group">—</span>
+                    </div>
+                    <div class="ia-modal-field">
+                        <span class="ia-modal-field-label">Docente titular</span>
+                        <span class="ia-modal-field-val" id="ia_professor">—</span>
+                    </div>
+                    <div class="ia-modal-field">
+                        <span class="ia-modal-field-label">Ciclo</span>
+                        <span class="ia-modal-field-val" id="ia_semester_field">—</span>
+                    </div>
+                    <div class="ia-modal-field">
+                        <span class="ia-modal-field-label">Estudiantes inscritos</span>
+                        <span class="ia-modal-field-val" id="ia_students_field">—</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Sección: Logística --}}
+            <div class="ia-modal-section">
+                <div class="ia-modal-section-header">
+                    <i class="ti ti-settings" aria-hidden="true"></i> Logística de la instructoría
+                </div>
+                <div class="ia-modal-section-body cols-2">
+                    <div class="ia-modal-field">
+                        <span class="ia-modal-field-label">Horario</span>
+                        <span class="ia-modal-field-val" id="ia_schedule">—</span>
+                    </div>
+                    <div class="ia-modal-field">
+                        <span class="ia-modal-field-label">Modalidad</span>
+                        <span class="ia-modal-field-val" id="ia_modality">—</span>
+                    </div>
+                    <div class="ia-modal-field" id="ia_classroom_wrap">
+                        <span class="ia-modal-field-label">Aula</span>
+                        <span class="ia-modal-field-val" id="ia_classroom">—</span>
+                    </div>
+                    <div class="ia-modal-field" id="ia_link_wrap" style="display:none">
+                        <span class="ia-modal-field-label">Enlace virtual</span>
+                        <a class="ia-modal-link" id="ia_link" href="#" target="_blank" rel="noopener">—</a>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Sección: Sesiones --}}
+            <div class="ia-modal-section">
+                <div class="ia-modal-section-header">
+                    <i class="ti ti-calendar-event" aria-hidden="true"></i>
+                    Sesiones
+                    <span style="margin-left:auto;font-size:11px;color:var(--accent);font-weight:500" id="ia_sessions_count"></span>
+                </div>
+                <div style="padding:14px" id="ia_sessions_wrap">
+                    <p class="ia-td-muted" style="font-size:13px">Cargando sesiones…</p>
+                </div>
+            </div>
+
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-ghost" onclick="closeModal('modalAssignment')">Cerrar</button>
+
+        {{-- Footer --}}
+        <div class="ia-modal-footer">
+            <button class="ia-btn ia-btn-ghost" onclick="iaCloseDetail()">
+                <i class="ti ti-x" aria-hidden="true"></i> Cerrar
+            </button>
         </div>
     </div>
 </div>
@@ -99,47 +327,161 @@
 
 @push('scripts')
 <script>
-    const ASSIGNMENT_BASE = @json(url('/admin/instructorias'));
+// ── Filtro client-side por texto ───────────────────────────
+function iaFilterTable() {
+    const q = document.getElementById('iaSearch').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#iaTableBody tr[data-search]');
+    let visible = 0;
+    rows.forEach(tr => {
+        const match = !q || tr.dataset.search.includes(q);
+        tr.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    const countEl = document.getElementById('iaCount');
+    if (countEl) countEl.textContent = visible + ' resultado(s)';
+}
 
-    function openAssignment(id) {
-        fetch(`${ASSIGNMENT_BASE}/${id}`)
-            .then(r => r.json())
-            .then(data => {
-                document.getElementById('a_instructor').textContent = data.instructor || '—';
-                document.getElementById('a_email').textContent = data.instructor_email || '—';
-                document.getElementById('a_group').textContent = data.class_group || '—';
-                document.getElementById('a_semester').textContent = data.semester || '—';
-                document.getElementById('a_schedule').textContent = data.schedule || '—';
-                document.getElementById('a_modality').textContent = data.modality || '—';
-                document.getElementById('a_classroom').textContent = data.classroom || data.virtual_link || '—';
-                document.getElementById('a_status').textContent = data.status || '—';
+// ── Modal: abrir ───────────────────────────────────────────
+const IA_BASE = @json(url('/admin/instructorias'));
 
-                const sessionsEl = document.getElementById('a_sessions');
-                sessionsEl.innerHTML = '';
-                if ((data.sessions || []).length === 0) {
-                    sessionsEl.textContent = 'Sin sesiones registradas';
-                } else {
-                    const ul = document.createElement('ul');
-                    data.sessions.forEach(s => {
-                        const li = document.createElement('li');
-                        li.textContent = `${s.date || ''} ${s.start_time || ''}-${s.end_time || ''} — Asistentes: ${s.attendees_count || 0}`;
-                        ul.appendChild(li);
-                    });
-                    sessionsEl.appendChild(ul);
-                }
+function iaOpenDetail(id) {
+    // Mostrar overlay con skeleton inmediato
+    const overlay = document.getElementById('iaModalOverlay');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    _iaSkeleton();
 
-                openModal('modalAssignment');
-            })
-            .catch(() => alert('Error al cargar detalle'));
+    fetch(`${IA_BASE}/${id}`, {
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(data => _iaPopulate(data))
+    .catch(err => {
+        document.getElementById('ia_sessions_wrap').innerHTML =
+            `<p style="color:var(--danger-text);font-size:13px">Error al cargar (${err}). Intenta de nuevo.</p>`;
+    });
+}
+
+function iaCloseDetail() {
+    document.getElementById('iaModalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Cerrar al hacer clic fuera del modal
+document.getElementById('iaModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) iaCloseDetail();
+});
+// Cerrar con Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') iaCloseDetail(); });
+
+// ── Skeleton mientras carga ────────────────────────────────
+function _iaSkeleton() {
+    ['ia_name','ia_email','ia_group','ia_professor','ia_semester_field',
+     'ia_students_field','ia_schedule','ia_modality','ia_classroom'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<span class="ia-skeleton" style="width:70%;display:inline-block">&nbsp;</span>';
+    });
+    document.getElementById('ia_av').textContent = '…';
+    document.getElementById('ia_sessions_wrap').innerHTML =
+        '<p style="font-size:13px;color:var(--text-muted)">Cargando sesiones…</p>';
+}
+
+// ── Poblar modal con datos ─────────────────────────────────
+function _iaPopulate(data) {
+    const instr    = data.instructor || {};
+    const group    = data.class_group || {};
+    const asgn     = data.assignment  || {};
+
+    const name  = instr.name  || '—';
+    const email = instr.email || '—';
+    const status = asgn.status || '—';
+
+    // Iniciales
+    const initials = name.split(' ').filter(Boolean).slice(0, 2)
+        .map(w => w[0].toUpperCase()).join('');
+    document.getElementById('ia_av').textContent    = initials || '?';
+    document.getElementById('ia_name').textContent  = name;
+    document.getElementById('ia_email').textContent = email;
+
+    // Pills del hero
+    document.getElementById('ia_status').textContent   = _ucfirst(status);
+    document.getElementById('ia_semester').textContent = group.semester || '—';
+    document.getElementById('ia_students').textContent = group.students_count ?? '—';
+
+    // Grupo
+    document.getElementById('ia_group').textContent         = group.name      || '—';
+    document.getElementById('ia_professor').textContent     = group.professor  || '—';
+    document.getElementById('ia_semester_field').textContent= group.semester   || '—';
+    document.getElementById('ia_students_field').textContent= group.students_count != null
+        ? group.students_count + ' estudiante(s)' : '—';
+
+    // Logística
+    const schedule  = asgn.schedule  || group.schedule  || '—';
+    const modality  = asgn.modality  || group.modality  || '—';
+    const classroom = asgn.classroom || group.classroom  || '—';
+    const link      = asgn.virtual_link || null;
+
+    document.getElementById('ia_schedule').textContent = schedule;
+    document.getElementById('ia_modality').textContent = modality;
+    document.getElementById('ia_classroom').textContent = classroom;
+
+    const linkWrap = document.getElementById('ia_link_wrap');
+    const classWrap = document.getElementById('ia_classroom_wrap');
+    if (link) {
+        linkWrap.style.display = '';
+        classWrap.style.display = 'none';
+        const linkEl = document.getElementById('ia_link');
+        linkEl.href = link;
+        linkEl.textContent = link;
+    } else {
+        linkWrap.style.display = 'none';
+        classWrap.style.display = '';
     }
 
-    function openModal(id) {
-        document.getElementById(id).classList.add('open');
-        document.body.style.overflow = 'hidden';
+    // Sesiones
+    const sessions = data.sessions || [];
+    const countEl  = document.getElementById('ia_sessions_count');
+    countEl.textContent = sessions.length + ' sesión(es)';
+
+    const wrap = document.getElementById('ia_sessions_wrap');
+    if (!sessions.length) {
+        wrap.innerHTML = '<p style="font-size:13px;color:var(--text-muted)">Sin sesiones registradas.</p>';
+        return;
     }
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('open');
-        document.body.style.overflow = '';
-    }
+
+    const table = document.createElement('table');
+    table.className = 'ia-sessions-table';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Horario</th>
+                <th>Asistentes</th>
+                <th>Estado</th>
+            </tr>
+        </thead>`;
+    const tbody = document.createElement('tbody');
+    sessions.forEach(s => {
+        const tr = document.createElement('tr');
+        const time = (s.start_time && s.end_time) ? `${s.start_time} – ${s.end_time}` : (s.start_time || '—');
+        const statusCls = s.is_open ? 'ia-session-open' : 'ia-session-closed';
+        const statusLbl = s.is_open ? 'Abierta' : 'Cerrada';
+        tr.innerHTML = `
+            <td style="font-weight:500;color:var(--text)">${s.date || '—'}</td>
+            <td>${time}</td>
+            <td><span class="ia-attendees-pill"><i class="ti ti-user-check" style="font-size:10px"></i> ${s.attendees_count ?? 0}</span></td>
+            <td><span class="ia-session-status ${statusCls}">${statusLbl}</span></td>`;
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.innerHTML = '';
+    wrap.appendChild(table);
+}
+
+function _ucfirst(str) {
+    if (!str) return '—';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
 </script>
 @endpush

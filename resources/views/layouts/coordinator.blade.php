@@ -188,7 +188,7 @@
                                                 </span>
                                                 <span class="notif-meta">
                                                     Grupo: {{ $groupName }}
-                                                    @if($score !== null) · Puntaje: {{ number_format((float) $score, 2) }}/5 @endif
+                                                    @if($score !== null) · Puntaje: {{ number_format((float) $score, 2) }}/10 @endif
                                                 </span>
                                                 <span class="notif-time">
                                                     {{ $when->translatedFormat('d M Y · H:i') }}

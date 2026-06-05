@@ -1613,7 +1613,7 @@ class FicabotKnowledgeBase
                     ."4. Paso 2: subí el archivo lleno y pulsa \"Importar\".\n\n"
                     ."Reglas:\n"
                     ."- Cada fila se guarda como una evaluación independiente con source = csv_import.\n"
-                    ."- Si una fila tiene valores fuera de rango (no 1-5), se ajusta al rango y se reporta.\n"
+                    ."- Si una fila tiene valores fuera de rango (no 1-10), se ajusta al rango y se reporta.\n"
                     ."- Podés importar el mismo tipo varias veces (no reemplaza, suma).",
                 'suggestions' => [
                     '¿Cómo importo la evaluación del docente?',
@@ -1688,7 +1688,7 @@ class FicabotKnowledgeBase
                 'response' => "Para gestionar las preguntas:\n\n"
                     ."1. Menú lateral → Evaluaciones → botón \"Plantillas de preguntas\".\n"
                     ."2. Arriba hay 4 tabs (Autoevaluación, Coordinador, Estudiante, Docente). Cambiá entre ellas para editar las preguntas de cada tipo.\n"
-                    ."3. En la barra lateral derecha tenés el formulario para agregar una pregunta nueva (texto, tipo: score 1-5 o texto libre).\n"
+                    ."3. En la barra lateral derecha tenés el formulario para agregar una pregunta nueva (texto, tipo: score 1-10 o texto libre).\n"
                     ."4. En cada pregunta existente:\n"
                     ."   - Lápiz: editar texto / tipo.\n"
                     ."   - Flechas arriba/abajo: cambiar el orden en que aparece.\n"
@@ -1708,8 +1708,8 @@ class FicabotKnowledgeBase
                     'notificacion al coordinador', 'me llega notificacion evaluacion',
                     'aviso cuando instructor evalua', 'notificacion cuando se envia evaluacion',
                 ],
-                'response' => "Cuando un instructor envía su autoevaluación, su coordinador encargado recibe una notificación en su burbuja (campanita) arriba a la derecha.\n\n"
-                    ."La notificación dice algo como: \"[Instructor] envió su autoevaluación · Grupo: [Materia] · Puntaje: X.XX/5\".\n\n"
+                    'response' => "Cuando un instructor envía su autoevaluación, su coordinador encargado recibe una notificación en su burbuja (campanita) arriba a la derecha.\n\n"
+                    ."La notificación dice algo como: \"[Instructor] envió su autoevaluación · Grupo: [Materia] · Puntaje: X.XX/10\".\n\n"
                     ."Si el coordinador pulsa la notificación, va directo a su panel de Evaluaciones para revisarla y agregar la suya.\n\n"
                     ."Si el instructor no tiene coordinador asignado, no se envía nada (caso poco común; pasa solo con instructores heredados de antes del aislamiento por coordinación).",
                 'suggestions' => [

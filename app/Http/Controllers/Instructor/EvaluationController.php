@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -108,29 +109,40 @@ class EvaluationController extends Controller
             ->where('slug', EvaluationType::SELF)
             ->firstOrFail();
 
-        // Validación a nivel ligero. El service hará el clamp/validación final.
-        // Esperamos un campo answers[template_id][score|text].
-        $data = $request->validate([
-            'answers' => ['required', 'array'],
-            'answers.*.score' => ['nullable', 'numeric', 'min:1', 'max:5'],
-            'answers.*.text' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        // Verificación de obligatoriedad de los 'score': para mantener una
-        // experiencia simple, todas las preguntas score deben venir respondidas.
-        $scoreTemplates = EvaluationQuestionTemplate::query()
+        // Obtener todas las preguntas con su max_score
+        $questions = EvaluationQuestionTemplate::query()
             ->where('evaluation_type_id', $type->id)
             ->where('is_active', true)
-            ->where('question_type', EvaluationQuestionTemplate::TYPE_SCORE)
-            ->pluck('id');
+            ->get()
+            ->keyBy('id');
+
+        // Score obligatorio para todas las preguntas tipo 'score'.
+        $scoreTemplates = $questions->filter(function ($q) {
+            return $q->question_type === EvaluationQuestionTemplate::TYPE_SCORE;
+        })->keys();
+
+        // Validación dinámica basada en max_score de cada pregunta
+        $rules = [
+            'answers' => ['required', 'array'],
+            'answers.*.text' => ['nullable', 'string', 'max:2000'],
+        ];
+
+        // Agregar regla de score dinámicamente por cada pregunta
+        foreach ($scoreTemplates as $tid) {
+            $maxScore = $questions[$tid]->max_score ?? 10;
+            $rules["answers.$tid.score"] = ['nullable', 'numeric', 'min:1', "max:$maxScore"];
+        }
+
+        $data = $request->validate($rules);
 
         foreach ($scoreTemplates as $tid) {
             $value = $data['answers'][$tid]['score'] ?? null;
             if ($value === null || $value === '') {
+                $maxScore = $questions[$tid]->max_score ?? 10;
                 return back()
                     ->withInput()
                     ->withErrors([
-                        "answers.$tid.score" => 'Por favor califica todas las preguntas obligatorias (escala 1 a 5).',
+                        "answers.$tid.score" => "Por favor califica todas las preguntas obligatorias (escala 1 a $maxScore).",
                     ]);
             }
         }
