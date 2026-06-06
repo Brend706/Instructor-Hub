@@ -233,6 +233,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/instructor/session/end', [SessionController::class, 'end'])
             ->name('instructor.session.end');
 
+        Route::get('/instructor/session/attendance-count', [SessionController::class, 'attendanceCount'])
+            ->name('instructor.session.attendance-count');
+
         // Evaluaciones: autoevaluación del instructor (se habilita por
         // instructoría cuando el coordinador la marca como "Finalizada").
         Route::get('/instructor/evaluaciones',

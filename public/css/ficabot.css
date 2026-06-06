@@ -1,91 +1,87 @@
 /* ============================================================
-   Ficabot — Tema Borgoña · Gris · Lavanda
-   Nueva paleta de colores mas orientada al color institucional 
+   Ficabot / Lumi — tema oscuro, paleta borgoña + lavanda
    ============================================================ */
 
-/* ── Variables del tema ── */
+/* ── Variables del tema ───────────────────────────────────── */
 :root {
-  --fica-bg:          #1a1a1f;   /* fondo base */
-  --fica-surface:     #2c2c32;   /* superficie / cards */
-  --fica-border:      rgba(255, 255, 255, 0.07);
-  --fica-primary:     #5a1533;   /* borgoña principal */
-  --fica-primary-mid: #8c2248;   /* borgoña medio */
-  --fica-accent:      #7f77dd;   /* lavanda vivo — CTAs */
-  --fica-accent-soft: #9f99e8;   /* lavanda medio — hover/énfasis */
-  --fica-text:        #f1efe8;   /* texto principal */
-  --fica-text-muted:  #d3d1c7;   /* texto secundario */
-  --fica-text-dim:    #888780;   /* texto apagado / placeholders */
+  --fica-bg:          #1a1a1f;
+  --fica-surface:     #252229;
+  --fica-surface-2:   #2e2b33;
+  --fica-border:      rgba(255,255,255,0.08);
+  --fica-primary:     #5a1533;
+  --fica-primary-mid: #8c2248;
+  --fica-accent:      #7f77dd;
+  --fica-accent-soft: #9f99e8;
+  --fica-text:        #f1efe8;
+  --fica-text-muted:  #c8c0cc;
+  --fica-text-dim:    #7a7080;
   --fica-radius:      20px;
-  --fica-transition:  .25s cubic-bezier(.4, 0, .2, 1);
+  --fica-ease:        cubic-bezier(.4,0,.2,1);
 }
 
-/* ── Overlay ── */
+/* ── Overlay ──────────────────────────────────────────────── */
 #sage-overlay {
   position: fixed; inset: 0; z-index: 9998;
-  background: rgba(7, 5, 10, 0.6);
+  background: rgba(7,5,10,.55);
   backdrop-filter: blur(4px);
   opacity: 0; pointer-events: none;
-  transition: opacity var(--fica-transition);
+  transition: opacity .25s var(--fica-ease);
 }
 #sage-overlay.open { opacity: 1; pointer-events: all; }
 
-/* ── Modal ── */
+/* ── Modal ────────────────────────────────────────────────── */
 #sage-modal {
   position: fixed;
   bottom: 96px; right: 28px;
   width: 380px; max-width: calc(100vw - 40px);
+  max-height: min(620px, 82vh);
   z-index: 9999;
   background: var(--fica-bg);
   border: 0.5px solid var(--fica-border);
   border-radius: var(--fica-radius);
-  box-shadow:
-    0 32px 80px rgba(0, 0, 0, 0.55),
-    0 0 0 0.5px rgba(255, 255, 255, 0.04);
+  box-shadow: 0 32px 80px rgba(0,0,0,.6), 0 0 0 0.5px rgba(255,255,255,.04);
+  /* Flex column para que la conversación scrollee y el input quede fijo abajo */
+  display: flex; flex-direction: column;
   overflow: hidden;
   font-family: 'DM Sans', system-ui, sans-serif;
-  transform: translateY(18px) scale(0.97);
+  font-size: 13px; line-height: 1.5; color: var(--fica-text);
+  transform: translateY(18px) scale(.97);
   opacity: 0; pointer-events: none;
-  transition:
-    transform .28s cubic-bezier(.34, 1.48, .64, 1),
-    opacity .22s ease;
+  transition: transform .28s cubic-bezier(.34,1.48,.64,1), opacity .22s ease;
 }
-#sage-modal.open {
-  transform: translateY(0) scale(1);
-  opacity: 1; pointer-events: all;
-}
+#sage-modal.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
 
-/* Glow blobs decorativos */
+/* Glows decorativos */
 #sage-modal::before {
-  content: '';
-  position: absolute; pointer-events: none;
+  content: ''; position: absolute; pointer-events: none;
   width: 200px; height: 200px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(127, 119, 221, 0.1) 0%, transparent 70%);
-  top: -60px; right: -60px;
+  background: radial-gradient(circle, rgba(127,119,221,.1) 0%, transparent 70%);
+  top: -60px; right: -60px; z-index: 0;
 }
 #sage-modal::after {
-  content: '';
-  position: absolute; pointer-events: none;
+  content: ''; position: absolute; pointer-events: none;
   width: 160px; height: 160px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(90, 21, 51, 0.15) 0%, transparent 70%);
-  bottom: -40px; left: -40px;
+  background: radial-gradient(circle, rgba(90,21,51,.15) 0%, transparent 70%);
+  bottom: -40px; left: -40px; z-index: 0;
 }
 
-/* ── Header ── */
+/* ── Header ───────────────────────────────────────────────── */
 .sage-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 20px 16px;
+  padding: 16px 18px;
   border-bottom: 0.5px solid var(--fica-border);
+  flex-shrink: 0; position: relative; z-index: 1;
 }
-.sage-avatar-wrap { display: flex; align-items: center; gap: 11px; }
+.sage-avatar-wrap { display: flex; align-items: center; gap: 10px; }
 .sage-avatar {
-  width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
   background: linear-gradient(135deg, var(--fica-primary), #3d2a6e);
   display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 600; color: var(--fica-accent-soft);
+  font-size: 15px; font-weight: 600; color: var(--fica-accent-soft);
 }
 .sage-name {
-  font-size: 17px; font-weight: 500; color: var(--fica-text);
-  margin: 0; letter-spacing: -0.2px;
+  font-size: 15px; font-weight: 500; color: var(--fica-text);
+  margin: 0; letter-spacing: -.2px;
 }
 .sage-status {
   display: flex; align-items: center; gap: 5px;
@@ -94,140 +90,297 @@
 .sage-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--fica-accent-soft);
-  box-shadow: 0 0 6px rgba(159, 153, 232, 0.7);
-  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(159,153,232,.7); flex-shrink: 0;
 }
 .sage-close-btn {
   width: 28px; height: 28px; border-radius: 50%; border: none;
-  background: rgba(255, 255, 255, 0.06); cursor: pointer;
-  color: rgba(255, 255, 255, 0.4); font-size: 13px;
+  background: rgba(255,255,255,.06); cursor: pointer;
+  color: rgba(255,255,255,.4);
   display: flex; align-items: center; justify-content: center;
-  transition: background var(--fica-transition), color var(--fica-transition);
+  transition: background .2s, color .2s; flex-shrink: 0;
 }
-.sage-close-btn:hover { background: rgba(255, 255, 255, 0.12); color: var(--fica-text); }
+.sage-close-btn:hover { background: rgba(255,255,255,.12); color: var(--fica-text); }
 
-/* ── Greeting ── */
-.sage-greeting { padding: 20px 20px 4px; }
+/* ── Estado vacío (greeting + chips + topics) ─────────────── */
+#sage-empty {
+  flex-shrink: 0; position: relative; z-index: 1;
+  overflow-y: auto;
+}
+
+.sage-greeting { padding: 18px 18px 4px; }
 .sage-greeting-title {
-  font-size: 20px; font-weight: 400;
-  color: var(--fica-text); line-height: 1.3; margin: 0 0 5px;
+  font-size: 19px; font-weight: 400;
+  color: var(--fica-text); line-height: 1.35; margin: 0 0 5px;
 }
 .sage-greeting-title strong {
   color: var(--fica-accent-soft); font-weight: 500; font-style: italic;
 }
 .sage-greeting-sub {
-  font-size: 13px; color: var(--fica-text-dim); margin: 0; font-weight: 300;
+  font-size: 12px; color: var(--fica-text-dim); margin: 0; font-weight: 300;
 }
 
-/* ── Chips de sugerencia ── */
-.sage-chips { padding: 14px 20px; display: flex; flex-direction: column; gap: 8px; }
+/* Chips iniciales */
+.sage-chips { padding: 12px 18px; display: flex; flex-direction: column; gap: 7px; }
 .sage-chip {
-  display: flex; align-items: flex-start; gap: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px; padding: 11px 13px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.04);
+  border: 0.5px solid rgba(255,255,255,.08);
+  border-radius: 11px; padding: 10px 12px;
   cursor: pointer; text-align: left; width: 100%;
-  transition: background var(--fica-transition), border-color var(--fica-transition);
+  transition: background .2s, border-color .2s;
 }
 .sage-chip:hover {
-  background: rgba(127, 119, 221, 0.1);
-  border-color: rgba(127, 119, 221, 0.28);
+  background: rgba(127,119,221,.1);
+  border-color: rgba(127,119,221,.28);
 }
 .sage-chip-icon {
-  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 13px;
-  background: rgba(127, 119, 221, 0.12);
+  width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(127,119,221,.12);
 }
 .sage-chip span {
-  font-size: 13px; color: var(--fica-text-muted); line-height: 1.4; font-weight: 300;
+  font-size: 12px; color: var(--fica-text-muted); line-height: 1.4; font-weight: 400;
 }
 
-/* ── Topic pills ── */
-.sage-topics { padding: 0 20px 14px; display: flex; gap: 6px; flex-wrap: wrap; }
+/* Topic pills */
+.sage-topics { padding: 0 18px 14px; display: flex; gap: 6px; flex-wrap: wrap; }
 .sage-topic-pill {
   font-size: 11px; padding: 4px 11px; border-radius: 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  border: 0.5px solid rgba(255,255,255,.1);
   color: var(--fica-text-dim); background: transparent;
   cursor: pointer; font-family: inherit;
-  transition: all var(--fica-transition);
+  transition: all .2s;
 }
 .sage-topic-pill:hover {
-  background: rgba(127, 119, 221, 0.1);
-  border-color: rgba(127, 119, 221, 0.3);
+  background: rgba(127,119,221,.1);
+  border-color: rgba(127,119,221,.3);
   color: var(--fica-accent-soft);
 }
 .sage-topic-pill.active {
-  background: rgba(90, 21, 51, 0.45);
-  border-color: rgba(90, 21, 51, 0.75);
+  background: rgba(90,21,51,.4);
+  border-color: rgba(140,34,72,.6);
   color: #e8b8cc;
 }
 
-/* ── Input area ── */
+/* ── Conversación ─────────────────────────────────────────── */
+.sage-conversation {
+  display: none;         /* JS añade .open para mostrarla */
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 14px 6px;
+  overflow-y: auto;
+  flex: 1;               /* ocupa el espacio disponible y scrollea */
+  min-height: 0;
+  position: relative; z-index: 1;
+  /* Scrollbar discreta */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+.sage-conversation.open { display: flex; }
+.sage-conversation::-webkit-scrollbar { width: 4px; }
+.sage-conversation::-webkit-scrollbar-track { background: transparent; }
+.sage-conversation::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 4px; }
+
+/* ── Mensajes ─────────────────────────────────────────────── */
+.sage-msg {
+  display: flex;
+  max-width: 88%;
+}
+.sage-msg-user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+.sage-msg-assistant {
+  align-self: flex-start;
+}
+
+.sage-bubble {
+  padding: 9px 13px;
+  border-radius: 14px;
+  font-size: 13px; line-height: 1.55;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* Burbuja del usuario — borgoña */
+.sage-msg-user .sage-bubble {
+  background: linear-gradient(135deg, var(--fica-primary-mid), var(--fica-primary));
+  color: #f9eff2;
+  border-bottom-right-radius: 4px;
+}
+
+/* Burbuja del bot — superficie oscura */
+.sage-msg-assistant .sage-bubble {
+  background: var(--fica-surface-2);
+  color: var(--fica-text);
+  border: 0.5px solid var(--fica-border);
+  border-bottom-left-radius: 4px;
+}
+
+/* ── Indicador "escribiendo" ──────────────────────────────── */
+.sage-typing {
+  display: flex; align-items: center; gap: 4px;
+  padding: 12px 14px;
+}
+.sage-typing span {
+  display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--fica-text-dim);
+  animation: sageDot .9s ease-in-out infinite;
+}
+.sage-typing span:nth-child(2) { animation-delay: .15s; }
+.sage-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes sageDot {
+  0%,80%,100% { opacity: .3; transform: scale(.8); }
+  40%         { opacity: 1;  transform: scale(1.15); }
+}
+
+/* ── Chips de sugerencia post-respuesta ───────────────────── */
+.sage-suggestions-wrap {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 4px 0 2px; align-self: flex-start;
+}
+.sage-suggestion-chip {
+  font-size: 11px; padding: 5px 12px; border-radius: 20px;
+  border: 0.5px solid rgba(127,119,221,.3);
+  color: var(--fica-accent-soft); background: rgba(127,119,221,.08);
+  cursor: pointer; font-family: inherit;
+  transition: background .2s, border-color .2s;
+}
+.sage-suggestion-chip:hover {
+  background: rgba(127,119,221,.18);
+  border-color: rgba(127,119,221,.5);
+}
+
+/* ── Botón "Contactar administrador" ──────────────────────── */
+.sage-escalate-wrap {
+  align-self: flex-start; margin-top: 2px;
+}
+.sage-escalate-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; font-family: inherit;
+  padding: 7px 14px; border-radius: 20px;
+  background: rgba(90,21,51,.3);
+  border: 0.5px solid rgba(140,34,72,.5);
+  color: #e8b8cc; cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+.sage-escalate-btn:hover {
+  background: rgba(90,21,51,.5);
+  border-color: rgba(140,34,72,.8);
+}
+
+/* ── Formulario de contacto ───────────────────────────────── */
+.sage-contact-form {
+  flex-shrink: 0;
+  padding: 14px 18px;
+  border-top: 0.5px solid var(--fica-border);
+  background: var(--fica-surface);
+  position: relative; z-index: 1;
+}
+.sage-contact-title {
+  font-size: 12px; font-weight: 500; color: var(--fica-text-muted);
+  margin: 0 0 12px;
+}
+.sage-contact-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.sage-contact-field label {
+  font-size: 11px; color: var(--fica-text-dim); font-weight: 500;
+}
+.sage-contact-field input {
+  background: rgba(255,255,255,.05);
+  border: 0.5px solid rgba(255,255,255,.12);
+  border-radius: 9px; padding: 8px 12px;
+  font-size: 13px; color: var(--fica-text);
+  font-family: inherit; outline: none;
+  transition: border-color .2s;
+}
+.sage-contact-field input::placeholder { color: var(--fica-text-dim); }
+.sage-contact-field input:focus { border-color: rgba(127,119,221,.5); }
+.sage-contact-field input.has-error { border-color: rgba(239,68,68,.5); }
+.sage-contact-error { font-size: 11px; color: #f87171; min-height: 14px; }
+
+.sage-contact-actions { display: flex; gap: 8px; margin-top: 4px; }
+.sage-contact-cancel {
+  flex: 1; padding: 8px; border-radius: 9px;
+  border: 0.5px solid rgba(255,255,255,.1);
+  background: transparent; color: var(--fica-text-dim);
+  font-size: 12px; font-family: inherit; cursor: pointer;
+  transition: background .2s;
+}
+.sage-contact-cancel:hover { background: rgba(255,255,255,.06); }
+.sage-contact-submit {
+  flex: 1; padding: 8px; border-radius: 9px; border: none;
+  background: var(--fica-primary); color: #f9eff2;
+  font-size: 12px; font-weight: 500; font-family: inherit; cursor: pointer;
+  transition: opacity .2s;
+}
+.sage-contact-submit:hover { opacity: .85; }
+.sage-contact-submit:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Input area ───────────────────────────────────────────── */
 .sage-input-area {
   padding: 10px 14px 14px;
   border-top: 0.5px solid var(--fica-border);
-  position: relative; z-index: 1;
+  flex-shrink: 0; position: relative; z-index: 1;
+  background: var(--fica-bg);
 }
 .sage-input-wrap {
   display: flex; align-items: flex-end; gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,.05);
+  border: 0.5px solid rgba(255,255,255,.1);
   border-radius: 14px; padding: 9px 9px 9px 13px;
-  transition: border-color var(--fica-transition);
+  transition: border-color .2s;
 }
-.sage-input-wrap:focus-within {
-  border-color: rgba(127, 119, 221, 0.45);
-}
+.sage-input-wrap:focus-within { border-color: rgba(127,119,221,.45); }
 .sage-textarea {
   flex: 1; background: none; border: none; outline: none;
   color: var(--fica-text); font-size: 13px;
   font-family: 'DM Sans', system-ui, sans-serif;
-  resize: none; max-height: 80px; line-height: 1.5; font-weight: 300;
+  resize: none; max-height: 80px; line-height: 1.5; font-weight: 400;
+  overflow-y: auto;
 }
-.sage-textarea::placeholder { color: rgba(241, 239, 232, 0.22); }
+.sage-textarea::placeholder { color: rgba(241,239,232,.22); }
 .sage-send-btn {
   width: 32px; height: 32px; border-radius: 10px; border: none; flex-shrink: 0;
   background: var(--fica-primary); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: opacity .15s, transform .1s;
 }
-.sage-send-btn:hover { opacity: 0.85; }
-.sage-send-btn:active { transform: scale(0.93); }
+.sage-send-btn:hover { opacity: .85; }
+.sage-send-btn:active { transform: scale(.93); }
+.sage-send-btn:disabled { opacity: .4; cursor: not-allowed; }
 .sage-disclaimer {
   text-align: center; font-size: 10px;
-  color: rgba(255, 255, 255, 0.16); margin-top: 8px; letter-spacing: 0.02em;
+  color: rgba(255,255,255,.15); margin-top: 7px; letter-spacing: .02em;
 }
 
-/* ── FAB trigger ── */
+/* ── FAB ──────────────────────────────────────────────────── */
 #sage-fab {
   position: fixed; bottom: 28px; right: 28px; z-index: 9997;
   width: 56px; height: 56px; border-radius: 50%; border: none;
   background: var(--fica-primary);
-  box-shadow: 0 8px 28px rgba(90, 21, 51, 0.5);
+  box-shadow: 0 8px 28px rgba(90,21,51,.5);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: transform .2s ease, box-shadow .2s ease;
+  transition: transform .2s, box-shadow .2s;
 }
-#sage-fab:hover {
-  transform: scale(1.07);
-  box-shadow: 0 12px 36px rgba(90, 21, 51, 0.6);
-}
+#sage-fab:hover { transform: scale(1.07); box-shadow: 0 12px 36px rgba(90,21,51,.65); }
 #sage-fab svg { width: 24px; height: 24px; }
 
-/* ── Badge de notificación ── */
+/* ── Badge ────────────────────────────────────────────────── */
 #sage-badge {
   position: fixed; bottom: 68px; right: 24px; z-index: 9998;
   width: 18px; height: 18px; border-radius: 50%;
   background: var(--fica-accent);
-  border: 2px solid var(--fica-bg);
+  border: 2px solid #1a1a1f;
   font-size: 10px; font-weight: 600; color: #fff;
   display: flex; align-items: center; justify-content: center;
   opacity: 1; transition: opacity .2s;
 }
 #sage-badge.hidden { opacity: 0; pointer-events: none; }
 
-/* ── Responsive ── */
+/* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 480px) {
-  #sage-modal { bottom: 88px; right: 12px; left: 12px; width: auto; }
-  #sage-fab   { bottom: 20px; right: 16px; }
-  #sage-badge { bottom: 60px; right: 12px; }
+  #sage-modal  { bottom: 88px; right: 12px; left: 12px; width: auto; max-height: 78vh; }
+  #sage-fab    { bottom: 20px; right: 16px; }
+  #sage-badge  { bottom: 60px; right: 12px; }
 }

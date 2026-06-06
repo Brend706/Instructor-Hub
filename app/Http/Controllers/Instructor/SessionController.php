@@ -187,6 +187,30 @@ class SessionController extends Controller
         ]);
     }
 
+    /**
+     * AJAX polling: devuelve el conteo de asistencias de la sesión activa.
+     * Se llama cada ~10 s desde el front para actualizar el contador en vivo.
+     */
+    public function attendanceCount(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'session_id' => ['required', 'integer', 'exists:class_sessions,id'],
+        ]);
+
+        $instructor = $this->currentInstructor($request);
+
+        $session = ClassSession::query()
+            ->where('id', $validated['session_id'])
+            ->whereHas('instructorAssignment', function ($q) use ($instructor) {
+                $q->where('instructor_id', $instructor->id);
+            })
+            ->firstOrFail();
+
+        return response()->json([
+            'count' => $session->attendances()->where('attended', true)->count(),
+        ]);
+    }
+
     private function currentInstructor(Request $request): Instructor
     {
         return Instructor::query()
