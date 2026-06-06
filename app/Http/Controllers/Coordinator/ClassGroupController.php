@@ -161,9 +161,9 @@ class ClassGroupController extends Controller
 
         $coordinatorId = $this->currentCoordinatorId();
 
-        $validated = $request->validate([
-            // exists con cláusula `where` para forzar que el instructor sea
-            // de la misma coordinación; Laravel rechaza el form si no lo es.
+        // 'assign' = named error bag para separar estos errores de los del
+        // formulario de crear/editar grupo y mostrarlos en el lugar correcto.
+        $validated = $request->validateWithBag('assign', [
             'instructor_id' => [
                 'required',
                 'integer',
@@ -171,18 +171,9 @@ class ClassGroupController extends Controller
                     $q->where('coordinator_id', $coordinatorId ?? -1);
                 }),
             ],
-            'schedule' => ['required', 'string', 'max:255'],
-            'modality' => ['required', Rule::in(['presencial', 'linea'])],
-            'classroom' => [Rule::requiredIf($request->input('modality') === 'presencial'), 'nullable', 'string', 'max:255'],
-            'link' => [Rule::requiredIf($request->input('modality') === 'linea'), 'nullable', 'string', 'max:2048'],
-            'status' => ['required', Rule::in(['active', 'finished'])],
         ], [
-            'instructor_id.exists' => 'El instructor seleccionado no pertenece a tu coordinación.',
-            'schedule.required' => 'Indica el horario de la instructoría.',
-            'modality.required' => 'Selecciona la modalidad de la instructoría.',
-            'classroom.required' => 'Indica el aula física.',
-            'link.required' => 'Indica el enlace virtual.',
-            'status.required' => 'Selecciona el estado de la instructoría.',
+            'instructor_id.required' => 'Selecciona un instructor de la lista.',
+            'instructor_id.exists'   => 'El instructor seleccionado no pertenece a tu coordinación.',
         ]);
 
         // Regla: un instructor solo puede tener UNA instructoría ACTIVA por
@@ -192,36 +183,43 @@ class ClassGroupController extends Controller
             return back()
                 ->withErrors([
                     'instructor_id' => 'Este instructor ya tiene una instructoría activa en el ciclo '.
-                        ($group->semester ?? '—').' (Grupo: '.$conflictGroup->name.'). '.
-                        'Finalizá esa primero o asigná otro instructor.',
-                ])
+                        ($group->semester ?? '—').' (grupo: '.$conflictGroup->name.'). '.
+                        'Finaliza esa asignación primero o elige otro instructor.',
+                ], 'assign')
                 ->withInput();
         }
 
-        $assignmentModality = $validated['modality'] === 'presencial' ? 'Presencial' : 'En línea';
-        $assignmentStatus = $validated['status'] === 'active' ? 'Activo' : 'Finalizado';
-        $assignmentClassroom = $assignmentModality === 'Presencial'
-            ? $validated['classroom']
-            : null;
-        $assignmentVirtualLink = $assignmentModality === 'En línea'
-            ? $validated['link']
-            : null;
-
-        DB::transaction(function () use ($group, $validated, $assignmentModality, $assignmentStatus, $assignmentClassroom, $assignmentVirtualLink) {
+        // Los detalles de la instructoría (horario, modalidad, aula/enlace)
+        // los completa el instructor desde su propia vista una vez coordinado
+        // con el docente y los estudiantes.
+        DB::transaction(function () use ($group, $validated) {
             $group->instructorAssignments()->delete();
             $group->instructorAssignments()->create([
                 'instructor_id' => $validated['instructor_id'],
-                'schedule' => $validated['schedule'],
-                'modality' => $assignmentModality,
-                'status' => $assignmentStatus,
-                'classroom' => $assignmentClassroom,
-                'virtual_link' => $assignmentVirtualLink,
+                'schedule'      => null,
+                'modality'      => null,
+                'status'        => 'Activo',
+                'classroom'     => null,
+                'virtual_link'  => null,
             ]);
         });
 
         return redirect()
             ->route('coordinator.groups.index')
             ->with('success', 'Instructor asignado al grupo.');
+    }
+
+    /**
+     * Elimina la asignación de instructor de un grupo sin borrar el grupo.
+     */
+    public function unassignInstructor(ClassGroup $group): RedirectResponse
+    {
+        $this->ensureOwnsGroup($group);
+        $group->instructorAssignments()->delete();
+
+        return redirect()
+            ->route('coordinator.groups.index')
+            ->with('success', 'Instructor desasignado del grupo correctamente.');
     }
 
     /**
@@ -297,15 +295,22 @@ class ClassGroupController extends Controller
         $instructorName = $assignment?->instructor?->user?->name;
 
         return [
-            'id' => $group->id,
-            'subject' => $group->name,
-            'teacher' => $group->professor,
-            'cycle' => $group->semester,
-            'schedule' => $group->schedule,
-            'modality' => $group->modality,
-            'classroom' => $group->classroom,
-            'instructor' => $instructorName,
-            'students' => (int) $group->students_count,
+            'id'               => $group->id,
+            'subject'          => $group->name,
+            'teacher'          => $group->professor,
+            'cycle'            => $group->semester,
+            'schedule'         => $group->schedule,
+            'modality'         => $group->modality,
+            'classroom'        => $group->classroom,
+            'instructor'       => $instructorName,
+            'instructor_id'    => $assignment?->instructor_id,
+            'assign_schedule'  => $assignment?->schedule,
+            'assign_modality'  => $assignment?->modality === 'Presencial' ? 'presencial'
+                                   : ($assignment?->modality === 'En línea' ? 'linea' : ''),
+            'assign_classroom' => $assignment?->classroom,
+            'assign_link'      => $assignment?->virtual_link,
+            'assign_status'    => $assignment?->status === 'Finalizado' ? 'finished' : 'active',
+            'students'         => (int) $group->students_count,
         ];
     }
 

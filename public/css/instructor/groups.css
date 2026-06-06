@@ -1,134 +1,346 @@
+/* ─────────────────────────────────────────────────────────────
+   MIS GRUPOS — Instructor
+   public/css/instructor/groups.css
+   ───────────────────────────────────────────────────────────── */
+
 .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--text-soft);
-    text-decoration: none;
-    margin-bottom: 20px;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text-soft);
+    text-decoration: none; margin-bottom: 20px;
+    transition: color .15s;
 }
 .back-link:hover { color: var(--primary); }
 
 .page-header {
-    display: flex;
-    align-items: flex-start;
+    display: flex; align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+    gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
 }
 .page-title { font-size: 18px; font-weight: 600; margin-bottom: 2px; }
-.page-sub { font-size: 12px; color: var(--text-muted); }
+.page-sub   { font-size: 12px; color: var(--text-muted); }
 
-.students-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    padding: 6px 12px;
-    border-radius: 20px;
-    background: var(--primary-50);
-    color: var(--primary);
+/* ── Flash ──────────────────────────────────────────────── */
+.alert-success {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--success-bg); border: 1px solid #BBF7D0;
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 13px; color: var(--success-text); margin-bottom: 16px;
+}
+.alert-error {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: var(--danger-bg,#FEE2E2); border: 1px solid #FECACA;
+    border-left: 4px solid #DC2626; border-radius: 8px;
+    padding: 12px 16px; font-size: 13px; color: #991B1B; margin-bottom: 16px;
 }
 
+/* ── Empty ──────────────────────────────────────────────── */
 .empty-card {
-    text-align: center;
-    padding: 48px 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: var(--text-muted);
+    text-align: center; padding: 48px 24px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text-muted);
 }
 .empty-card i { font-size: 36px; margin-bottom: 12px; display: block; opacity: .5; }
+.empty-card p { font-size: 13px; }
 
+/* ── Lista de grupos (index) ────────────────────────────── */
 .groups-list { display: flex; flex-direction: column; gap: 10px; }
 
-.group-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+.group-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+}
+/* Primera tarjeta / activa: borde borgoña en top */
+.group-card.is-open {
+    border-top: 3px solid var(--primary);
+    box-shadow: 0 4px 18px rgba(90,21,51,.08);
+}
+/* Historial (cerradas): borde más suave */
+.group-card:not(.is-open) {
+    border-top: 3px solid var(--border);
+    opacity: .88;
+}
+.group-card:not(.is-open):hover { opacity: 1; border-top-color: var(--primary-400); }
+
+/* Cabecera — botón clickable */
+.group-card-head {
+    display: flex; align-items: center;
+    justify-content: space-between;
     padding: 14px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color .15s, box-shadow .15s;
-}
-.group-row:hover {
-    border-color: var(--primary-400);
-    box-shadow: 0 4px 16px rgba(27, 78, 139, .08);
-}
-
-.group-row-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: var(--primary-50);
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-.group-row-main { flex: 1; min-width: 0; }
-.group-row-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-.group-row-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-.group-row-meta {
-    display: flex;
-    flex-wrap: wrap;
     gap: 12px;
-    font-size: 11px;
-    color: var(--text-soft);
+    width: 100%; background: none; border: none;
+    cursor: pointer; font-family: inherit;
+    text-align: left;
+    transition: background .15s;
 }
-.group-row-meta i { font-size: 12px; margin-right: 2px; }
-.group-row-count {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--primary);
-    background: var(--primary-50);
-    padding: 6px 12px;
-    border-radius: 20px;
-}
-.group-row-arrow { color: var(--text-muted); font-size: 18px; }
+.group-card-head:hover { background: var(--bg); }
 
-.group-info-card {
+.group-card-left  { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.group-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.group-card-av {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.group-card-av.av-muted { background: var(--primary-400); }
+
+.group-card-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.group-card-meta {
+    font-size: 11px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+}
+.gc-meta-sep { opacity: .4; }
+
+/* Chevron animado */
+.gc-chevron {
+    font-size: 18px; color: var(--text-muted);
+    transition: transform .25s ease; flex-shrink: 0;
+}
+.group-card.is-open .gc-chevron { transform: rotate(180deg); }
+
+/* ── Cuerpo colapsable ────────────────────────────────────── */
+.group-card-body {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 16px;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .28s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+}
+.group-card.is-open .group-card-body {
+    grid-template-rows: 1fr;
+}
+/* El único hijo directo necesita overflow:hidden para que el colapso funcione */
+.group-card-body > div {
+    overflow: hidden;
+}
+
+.group-card-badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+/* Badges */
+.gc-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 500;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.gc-badge-cycle   { background: var(--primary-50); color: var(--primary); border: 1px solid var(--primary-100); }
+.gc-badge-active  { background: var(--success-bg); color: var(--success-text); }
+.gc-badge-closed  { background: var(--warning-bg); color: var(--warning-text); }
+.gc-badge-pending { background: var(--accent-50);  color: var(--accent); border: 1px solid var(--accent-100); }
+
+/* ── Dos secciones dentro de la tarjeta ──────────────────── */
+.group-sections { display: grid; grid-template-columns: 1fr 1fr; }
+
+.group-section {
+    padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.group-section-grupo {
+    background: var(--primary-50);
+    border-top: 1px solid var(--primary-100);
+    border-right: 1px solid var(--primary-100);
+}
+.group-section-instructoria {
+    background: var(--accent-50);
+    border-top: 1px solid var(--accent-100);
+}
+
+.gs-label {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; display: flex; align-items: center; gap: 5px;
+    margin-bottom: 4px;
+}
+.gs-label.primary { color: var(--primary); }
+.gs-label.accent  { color: var(--accent); }
+
+.gs-row { display: flex; flex-direction: column; gap: 2px; }
+.gs-key { font-size: 10px; color: var(--text-muted); }
+.gs-val { font-size: 12px; font-weight: 500; color: var(--text); }
+.gs-val.muted { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+/* ── Footer de la tarjeta ────────────────────────────────── */
+.group-card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    gap: 8px;
+}
+.group-card-students {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-weight: 500;
+    color: var(--accent); background: var(--accent-50);
+    border: 1px solid var(--accent-100);
+    padding: 4px 12px; border-radius: 20px;
+}
+
+/* ── Botones ─────────────────────────────────────────────── */
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    font-size: 12px; font-weight: 500; font-family: inherit;
+    border: 1px solid transparent; cursor: pointer;
+    text-decoration: none; transition: background .15s, border-color .15s;
+}
+.btn-primary   { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-700); }
+.btn-ghost     { background: transparent; color: var(--text-soft); border-color: var(--border); }
+.btn-ghost:hover { background: var(--bg); }
+.btn-lavanda   { background: var(--accent-50); color: var(--accent); border-color: var(--accent-100); }
+.btn-lavanda:hover { background: var(--accent-100); }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+
+/* ── Pill de estudiantes (show) ──────────────────────────── */
+.students-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--accent-50); color: var(--accent);
+    border: 1px solid var(--accent-100);
+}
+
+/* ── Info cards (show) ───────────────────────────────────── */
+.info-cards-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; margin-bottom: 18px;
+}
+
+.info-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-left: 4px solid var(--primary);
-    border-radius: 12px;
-    padding: 16px 18px;
-    margin-bottom: 16px;
+    border-radius: 12px; overflow: hidden;
 }
-.info-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-/* word-break/overflow-wrap normales + hyphens:none para que "En línea" no se parta a la mitad */
-.info-value { font-size: 13px; font-weight: 500; color: var(--text); word-break: normal; overflow-wrap: normal; hyphens: none; }
-.info-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; word-break: normal; overflow-wrap: normal; hyphens: none; }
+.info-card-primary { border-top: 3px solid var(--primary); }
+.info-card-accent  { border-top: 3px solid var(--accent); }
 
+.info-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+}
+.info-card-primary .info-card-header {
+    background: var(--primary-50);
+    border-bottom: 1px solid var(--primary-100);
+    color: var(--primary);
+}
+.info-card-accent .info-card-header {
+    background: var(--accent-50);
+    border-bottom: 1px solid var(--accent-100);
+    color: var(--accent);
+}
+
+.info-card-body {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; padding: 14px;
+}
+.info-item { display: flex; flex-direction: column; gap: 3px; }
+.info-label {
+    font-size: 10px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .06em;
+}
+.info-value { font-size: 13px; font-weight: 500; color: var(--text); }
+.info-sub   { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.info-value.pending { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+/* Enlace virtual */
+.info-link { font-size: 12px; color: var(--accent); text-decoration: underline; word-break: break-all; }
+
+/* ── Tabla de estudiantes (show) ─────────────────────────── */
 .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .table-wrap { overflow-x: auto; }
 .table-card table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-card thead tr { border-bottom: 1px solid var(--accent-100); }
 .table-card th {
-    text-align: left;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    text-align: left; font-size: 10px; font-weight: 600;
+    color: var(--accent); text-transform: uppercase; letter-spacing: .06em;
+    padding: 10px 14px; background: var(--accent-50); white-space: nowrap;
 }
 .table-card td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text-soft); }
 .table-card tr:last-child td { border-bottom: none; }
+.table-card tr:hover td { background: var(--accent-50); }
 .table-card .td-name { font-weight: 500; color: var(--text); }
 .table-card .empty-state { text-align: center; padding: 32px; color: var(--text-muted); }
 .table-card .empty-state i { font-size: 28px; display: block; margin-bottom: 8px; opacity: .5; }
+
+/* ── Modal editar instructoría ───────────────────────────── */
+.ig-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,10,30,.5);
+    backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 16px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+}
+.ig-modal-overlay.open { opacity: 1; pointer-events: all; }
+.ig-modal {
+    background: var(--surface); border-radius: 14px;
+    width: 100%; max-width: 480px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.15);
+    transform: translateY(14px); transition: transform .22s;
+    max-height: 90vh; overflow-y: auto;
+    border-top: 3px solid var(--accent);
+}
+.ig-modal-overlay.open .ig-modal { transform: translateY(0); }
+
+.ig-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.ig-modal-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.ig-modal-close {
+    width: 28px; height: 28px; border-radius: 6px;
+    border: 1px solid var(--border); background: transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 16px;
+}
+.ig-modal-close:hover { background: var(--bg); }
+.ig-modal-body   { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.ig-modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Campos del modal */
+.ig-field { display: flex; flex-direction: column; gap: 4px; }
+.ig-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ig-label { font-size: 11px; font-weight: 500; color: var(--text-soft); }
+.ig-hint  { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.ig-input {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; font-size: 13px; color: var(--text);
+    outline: none; width: 100%; font-family: inherit;
+    background: var(--surface); transition: border .15s, box-shadow .15s;
+}
+.ig-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-50); }
+.ig-input::placeholder { color: var(--text-muted); }
+select.ig-input { cursor: pointer; }
+
+/* Day toggles (widget horario en modal) */
+.ig-day-toggles { display: flex; gap: 6px; flex-wrap: wrap; }
+.ig-day-toggle {
+    padding: 6px 12px; border-radius: 8px;
+    font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-soft); cursor: pointer; font-family: inherit;
+    transition: background .15s, border-color .15s, color .15s;
+}
+.ig-day-toggle:hover { border-color: var(--accent-100); color: var(--accent); background: var(--accent-50); }
+.ig-day-toggle.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.ig-schedule-preview {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: var(--accent-50); border: 1px solid var(--accent-100);
+    border-radius: 8px; font-size: 12px; color: var(--accent); font-weight: 500;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .group-sections     { grid-template-columns: 1fr; }
+    .group-section-grupo { border-right: none; border-bottom: 1px solid var(--primary-100); }
+    .info-cards-grid    { grid-template-columns: 1fr; }
+    .info-card-body     { grid-template-columns: 1fr; }
+    .ig-field-row       { grid-template-columns: 1fr; }
+    .group-card-badges  { display: none; }
+}

@@ -154,6 +154,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/groups/{group}', [ClassGroupController::class, 'update'])->name('groups.update');
         Route::delete('/groups/{group}', [ClassGroupController::class, 'destroy'])->name('groups.destroy');
         Route::post('/groups/{group}/assign-instructor', [ClassGroupController::class, 'assignInstructor'])->name('groups.assign-instructor');
+        Route::delete('/groups/{group}/unassign-instructor', [ClassGroupController::class, 'unassignInstructor'])->name('groups.unassign-instructor');
 
         Route::get('/groups/{group}/estudiantes', [GroupStudentsController::class, 'index'])->name('groups.enrolled');
         Route::get('/groups/{group}/students', [StudentImportController::class, 'show'])->name('groups.students');
@@ -216,6 +217,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/instructor/grupos', [InstructorGroupController::class, 'index'])->name('instructor.groups.index');
         Route::get('/instructor/grupos/{assignment}', [InstructorGroupController::class, 'show'])->name('instructor.groups.show');
+        Route::put('/instructor/grupos/{assignment}/detalles', [InstructorGroupController::class, 'updateAssignment'])->name('instructor.groups.update');
 
         // Asistencia: lista de instructorías y, por instructoría, matriz estudiantes × sesiones.
         Route::get('/instructor/asistencia', [InstructorAttendanceController::class, 'index'])->name('instructor.attendance.index');
