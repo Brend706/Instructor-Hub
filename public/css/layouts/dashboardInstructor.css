@@ -22,7 +22,7 @@
 .stat-bg{position:absolute;right:-10px;bottom:-10px;font-size:56px;opacity:.04;pointer-events:none}
 .tag{display:inline-flex;align-items:center;gap:3px;font-weight:600;padding:2px 8px;border-radius:20px;font-size:11px}
 .tag-blue{background:var(--primary-50);color:var(--primary)}
-.tag-light{background:#EBF2FB;color:#4C8FD4}
+.tag-light{background:var(--accent-50);color:var(--accent)}
 .tag-warning{background:#FEF9C3;color:#854D0E}
 
 /* Grupo activo */
@@ -50,11 +50,11 @@ table{width:100%;border-collapse:collapse;font-size:12px}
 th{text-align:left;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;padding:0 8px 8px;border-bottom:1px solid var(--border)}
 td{padding:8px;border-bottom:1px solid var(--border);color:var(--text-soft);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#FAFBFC}
+tr:hover td{background:var(--bg)}
 .td-main{font-weight:500;color:var(--text)}
 .badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px}
 .badge-blue{background:var(--primary-50);color:var(--primary)}
-.badge-light{background:#EBF2FB;color:#4C8FD4}
+.badge-light{background:var(--accent-50);color:var(--accent)}
 .badge-warn{background:#FEF9C3;color:#854D0E}
 .avatar-xs{width:22px;height:22px;border-radius:5px;background:var(--primary-400);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;flex-shrink:0}
 

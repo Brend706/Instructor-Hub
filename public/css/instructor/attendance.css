@@ -21,21 +21,20 @@
 .btn-export-excel {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 9px 16px;
-    background: #16a34a;
+    background: var(--primary);
     color: #fff !important;
     font-size: 13px; font-weight: 600;
     border-radius: 10px;
     text-decoration: none;
-    border: 1px solid #15803d;
-    box-shadow: 0 1px 2px rgba(22, 101, 52, .15);
+    border: 1px solid var(--primary-700);
+    box-shadow: 0 1px 2px rgba(90, 21, 51, .15);
     transition: background .15s, transform .12s, box-shadow .15s;
     white-space: nowrap;
 }
-/* Pequeña elevación al pasar el mouse para reforzar que es accionable. */
 .btn-export-excel:hover {
-    background: #15803d;
+    background: var(--primary-700);
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(22, 101, 52, .25);
+    box-shadow: 0 4px 10px rgba(90, 21, 51, .25);
 }
 .btn-export-excel i { font-size: 16px; }
 
@@ -182,8 +181,8 @@
 }
 
 tr:hover .att-cell-student,
-tr:hover .att-cell-carnet { background: #FAFBFC; }
-tr:hover td { background: #FAFBFC; }
+tr:hover .att-cell-carnet { background: var(--bg); }
+tr:hover td { background: var(--bg); }
 
 /* Fila final: conteo de asistentes por sesión */
 .att-matrix tfoot th {

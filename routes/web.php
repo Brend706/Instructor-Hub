@@ -48,7 +48,7 @@ Route::get('/', function () {
         return redirect()->route($route);
     }
 
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 /*

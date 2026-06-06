@@ -20,7 +20,7 @@
 .status-active  { background: var(--primary-50); color: var(--primary); }
 .status-dot     { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .dot-waiting    { background: #854D0E; }
-.dot-active     { background: #4C8FD4; animation: pulse 1.5s infinite; }
+.dot-active     { background: var(--accent); animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
 /* Layout */
@@ -29,7 +29,7 @@
 .qr-col    { display: flex; flex-direction: column; gap: 16px; }
 
 /* Card grupo */
-.group-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid #4C8FD4; border-radius: 12px; overflow: hidden; }
+.group-card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 12px; overflow: hidden; }
 .group-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .group-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
 .group-sub  { font-size: 12px; color: var(--text-muted); }
@@ -47,7 +47,7 @@
 .session-field { display: flex; flex-direction: column; gap: 4px; }
 .session-label { font-size: 11px; font-weight: 500; color: var(--text-soft); }
 .session-input { border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 13px; color: var(--text); outline: none; font-family: inherit; background: var(--surface); transition: border .15s, box-shadow .15s; }
-.session-input:focus { border-color: #4C8FD4; box-shadow: 0 0 0 3px #EBF2FB; }
+.session-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-50); }
 
 /* Stats mini */
 .stats-row  { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
@@ -121,7 +121,7 @@
     word-break: break-all;
     text-decoration: underline;
 }
-.attendance-link:hover { color: #163d6d; }
+.attendance-link:hover { color: var(--primary-700); }
 
 .qr-code-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
 .qr-code-value { font-size: 13px; font-weight: 600; color: var(--text); font-family: monospace; background: var(--bg); padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); display: inline-block; margin-bottom: 16px; }
