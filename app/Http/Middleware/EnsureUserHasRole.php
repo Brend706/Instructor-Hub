@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Instructor;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,30 @@ class EnsureUserHasRole
             }
 
             return redirect()->route($target);
+        }
+
+        // Si el rol es instructor, verificar que su cuenta no esté suspendida/bloqueada.
+        if ($slug === 'instructor') {
+            $instructor = Instructor::query()
+                ->where('user_id', $user->id)
+                ->value('status');
+
+            if ($instructor !== null && in_array($instructor, Instructor::BLOCKED_STATUSES, true)) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                $message = match ($instructor) {
+                    Instructor::STATUS_SUSPENDED =>
+                        'Tu cuenta de instructor está suspendida temporalmente. Comunícate con tu coordinador para más información.',
+                    Instructor::STATUS_BLOCKED =>
+                        'Tu cuenta de instructor ha sido inhabilitada. Comunícate con la coordinación para más información.',
+                    default =>
+                        'Tu cuenta de instructor no está activa. Comunícate con tu coordinador.',
+                };
+
+                return redirect()->route('login')->withErrors(['email' => $message]);
+            }
         }
 
         return $next($request);

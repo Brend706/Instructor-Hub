@@ -22,6 +22,58 @@
     </div>
 </div>
 
+@if($isEditing && isset($existingResult))
+@php
+    $prevTotal  = $existingResult->total_score !== null ? number_format((float)$existingResult->total_score, 1) : null;
+    $prevDate   = $existingResult->submitted_at
+                    ? \Carbon\Carbon::parse($existingResult->submitted_at)->translatedFormat('j \d\e F Y, H:i')
+                    : null;
+    $scoreColor = $prevTotal !== null
+        ? ((float)$prevTotal >= 8 ? '#166534' : ((float)$prevTotal >= 6 ? '#854D0E' : '#B91C1C'))
+        : '#6B7280';
+    $scoreBg    = $prevTotal !== null
+        ? ((float)$prevTotal >= 8 ? '#F0FDF4' : ((float)$prevTotal >= 6 ? '#FFFBEB' : '#FEF2F2'))
+        : '#F3F4F6';
+@endphp
+<div style="
+    background:#EEF2FF;
+    border:1.5px solid #C7D2FE;
+    border-radius:10px;
+    padding:14px 18px;
+    margin-bottom:18px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+">
+    <div style="flex-shrink:0;width:38px;height:38px;border-radius:50%;background:#7F77DD;display:flex;align-items:center;justify-content:center">
+        <i class="ti ti-edit" style="color:#fff;font-size:18px"></i>
+    </div>
+    <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13.5px;color:#3730A3;margin-bottom:2px">
+            Estás editando tu autoevaluación anterior
+        </div>
+        <div style="font-size:12.5px;color:#4338CA">
+            @if($prevDate) Enviada el {{ $prevDate }}.@endif
+            Las respuestas ya vienen cargadas — podés modificar lo que necesitás.
+        </div>
+    </div>
+    @if($prevTotal !== null)
+    <div style="flex-shrink:0;text-align:center">
+        <div style="font-size:10px;color:#6B7280;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px">Puntaje anterior</div>
+        <span style="
+            display:inline-block;
+            padding:4px 12px;
+            border-radius:20px;
+            font-weight:700;
+            font-size:15px;
+            background:{{ $scoreBg }};
+            color:{{ $scoreColor }};
+        ">{{ $prevTotal }}</span>
+    </div>
+    @endif
+</div>
+@endif
+
 @if($errors->any())
     <div class="ev-flash-error">
         <i class="ti ti-alert-triangle" aria-hidden="true"></i>

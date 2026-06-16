@@ -69,6 +69,12 @@
                         $since = optional($instructor->created_at)->format('M Y');
                         $statusLabel = ($hasStatusColumn ?? false) ? ($instructor->status ?? 'Activo') : 'Activo';
                         $isActive = $statusLabel === 'Activo';
+                        $statusStyle = match($statusLabel) {
+                            'Activo'    => ['bg'=>'var(--success-bg)',  'dot'=>'#166534'],
+                            'Suspendido'=> ['bg'=>'var(--warning-bg)',  'dot'=>'#854D0E'],
+                            'Bloqueado' => ['bg'=>'#FEF2F2',           'dot'=>'#B91C1C'],
+                            default     => ['bg'=>'#F3F4F6',           'dot'=>'#6B7280'],
+                        };
                     @endphp
                     <tr
                         data-id="{{ $instructor->id }}"
@@ -96,11 +102,11 @@
                         <td>{{ $user?->email ?? '—' }}</td>
                         <td>{{ $instructor->major }}</td>
                         <td>
-                            <span class="badge {{ $isActive ? 'badge-success' : 'badge-warning' }}"
-                                style="display:inline-flex;align-items:center;gap:5px">
+                            <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;
+                                         font-weight:500;padding:3px 10px;border-radius:20px;
+                                         background:{{ $statusStyle['bg'] }};color:{{ $statusStyle['dot'] }}">
                                 <span style="width:6px;height:6px;border-radius:50%;
-                                            background:{{ $isActive ? '#166534' : '#854D0E' }};
-                                            flex-shrink:0"></span>
+                                            background:{{ $statusStyle['dot'] }};flex-shrink:0"></span>
                                 {{ $statusLabel }}
                             </span>
                         </td>
@@ -268,8 +274,10 @@
                     <div class="field">
                         <label class="field-label" for="status">Estado</label>
                         <select class="input @error('status') is-invalid @enderror" id="status" name="status">
-                            <option value="Activo" @selected(old('status', 'Activo') === 'Activo')>Activo</option>
-                            <option value="Inactivo" @selected(old('status') === 'Inactivo')>Inactivo</option>
+                            <option value="Activo"     @selected(old('status', 'Activo') === 'Activo')>Activo</option>
+                            <option value="Inactivo"   @selected(old('status') === 'Inactivo')>Inactivo</option>
+                            <option value="Suspendido" @selected(old('status') === 'Suspendido')>Suspendido</option>
+                            <option value="Bloqueado"  @selected(old('status') === 'Bloqueado')>Bloqueado</option>
                         </select>
                         <span class="field-msg field-msg--error" id="statusClientError" aria-live="polite"></span>
                         @error('status')
@@ -444,7 +452,8 @@
 
         const statusEl = document.getElementById('status');
         if (statusEl && HAS_STATUS) {
-            statusEl.value = row.dataset.status === 'Inactivo' ? 'Inactivo' : 'Activo';
+            const validStatuses = ['Activo', 'Inactivo', 'Suspendido', 'Bloqueado'];
+            statusEl.value = validStatuses.includes(row.dataset.status) ? row.dataset.status : 'Activo';
         }
 
         const pwd = document.getElementById('password');

@@ -1,11 +1,11 @@
 @extends('layouts.admin', ['title' => 'Dashboard'])
 
 @php
-    $semanasData   = $semanas ?? [6,9,7,12,10,8,11,13];
-    $labelsData    = $semanasLabels ?? ['S1','S2','S3','S4','S5','S6','S7','S8'];
-    $presencial    = $pctPresencial ?? 62;
-    $enLinea       = $pctEnLinea ?? 38;
-    $totalSesiones = $totalInstructoriasmes ?? 48;
+    $semanasData   = $semanas      ?? [];
+    $labelsData    = $semanasLabels ?? [];
+    $presencial    = $pctPresencial ?? 0;
+    $enLinea       = $pctEnLinea    ?? 0;
+    $totalSesiones = $sesionesEsteMes ?? 0;
 @endphp
 
 @push('styles')
@@ -29,12 +29,12 @@
         <div class="stat-icon" style="background:var(--primary-50)">
             <i class="ti ti-calendar-event" style="color:var(--primary)" aria-hidden="true"></i>
         </div>
-        <div class="stat-label">Instructorías este mes</div>
-        <div class="stat-value">{{ $totalInstructoriasmes ?? 0 }}</div>
+        <div class="stat-label">Sesiones este mes</div>
+        <div class="stat-value">{{ $sesionesEsteMes ?? 0 }}</div>
         <div class="stat-footer">
-            <span class="trend {{ ($pctInstructorias ?? 0) >= 0 ? 'up' : 'down' }}">
-                <i class="ti ti-trending-{{ ($pctInstructorias ?? 0) >= 0 ? 'up' : 'down' }}" style="font-size:11px"></i>
-                {{ ($pctInstructorias ?? 0) > 0 ? '+' : '' }}{{ $pctInstructorias ?? 0 }}%
+            <span class="trend {{ ($pctSesiones ?? 0) >= 0 ? 'up' : 'down' }}">
+                <i class="ti ti-trending-{{ ($pctSesiones ?? 0) >= 0 ? 'up' : 'down' }}" style="font-size:11px"></i>
+                {{ ($pctSesiones ?? 0) > 0 ? '+' : '' }}{{ $pctSesiones ?? 0 }}%
             </span>
             <span style="color:var(--text-muted)">vs mes anterior</span>
         </div>
@@ -96,7 +96,7 @@
                 <div class="panel-title">Instructorías por semana</div>
                 <div class="panel-sub">{{ now()->translatedFormat('F Y') }} — semanas activas</div>
             </div>
-            <a href="" class="panel-action">Ver reporte ↗</a>
+            <a href="{{ route('admin.reportes.instructores') }}" class="panel-action">Ver reporte ↗</a>
         </div>
         <div class="bar-chart" id="barChart"></div>
         <div class="bar-labels" id="barLabels"></div>
@@ -141,7 +141,7 @@
     <div class="panel">
         <div class="panel-head">
             <div class="panel-title">Actividad reciente</div>
-            <a href="#" class="panel-action">Ver todo ↗</a>
+            <a href="{{ route('admin.suspensions.index') }}" class="panel-action">Ver solicitudes ↗</a>
         </div>
         @forelse($actividad ?? [] as $item)
             <div class="activity-item">
@@ -175,7 +175,7 @@
                 <div class="panel-title">Instructores registrados recientemente</div>
                 <div class="panel-sub">Últimos registros del sistema</div>
             </div>
-            <a href="#" class="panel-action">Ver todos ↗</a>
+            <a href="{{ route('admin.instructores.index') }}" class="panel-action">Ver todos ↗</a>
         </div>
         <div class="table-wrap">
             <table>
@@ -189,20 +189,34 @@
                 </thead>
                 <tbody>
                     @forelse($instructoresRecientes ?? [] as $instructor)
+                        @php
+                            $statusColor = match($instructor->status ?? '') {
+                                'Activo'     => '#166534',
+                                'Suspendido' => '#854D0E',
+                                'Bloqueado'  => '#B91C1C',
+                                default      => '#6B7280',
+                            };
+                            $statusBg = match($instructor->status ?? '') {
+                                'Activo'     => '#F0FDF4',
+                                'Suspendido' => '#FFFBEB',
+                                'Bloqueado'  => '#FEF2F2',
+                                default      => '#F3F4F6',
+                            };
+                        @endphp
                         <tr>
                             <td>
                                 <div style="display:flex;align-items:center;gap:8px">
                                     <div class="avatar-sm" style="background:var(--primary)">
-                                        {{ strtoupper(substr($instructor->name, 0, 2)) }}
+                                        {{ strtoupper(substr($instructor->name ?? 'IN', 0, 2)) }}
                                     </div>
                                     <span class="td-name">{{ $instructor->name }}</span>
                                 </div>
                             </td>
-                            <td>{{ $instructor->carrera }}</td>
-                            <td>{{ $instructor->coordinador->name ?? '—' }}</td>
+                            <td style="font-size:12px;color:var(--text-soft)">{{ $instructor->major ?? '—' }}</td>
+                            <td style="font-size:12px;color:var(--text-soft)">{{ $instructor->coord_label ?? '—' }}</td>
                             <td>
-                                <span class="badge badge-{{ $instructor->estado === 'activo' ? 'success' : ($instructor->estado === 'pendiente' ? 'warning' : 'info') }}">
-                                    {{ ucfirst($instructor->estado) }}
+                                <span style="font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:20px;background:{{ $statusBg }};color:{{ $statusColor }}">
+                                    {{ $instructor->status ?? '—' }}
                                 </span>
                             </td>
                         </tr>
@@ -225,7 +239,7 @@
                 <div class="panel-title">Coordinadores — actividad</div>
                 <div class="panel-sub">Instructores y sesiones a cargo</div>
             </div>
-            <a href="" class="panel-action">Ver todos ↗</a>
+            <a href="{{ route('admin.coordinadores.index') }}" class="panel-action">Ver todos ↗</a>
         </div>
         <div class="table-wrap">
             <table>
@@ -242,18 +256,30 @@
                         <tr>
                             <td>
                                 <div style="display:flex;align-items:center;gap:8px">
-                                    <div class="avatar-sm" style="background:var(--primary)">
-                                        {{ strtoupper(substr($coord->name, 0, 2)) }}
+                                    <div class="avatar-sm" style="background:var(--accent)">
+                                        {{ strtoupper(substr($coord->name ?? 'CO', 0, 2)) }}
                                     </div>
-                                    <span class="td-name">{{ $coord->name }}</span>
+                                    <div>
+                                        <div class="td-name">{{ $coord->name }}</div>
+                                        @if($coord->area)
+                                            <div style="font-size:11px;color:var(--text-muted)">{{ $coord->area }}</div>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
-                            <td><span class="badge badge-info">{{ $coord->instructores_count ?? 0 }}</span></td>
-                            <td>{{ $coord->sesiones_count ?? 0 }}</td>
+                            <td style="text-align:center">
+                                <span style="font-size:13px;font-weight:700;color:var(--accent)">{{ $coord->instructores_count ?? 0 }}</span>
+                            </td>
+                            <td style="text-align:center;font-size:13px">{{ $coord->sesiones_count ?? 0 }}</td>
                             <td>
-                                <span style="font-weight:600;color:{{ ($coord->asistencia ?? 0) >= 85 ? '#166534' : '#854D0E' }}">
-                                    {{ $coord->asistencia ?? 0 }}%
-                                </span>
+                                @php $att = (float)($coord->asistencia ?? 0); @endphp
+                                @if($att > 0)
+                                    <span style="font-weight:600;color:{{ $att >= 75 ? '#166534' : ($att >= 50 ? '#854D0E' : '#B91C1C') }}">
+                                        {{ $att }}%
+                                    </span>
+                                @else
+                                    <span style="color:var(--text-muted);font-size:12px">—</span>
+                                @endif
                             </td>
                         </tr>
                     @empty

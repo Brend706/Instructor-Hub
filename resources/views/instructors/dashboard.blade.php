@@ -215,6 +215,164 @@
     </div>
 </div>
 
+{{-- ── Sección: suspensión de instructoría ─────────────────── --}}
+<div style="margin-top:28px;padding:18px 20px;background:var(--surface);
+            border:1px solid var(--border);border-radius:12px;
+            display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--primary-50);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="ti ti-player-pause" style="color:var(--primary);font-size:17px"></i>
+        </div>
+        <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Suspensión de instructoría</div>
+            @if($pendingSuspension)
+                <div style="font-size:11px;color:var(--warning-text);margin-top:2px">
+                    <i class="ti ti-clock" style="font-size:12px"></i>
+                    Tienes una solicitud pendiente de revisión desde {{ $pendingSuspension->requested_at?->format('d/m/Y') }}.
+                </div>
+            @else
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
+                    Si necesitas pausar tu instructoría por fuerza mayor u otra razón, envía una solicitud a tu coordinador.
+                </div>
+            @endif
+        </div>
+    </div>
+    @if($pendingSuspension)
+        <span style="font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;
+                     background:var(--warning-bg);color:var(--warning-text)">
+            <i class="ti ti-clock"></i> Solicitud en revisión
+        </span>
+    @else
+        <button type="button" onclick="document.getElementById('modalSuspension').classList.add('open');document.body.style.overflow='hidden'"
+            style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+                   border:1px solid var(--primary);border-radius:8px;background:transparent;
+                   color:var(--primary);font-size:12px;font-weight:500;cursor:pointer;
+                   transition:background .15s;white-space:nowrap"
+            onmouseover="this.style.background='var(--primary-50)'"
+            onmouseout="this.style.background='transparent'">
+            <i class="ti ti-player-pause"></i> Solicitar suspensión
+        </button>
+    @endif
+</div>
+
 @endunless
 
+{{-- ── Alertas de sesión ────────────────────────────────────── --}}
+@if(session('suspension_success'))
+    <div style="position:fixed;bottom:24px;right:24px;z-index:2000;max-width:360px;
+                padding:14px 18px;background:var(--success-bg);border:1px solid var(--success-text);
+                border-radius:10px;color:var(--success-text);font-size:13px;
+                display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.12)">
+        <i class="ti ti-circle-check"></i>
+        {{ session('suspension_success') }}
+    </div>
+@endif
+
+{{-- ── Modal: solicitar suspensión ─────────────────────────── --}}
+<div id="modalSuspension" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+     z-index:1000;align-items:center;justify-content:center;padding:20px">
+    <div style="background:var(--surface);border-radius:14px;width:100%;max-width:480px;
+                box-shadow:0 20px 60px rgba(0,0,0,.18)">
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:18px 20px 14px;border-bottom:1px solid var(--border)">
+            <div style="font-size:15px;font-weight:600;color:var(--text)">
+                <i class="ti ti-player-pause" style="color:var(--primary);margin-right:6px"></i>
+                Solicitar suspensión de instructoría
+            </div>
+            <button onclick="document.getElementById('modalSuspension').classList.remove('open');document.getElementById('modalSuspension').style.display='none';document.body.style.overflow=''"
+                style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;padding:2px 5px;border-radius:5px">
+                <i class="ti ti-x"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{{ route('instructor.suspension.store') }}">
+            @csrf
+            <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
+
+                <div style="padding:12px 14px;background:var(--primary-50);border:1px solid var(--primary-100);
+                            border-radius:8px;font-size:12px;color:var(--text-soft);
+                            display:flex;gap:8px;align-items:flex-start">
+                    <i class="ti ti-info-circle" style="color:var(--primary);flex-shrink:0;margin-top:1px"></i>
+                    <span>Tu solicitud será enviada a tu coordinador para revisión. Mientras esté pendiente, tu cuenta seguirá activa. Si es aprobada, no podrás iniciar sesión hasta que sea reactivada.</span>
+                </div>
+
+                @if($errors->has('suspension'))
+                    <div style="padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;
+                                border-radius:8px;font-size:12px;color:#B91C1C;
+                                display:flex;gap:8px;align-items:center">
+                        <i class="ti ti-alert-circle"></i>
+                        {{ $errors->first('suspension') }}
+                    </div>
+                @endif
+
+                <div style="display:flex;flex-direction:column;gap:5px">
+                    <label style="font-size:12px;font-weight:600;color:var(--text-soft)">Tipo de solicitud</label>
+                    <select name="type" required
+                        style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+                               background:var(--bg);color:var(--text);font-size:13px;outline:none;
+                               font-family:inherit">
+                        <option value="">Seleccionar...</option>
+                        <option value="voluntary">Solicitud voluntaria</option>
+                        <option value="force_majeure">Fuerza mayor (salud, emergencia familiar, etc.)</option>
+                        <option value="other">Otra razón</option>
+                    </select>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:5px">
+                    <label style="font-size:12px;font-weight:600;color:var(--text-soft)">
+                        Explica el motivo de tu solicitud
+                    </label>
+                    <textarea name="reason" required minlength="20" maxlength="2000" rows="4"
+                        placeholder="Describe tu situación con el mayor detalle posible para que el coordinador pueda evaluarla..."
+                        style="resize:vertical;font-family:inherit;font-size:13px;padding:9px 12px;
+                               border:1px solid var(--border);border-radius:8px;background:var(--bg);
+                               color:var(--text);outline:none;transition:border-color .15s"
+                        onfocus="this.style.borderColor='var(--accent)'"
+                        onblur="this.style.borderColor='var(--border)'">{{ old('reason') }}</textarea>
+                    <span style="font-size:11px;color:var(--text-muted)">Mínimo 20 caracteres.</span>
+                </div>
+
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:10px;
+                        padding:14px 20px;border-top:1px solid var(--border)">
+                <button type="button"
+                    onclick="document.getElementById('modalSuspension').classList.remove('open');document.getElementById('modalSuspension').style.display='none';document.body.style.overflow=''"
+                    style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);
+                           background:transparent;color:var(--text-soft);font-size:13px;cursor:pointer">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;
+                           border-radius:8px;border:none;background:var(--primary);
+                           color:#fff;font-size:13px;font-weight:500;cursor:pointer">
+                    <i class="ti ti-send"></i> Enviar solicitud
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
+
+@push('scripts')
+<script>
+// Abrir el modal con display:flex cuando se activa la clase 'open'
+const ms = document.getElementById('modalSuspension');
+if (ms) {
+    const observer = new MutationObserver(() => {
+        if (ms.classList.contains('open')) ms.style.display = 'flex';
+        else ms.style.display = 'none';
+    });
+    observer.observe(ms, { attributes: true, attributeFilter: ['class'] });
+    ms.addEventListener('click', e => {
+        if (e.target === ms) { ms.classList.remove('open'); document.body.style.overflow = ''; }
+    });
+
+    @if($errors->has('suspension') || $errors->has('type') || $errors->has('reason'))
+        document.addEventListener('DOMContentLoaded', () => ms.classList.add('open'));
+    @endif
+}
+</script>
+@endpush

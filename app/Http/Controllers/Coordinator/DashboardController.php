@@ -7,7 +7,6 @@ use App\Models\ClassGroup;
 use App\Models\Coordinator;
 use App\Models\Instructor;
 use App\Models\InstructorAssignment;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -19,15 +18,15 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // La coordinación del usuario se guarda en `coordinators` (compat: `coordination_name` o `name`).
-        $coordination = null;
+        /** @var Coordinator|null $coordinator */
         $coordinator = Coordinator::query()->where('user_id', $user->id)->first();
-        if ($coordinator) {
-            $coordination = $this->coordinatorCoordinationName($coordinator);
-        }
+        $coordId     = $coordinator?->id ?? -1;
 
-        // Ciclos disponibles salen de `class_groups.semester` (select del dashboard).
+        $coordination = $coordinator ? $this->coordinatorLabel($coordinator) : null;
+
+        // ── Ciclos del coordinador (solo grupos que le pertenecen) ────────────
         $cycles = ClassGroup::query()
+            ->where('coordinator_id', $coordId)
             ->whereNotNull('semester')
             ->distinct()
             ->orderByDesc('semester')
@@ -39,117 +38,129 @@ class DashboardController extends Controller
             $activeCycle = (string) $cycles->first();
         }
 
-        // Instructores visibles en el dashboard:
-        // se derivan desde `instructor_assignments` para el ciclo seleccionado, de modo que
-        // si un instructor está asignado a un grupo, aparezca aquí aunque su `major` no coincida.
-        $hasInstructorStatus = Schema::hasColumn('instructors', 'status');
-
-        // Grupos del ciclo activo.
-        $groupsQuery = ClassGroup::query()
+        // ── Grupos del coordinador para el ciclo activo ───────────────────────
+        $groupsBase = ClassGroup::query()
+            ->where('coordinator_id', $coordId)
             ->withCount('students')
-            ->when($activeCycle !== '', fn (Builder $q) => $q->where('semester', $activeCycle));
+            ->when($activeCycle !== '', fn ($q) => $q->where('semester', $activeCycle));
 
-        $activeGroupsCount = (clone $groupsQuery)->count();
-        $groupsInCycle = (clone $groupsQuery)
+        $activeGroupsCount = (clone $groupsBase)->count();
+
+        $groupsInCycle = (clone $groupsBase)
             ->orderBy('name')
             ->limit(4)
             ->get();
 
-        // Asignaciones (ciclo) → instructores + grupo.
+        // ── Asignaciones de los grupos del coordinador en el ciclo activo ─────
         $assignments = InstructorAssignment::query()
             ->with(['instructor.user', 'classGroup'])
-            ->when($activeCycle !== '', function ($q) use ($activeCycle) {
-                $q->whereHas('classGroup', fn ($g) => $g->where('semester', $activeCycle));
+            ->whereHas('classGroup', function ($q) use ($coordId, $activeCycle) {
+                $q->where('coordinator_id', $coordId);
+                if ($activeCycle !== '') {
+                    $q->where('semester', $activeCycle);
+                }
             })
             ->latest()
             ->get();
 
-        $instructorIds = $assignments->pluck('instructor_id')->unique()->values();
+        $instructorIdsInCycle = $assignments->pluck('instructor_id')->unique()->values();
 
-        $totalInstructors = $instructorIds->count();
-        $activeInstructors = $totalInstructors;
+        // "Mis instructores" = instructores que pertenecen a este coordinador
+        $totalInstructors  = Instructor::where('coordinator_id', $coordId)->count();
+        $activeInstructors = Instructor::where('coordinator_id', $coordId)
+            ->where('status', 'Activo')
+            ->count();
 
-        if ($hasInstructorStatus && $totalInstructors > 0) {
-            $activeInstructors = Instructor::query()
-                ->whereIn('id', $instructorIds)
-                ->where('status', 'Activo')
-                ->count();
-        }
-
-        // Panel "mis instructores": muestra el primer grupo asignado del ciclo (si hay varios).
+        // Panel de instructores (tabla del dashboard): los del ciclo
         $instructors = $assignments
             ->groupBy('instructor_id')
-            ->take(4)
-            ->map(function ($rows) use ($hasInstructorStatus) {
-                /** @var InstructorAssignment $first */
-                $first = $rows->first();
+            ->take(5)
+            ->map(function ($rows) {
+                $first      = $rows->first();
                 $instructor = $first?->instructor;
-                $group = $first?->classGroup;
-
                 return [
-                    'name' => (string) ($instructor?->user?->name ?? 'Instructor'),
-                    'group' => $group?->name,
-                    'status' => $hasInstructorStatus ? ($instructor?->status ?? null) : null,
+                    'name'   => (string) ($instructor?->user?->name ?? 'Instructor'),
+                    'group'  => $first?->classGroup?->name,
+                    'status' => $instructor?->status ?? 'Activo',
                 ];
             })
             ->values();
 
-        // Métricas de sesiones (si existen tablas); si no, se muestran en 0 sin romper la vista.
-        $sessionsTotal = 0;
-        $sessionsThisWeek = 0;
-        $sessionsPending = 0;
+        // ── Sesiones del coordinador (via grupos del coordinador) ─────────────
+        $sessionsTotal      = 0;
+        $sessionsThisWeek   = 0;
+        $asistenciaPromedio = 0.0;
 
-        if (Schema::hasTable('class_sessions') && Schema::hasTable('instructor_assignments')) {
-            $base = DB::table('class_sessions')
+        if (Schema::hasTable('class_sessions')) {
+            $sessBase = DB::table('class_sessions')
                 ->join('instructor_assignments', 'class_sessions.instructor_assignment_id', '=', 'instructor_assignments.id')
-                ->join('class_groups', 'instructor_assignments.class_group_id', '=', 'class_groups.id');
+                ->join('class_groups', 'instructor_assignments.class_group_id', '=', 'class_groups.id')
+                ->where('class_groups.coordinator_id', $coordId);
 
             if ($activeCycle !== '') {
-                $base->where('class_groups.semester', $activeCycle);
+                $sessBase->where('class_groups.semester', $activeCycle);
             }
 
-            $sessionsTotal = (clone $base)->count();
-            $sessionsThisWeek = (clone $base)->where('class_sessions.date', '>=', now()->subDays(7)->toDateString())->count();
+            $sessionsTotal    = (clone $sessBase)->count();
+            $sessionsThisWeek = (clone $sessBase)
+                ->where('class_sessions.date', '>=', now()->startOfWeek()->toDateString())
+                ->count();
 
-            // "Pendientes": sesiones que aún no tienen asistencia registrada (si existe la tabla).
             if (Schema::hasTable('student_attendances')) {
-                $sessionsPending = (clone $base)
-                    ->leftJoin('student_attendances', 'student_attendances.session_id', '=', 'class_sessions.id')
-                    ->whereNull('student_attendances.id')
-                    ->distinct('class_sessions.id')
-                    ->count('class_sessions.id');
+                $attRow = (clone $sessBase)
+                    ->join('student_attendances', 'student_attendances.session_id', '=', 'class_sessions.id')
+                    ->selectRaw('ROUND(AVG(CASE WHEN student_attendances.attended = 1 THEN 100.0 ELSE 0 END), 1) as rate')
+                    ->first();
+                $asistenciaPromedio = (float) ($attRow->rate ?? 0);
             }
+        }
+
+        // ── Evaluaciones pendientes (instructorías finalizadas sin eval del coordinador) ──
+        $coordTypeId  = DB::table('evaluation_types')->where('slug', 'coordinator')->value('id');
+        $evalsPending = 0;
+
+        if ($coordTypeId && $coordinator) {
+            $evalsPending = DB::table('instructor_assignments')
+                ->join('class_groups', 'instructor_assignments.class_group_id', '=', 'class_groups.id')
+                ->where('class_groups.coordinator_id', $coordId)
+                ->where('instructor_assignments.status', 'Finalizado')
+                ->whereNotExists(function ($q) use ($coordTypeId) {
+                    $q->from('evaluation_results')
+                      ->whereColumn('evaluation_results.assignment_id', 'instructor_assignments.id')
+                      ->where('evaluation_results.evaluation_type_id', $coordTypeId);
+                })
+                ->count();
         }
 
         return view('coordinator.dashboard', [
-            'coordinatorName' => $user->name,
+            'coordinatorName'  => $user->name,
             'coordinationName' => $coordination,
-            'cycles' => $cycles,
-            'activeCycle' => $activeCycle,
+            'cycles'           => $cycles,
+            'activeCycle'      => $activeCycle,
             'stats' => [
-                'instructors_total' => $totalInstructors,
-                'instructors_active' => $activeInstructors,
-                'groups_active' => $activeGroupsCount,
-                'sessions_total' => $sessionsTotal,
-                'sessions_this_week' => $sessionsThisWeek,
-                'sessions_pending' => $sessionsPending,
+                'instructors_total'   => $totalInstructors,
+                'instructors_active'  => $activeInstructors,
+                'groups_active'       => $activeGroupsCount,
+                'sessions_total'      => $sessionsTotal,
+                'sessions_this_week'  => $sessionsThisWeek,
+                'asistencia_promedio' => $asistenciaPromedio,
+                'evals_pending'       => $evalsPending,
             ],
-            'instructors' => $instructors,
-            'groups' => $groupsInCycle,
+            'instructors'      => $instructors,
+            'groups'           => $groupsInCycle,
+            'totalInstructors' => $totalInstructors,
+            'evalsPending'     => $evalsPending,
         ]);
     }
 
-    private function coordinatorCoordinationName(Coordinator $coordinator): ?string
+    private function coordinatorLabel(Coordinator $coordinator): ?string
     {
-        // Compatibilidad con BD antiguas/nuevas.
         if (Schema::hasColumn('coordinators', 'school_name')) {
-            return $coordinator->school_name ?: $coordinator->catedra ?: $coordinator->name;
+            return $coordinator->school_name ?: $coordinator->catedra ?: null;
         }
-
-        if (Schema::hasColumn('coordinators', 'coordination_name')) {
-            return $coordinator->coordination_name ?: $coordinator->name;
+        if (Schema::hasColumn('coordinators', 'catedra')) {
+            return $coordinator->catedra ?: null;
         }
-
-        return $coordinator->catedra ?: $coordinator->name;
+        return null;
     }
 }

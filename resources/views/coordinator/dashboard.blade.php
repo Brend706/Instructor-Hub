@@ -39,7 +39,7 @@
         <div class="stat-value">{{ $stats['instructors_total'] }}</div>
         <div class="stat-footer">
             <span class="tag tag-success">{{ $stats['instructors_active'] }} activos</span>
-            <span style="color:var(--text-muted)">este ciclo</span>
+            <span style="color:var(--text-muted)">en total</span>
         </div>
         <div class="stat-bg"><i class="ti ti-user-check"></i></div>
     </div>
@@ -60,7 +60,7 @@
         <div class="stat-icon" style="background:#EAF3DE">
             <i class="ti ti-calendar-event" style="color:#3B6D11" aria-hidden="true"></i>
         </div>
-        <div class="stat-label">Instructorías del ciclo</div>
+        <div class="stat-label">Sesiones del ciclo</div>
         <div class="stat-value">{{ $stats['sessions_total'] }}</div>
         <div class="stat-footer">
             <span class="tag tag-success">+{{ $stats['sessions_this_week'] }} esta semana</span>
@@ -70,14 +70,18 @@
 
     <div class="stat-card">
         <div class="stat-icon" style="background:#FEF9C3">
-            <i class="ti ti-clipboard-check" style="color:#854D0E" aria-hidden="true"></i>
+            <i class="ti ti-chart-pie" style="color:#854D0E" aria-hidden="true"></i>
         </div>
-        <div class="stat-label">Sesiones registradas</div>
-        <div class="stat-value">{{ $stats['sessions_total'] }}</div>
+        <div class="stat-label">Asistencia promedio</div>
+        <div class="stat-value">{{ $stats['asistencia_promedio'] }}%</div>
         <div class="stat-footer">
-            <span class="tag tag-warning">{{ $stats['sessions_pending'] }} pendientes</span>
+            @if($stats['evals_pending'] > 0)
+                <span class="tag tag-warning">{{ $stats['evals_pending'] }} eval. pendiente{{ $stats['evals_pending'] > 1 ? 's' : '' }}</span>
+            @else
+                <span class="tag tag-success">Al día</span>
+            @endif
         </div>
-        <div class="stat-bg"><i class="ti ti-clipboard-check"></i></div>
+        <div class="stat-bg"><i class="ti ti-chart-pie"></i></div>
     </div>
 
 </div>

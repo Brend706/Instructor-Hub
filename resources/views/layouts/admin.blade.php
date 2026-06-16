@@ -94,21 +94,31 @@
                     <i class="ti ti-star nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Evaluaciones</span>
                 </a>
+                @php $adminPendingCount = \App\Models\SuspensionRequest::where('status','pending')->count(); @endphp
+                <a href="{{ route('admin.suspensions.index') }}"
+                   class="nav-item {{ request()->routeIs('admin.suspensions.*') ? 'active' : '' }}"
+                   data-label="Solicitudes">
+                    <i class="ti ti-file-alert nav-icon" aria-hidden="true"></i>
+                    <span class="nav-text">Solicitudes</span>
+                    @if($adminPendingCount > 0)
+                        <span class="nav-badge" style="background:var(--primary);color:#fff">{{ $adminPendingCount }}</span>
+                    @endif
+                </a>
             </div>
 
             <div class="nav-section">
                 <p class="nav-label">Análisis</p>
-                <a href=""
-                   class="nav-item {{ request()->routeIs('admin.reportes.*') ? 'active' : '' }}"
-                   data-label="Reportes">
+                <a href="{{ route('admin.reportes.instructores') }}"
+                   class="nav-item {{ request()->routeIs('admin.reportes.instructores') ? 'active' : '' }}"
+                   data-label="Desempeño">
                     <i class="ti ti-chart-bar nav-icon" aria-hidden="true"></i>
-                    <span class="nav-text">Reportes</span>
+                    <span class="nav-text">Desempeño</span>
                 </a>
-                <a href=""
-                   class="nav-item {{ request()->routeIs('admin.reportes.asistencia') ? 'active' : '' }}"
-                   data-label="Asistencia">
-                    <i class="ti ti-clipboard-check nav-icon" aria-hidden="true"></i>
-                    <span class="nav-text">Asistencia</span>
+                <a href="{{ route('admin.reportes.coordinaciones') }}"
+                   class="nav-item {{ request()->routeIs('admin.reportes.coordinaciones') ? 'active' : '' }}"
+                   data-label="Coordinaciones">
+                    <i class="ti ti-building nav-icon" aria-hidden="true"></i>
+                    <span class="nav-text">Coordinaciones</span>
                 </a>
             </div>
 

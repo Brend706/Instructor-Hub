@@ -56,6 +56,34 @@
                 </a>
             </div>
 
+            @php
+                // Métricas del sidebar — se calculan en línea para funcionar en cualquier página del coordinador
+                $_coordId = \App\Models\Coordinator::where('user_id', auth()->id())->value('id') ?? -1;
+
+                $_sidebarInstCount = \App\Models\Instructor::where('coordinator_id', $_coordId)->count();
+
+                $_coordTypeId = \Illuminate\Support\Facades\DB::table('evaluation_types')
+                    ->where('slug', 'coordinator')->value('id');
+
+                $_sidebarEvalPending = $_coordTypeId
+                    ? \Illuminate\Support\Facades\DB::table('instructor_assignments')
+                        ->join('instructors', 'instructor_assignments.instructor_id', '=', 'instructors.id')
+                        ->where('instructors.coordinator_id', $_coordId)
+                        ->where('instructor_assignments.status', 'Finalizado')
+                        ->whereNotExists(function ($q) use ($_coordTypeId) {
+                            $q->from('evaluation_results')
+                              ->whereColumn('evaluation_results.assignment_id', 'instructor_assignments.id')
+                              ->where('evaluation_results.evaluation_type_id', $_coordTypeId);
+                        })
+                        ->count()
+                    : 0;
+
+                $pendingSuspCount = \App\Models\SuspensionRequest::query()
+                    ->whereHas('instructor', fn($q) => $q->where('coordinator_id', $_coordId))
+                    ->where('status', 'pending')
+                    ->count();
+            @endphp
+
             <div class="nav-section">
                 <p class="nav-label">Gestion</p>
                 <a href="{{ route('coordinator.instructores.index') }}"
@@ -63,7 +91,9 @@
                    data-label="Mis instructores">
                     <i class="ti ti-user-check nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Mis instructores</span>
-                    <span class="nav-badge">{{ $totalInstructors ?? '' }}</span>
+                    @if($_sidebarInstCount > 0)
+                        <span class="nav-badge">{{ $_sidebarInstCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('coordinator.groups.index') }}"
                    class="nav-item {{ request()->routeIs('coordinator.groups.*') ? 'active' : '' }}"
@@ -82,6 +112,18 @@
                    data-label="Evaluaciones">
                     <i class="ti ti-star nav-icon" aria-hidden="true"></i>
                     <span class="nav-text">Evaluaciones</span>
+                    @if($_sidebarEvalPending > 0)
+                        <span class="nav-badge" style="background:var(--accent);color:#fff">{{ $_sidebarEvalPending }}</span>
+                    @endif
+                </a>
+                <a href="{{ route('coordinator.suspensions.index') }}"
+                   class="nav-item {{ request()->routeIs('coordinator.suspensions.*') ? 'active' : '' }}"
+                   data-label="Solicitudes">
+                    <i class="ti ti-file-alert nav-icon" aria-hidden="true"></i>
+                    <span class="nav-text">Solicitudes</span>
+                    @if($pendingSuspCount > 0)
+                        <span class="nav-badge" style="background:var(--primary);color:#fff">{{ $pendingSuspCount }}</span>
+                    @endif
                 </a>
                 <a href="{{ route('profile.index') }}"
                    class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}"

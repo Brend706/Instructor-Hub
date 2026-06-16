@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\EvaluationController as AdminEvaluationController
 use App\Http\Controllers\Admin\EvaluationQuestionController as AdminEvaluationQuestionController;
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\InstructorAssignmentController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\SuspensionController as AdminSuspensionController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
@@ -18,12 +20,14 @@ use App\Http\Controllers\Coordinator\GroupStudentsController;
 use App\Http\Controllers\Coordinator\InstructoriaController;
 use App\Http\Controllers\Coordinator\NotificationController as CoordinatorNotificationController;
 use App\Http\Controllers\Coordinator\StudentImportController;
+use App\Http\Controllers\Coordinator\SuspensionController as CoordinatorSuspensionController;
 use App\Http\Controllers\FicabotController;
 use App\Http\Controllers\Instructor\AttendanceController as InstructorAttendanceController;
 use App\Http\Controllers\Instructor\DashboardController as InstructorDashboardController;
 use App\Http\Controllers\Instructor\EvaluationController as InstructorEvaluationController;
 use App\Http\Controllers\Instructor\GroupController as InstructorGroupController;
 use App\Http\Controllers\Instructor\SessionController;
+use App\Http\Controllers\Instructor\SuspensionRequestController;
 use App\Http\Controllers\ProfileController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -144,6 +148,23 @@ Route::middleware('auth')->group(function () {
         Route::delete('/plantillas-evaluacion/pregunta/{question}',
             [AdminEvaluationQuestionController::class, 'destroy'])
             ->name('evaluations.questions.destroy');
+
+        // Reportes estadísticos del sistema (solo admin).
+        Route::get('/reportes/instructores', [AdminReportController::class, 'instructors'])
+            ->name('reportes.instructores');
+        Route::get('/reportes/coordinaciones', [AdminReportController::class, 'byCoordination'])
+            ->name('reportes.coordinaciones');
+
+        // Solicitudes de suspensión (admin ve todas).
+        Route::get('/solicitudes', [AdminSuspensionController::class, 'index'])
+            ->name('suspensions.index');
+        Route::post('/solicitudes/{suspensionRequest}/aprobar', [AdminSuspensionController::class, 'approve'])
+            ->name('suspensions.approve');
+        Route::post('/solicitudes/{suspensionRequest}/rechazar', [AdminSuspensionController::class, 'reject'])
+            ->name('suspensions.reject');
+        // Cambio directo de estado desde el índice de instructores (admin puede bloquear).
+        Route::post('/instructores/{instructor}/estado', [AdminSuspensionController::class, 'updateInstructorStatus'])
+            ->name('instructores.status');
     });
 
     Route::middleware(['auth', 'role:coordinator'])->prefix('coordinador')->name('coordinator.')->group(function () {
@@ -211,6 +232,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/notificaciones/leer-todas',
             [CoordinatorNotificationController::class, 'markAllRead'])
             ->name('notifications.read-all');
+
+        // Solicitudes de suspensión: listado, aprobación y rechazo.
+        Route::get('/solicitudes', [CoordinatorSuspensionController::class, 'index'])
+            ->name('suspensions.index');
+        Route::post('/solicitudes/{suspensionRequest}/aprobar', [CoordinatorSuspensionController::class, 'approve'])
+            ->name('suspensions.approve');
+        Route::post('/solicitudes/{suspensionRequest}/rechazar', [CoordinatorSuspensionController::class, 'reject'])
+            ->name('suspensions.reject');
+        // Cambio directo de estado desde el índice de instructores.
+        Route::post('/instructores/{instructor}/estado', [CoordinatorSuspensionController::class, 'updateInstructorStatus'])
+            ->name('instructores.status');
     });
     Route::middleware('role:instructor')->group(function () {
         Route::get('/instructor/dashboard', InstructorDashboardController::class)->name('instructor.dashboard');
@@ -249,6 +281,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/instructor/evaluaciones/{assignment}',
             [InstructorEvaluationController::class, 'store'])
             ->name('instructor.evaluations.store');
+
+        // Solicitud de suspensión: el instructor envía una petición a su coordinador.
+        Route::post('/instructor/solicitud-suspension', [SuspensionRequestController::class, 'store'])
+            ->name('instructor.suspension.store');
     });
 
     // Perfil: requiere sesión; cualquier rol autenticado puede ver y editar su propio `users`.

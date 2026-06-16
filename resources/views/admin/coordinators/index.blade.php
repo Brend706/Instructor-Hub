@@ -494,6 +494,17 @@
     }
 
     // ── Abrir editar ───────────────────────────────────────
+    function setSelectValue(selectEl, value) {
+        // Intenta asignar el valor; si no existe como opción, la agrega dinámicamente.
+        if (!value) return;
+        const exists = Array.from(selectEl.options).some(o => o.value === value);
+        if (!exists) {
+            const opt = new Option(value, value);
+            selectEl.add(opt);
+        }
+        selectEl.value = value;
+    }
+
     function openEdit(id) {
         const row = document.querySelector(`#coordinatorsTable tbody tr[data-id="${id}"]`);
         if (!row) return;
@@ -506,24 +517,26 @@
         document.getElementById('coordinatorId').value = String(id);
         document.getElementById('coordinatorForm').action = `${BASE_URL}/${id}`;
 
-        document.getElementById('name').value = row.dataset.userName || '';
+        document.getElementById('name').value  = row.dataset.userName  || '';
         document.getElementById('email').value = row.dataset.userEmail || '';
-        
-        // Nota: Aquí deberías mapear row.dataset.coordination a la escuela y coordinación correspondientes
-        // Por ahora, asegúrate de que tu backend envíe los datos de escuela en row.dataset.school
+
+        // Escuela: usar helper para garantizar que la opción exista antes de seleccionar
         const schoolValue = row.dataset.school || '';
-        document.getElementById('school').value = schoolValue;
+        setSelectValue(document.getElementById('school'), schoolValue);
+
+        // Poblar cátedras para la escuela seleccionada
         updateCoordinationOptions();
-        
-        const coordinationValue = row.dataset.coordination || '';
-        document.getElementById('coordination').value = coordinationValue;
+
+        // Cátedra: igual, asegurar que la opción esté presente
+        const coordValue = row.dataset.coordination || '';
+        setSelectValue(document.getElementById('coordination'), coordValue);
 
         // Contraseña opcional al editar
         const pwd = document.getElementById('password');
         pwd.required = false;
-        pwd.value = '';
+        pwd.value    = '';
         pwd.minLength = 8;
-        pwd.type = 'password';
+        pwd.type     = 'password';
         const showPwdEdit = document.getElementById('showCoordinatorPassword');
         if (showPwdEdit) showPwdEdit.checked = false;
         document.getElementById('passwordHint').textContent = '(dejar vacío para no cambiar)';

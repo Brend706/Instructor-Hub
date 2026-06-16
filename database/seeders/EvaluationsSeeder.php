@@ -66,7 +66,7 @@ class EvaluationsSeeder extends Seeder
                     [
                         'question_text' => $q['text'],
                         'question_type' => $q['type'],
-                        'max_score' => $q['type'] === 'score' ? 5 : null,
+                        'max_score' => $q['type'] === 'score' ? 10 : null,
                         'is_active' => true,
                     ]
                 );

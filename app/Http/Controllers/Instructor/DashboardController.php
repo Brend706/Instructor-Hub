@@ -8,6 +8,7 @@ use App\Models\Instructor;
 use App\Models\InstructorAssignment;
 use App\Models\Student;
 use App\Models\StudentAttendance;
+use App\Models\SuspensionRequest;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -165,6 +166,12 @@ class DashboardController extends Controller
 
             'studentRows' => $studentRows,
             'history' => $history,
+
+            // Solicitud de suspensión pendiente (si existe), para mostrar aviso en dashboard.
+            'pendingSuspension' => $instructor->suspensionRequests()
+                ->where('status', SuspensionRequest::STATUS_PENDING)
+                ->latest('requested_at')
+                ->first(),
         ]);
     }
 
@@ -187,6 +194,7 @@ class DashboardController extends Controller
             'active' => null,
             'studentRows' => collect(),
             'history' => collect(),
+            'pendingSuspension' => null,
         ];
     }
 

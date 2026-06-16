@@ -69,6 +69,12 @@
                         $since = optional($instructor->created_at)->format('M Y');
                         $statusLabel = ($hasStatusColumn ?? false) ? ($instructor->status ?? 'Activo') : 'Activo';
                         $isActive = $statusLabel === 'Activo';
+                        $statusStyle = match($statusLabel) {
+                            'Activo'    => ['bg'=>'var(--success-bg)',  'dot'=>'#166534'],
+                            'Suspendido'=> ['bg'=>'var(--warning-bg)',  'dot'=>'#854D0E'],
+                            'Bloqueado' => ['bg'=>'#FEF2F2',           'dot'=>'#B91C1C'],
+                            default     => ['bg'=>'#F3F4F6',           'dot'=>'#6B7280'],
+                        };
                     @endphp
                     <tr
                         data-id="{{ $instructor->id }}"
@@ -97,11 +103,11 @@
                         <td>{{ $user?->email ?? '—' }}</td>
                         <td>{{ $instructor->major }}</td>
                         <td>
-                            <span class="badge {{ $isActive ? 'badge-success' : 'badge-warning' }}"
-                                style="display:inline-flex;align-items:center;gap:5px">
+                            <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;
+                                         font-weight:500;padding:3px 10px;border-radius:20px;
+                                         background:{{ $statusStyle['bg'] }};color:{{ $statusStyle['dot'] }}">
                                 <span style="width:6px;height:6px;border-radius:50%;
-                                            background:{{ $isActive ? '#166534' : '#854D0E' }};
-                                            flex-shrink:0"></span>
+                                            background:{{ $statusStyle['dot'] }};flex-shrink:0"></span>
                                 {{ $statusLabel }}
                             </span>
                         </td>
@@ -195,10 +201,14 @@
 
 {{-- MODAL CREAR / EDITAR --}}
 <div class="modal-overlay" id="modalForm" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title" id="modalTitle">Nuevo instructor</div>
-            <button type="button" class="modal-close" onclick="closeModal('modalForm')" aria-label="Cerrar">
+    <div class="modal" style="max-width:700px;width:96%">
+        <div class="modal-header" style="background:var(--primary,#5A1533);color:#fff;border-radius:12px 12px 0 0">
+            <div class="modal-title" id="modalTitle" style="color:#fff;display:flex;align-items:center;gap:8px">
+                <i class="ti ti-user-plus" aria-hidden="true" style="font-size:18px;opacity:.85"></i>
+                Nuevo instructor
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('modalForm')" aria-label="Cerrar"
+                style="color:#fff;opacity:.8">
                 <i class="ti ti-x" aria-hidden="true"></i>
             </button>
         </div>
@@ -209,6 +219,14 @@
             <input type="hidden" id="instructorId" value="">
 
             <div class="modal-body">
+
+                {{-- Mensaje informativo --}}
+                <div style="display:flex;align-items:flex-start;gap:10px;background:#fdf4f7;border:1px solid #e8b4c8;border-radius:8px;padding:10px 14px;margin-bottom:16px">
+                    <i class="ti ti-info-circle" style="color:var(--primary,#5A1533);font-size:16px;margin-top:1px;flex-shrink:0" aria-hidden="true"></i>
+                    <p style="margin:0;font-size:12.5px;color:#6B2245;line-height:1.5">
+                        Solo instructores previamente evaluados y aprobados por la coordinación son registrados en el sistema.
+                    </p>
+                </div>
 
                 @if ($errors->any())
                     <div class="alert-success" style="border-color:#fecaca;background:#fef2f2;color:#991b1b" role="alert">
@@ -275,10 +293,11 @@
                             <option value="">Seleccionar coordinador...</option>
                             @foreach(($coordinators ?? []) as $coord)
                                 @php
-                                    $label = $coord->coordination_name ?? $coord->name ?? ($coord->user?->name ?? 'Coord. '.$coord->id);
+                                    $coordPerson = $coord->user?->name ?? 'Coordinador '.$coord->id;
+                                    $coordArea   = $coord->school_name ?? $coord->catedra ?? $coord->coordination_name ?? null;
                                 @endphp
                                 <option value="{{ $coord->id }}" @selected((string) old('coordinator_id') === (string) $coord->id)>
-                                    {{ $label }}@if($coord->user) — {{ $coord->user->name }}@endif
+                                    {{ $coordPerson }}{{ $coordArea ? ' — '.$coordArea : '' }}
                                 </option>
                             @endforeach
                         </select>
@@ -289,47 +308,60 @@
                     </div>
                 @endif
 
-                @if($hasStatusColumn ?? false)
-                    <div class="field">
+                {{-- Separador de sección --}}
+                <div style="border-top:1.5px solid #f0d6e2;margin:4px 0 14px;position:relative">
+                    <span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#fff;padding:0 10px;font-size:11px;color:var(--primary,#5A1533);font-weight:600;letter-spacing:.5px;text-transform:uppercase">Acceso</span>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+
+                    @if($hasStatusColumn ?? false)
+                    <div class="field" style="margin:0">
                         <label class="field-label" for="status">Estado</label>
                         <select class="input @error('status') is-invalid @enderror" id="status" name="status">
-                            <option value="Activo" @selected(old('status', 'Activo') === 'Activo')>Activo</option>
-                            <option value="Inactivo" @selected(old('status') === 'Inactivo')>Inactivo</option>
+                            <option value="Activo"     @selected(old('status', 'Activo') === 'Activo')>Activo</option>
+                            <option value="Inactivo"   @selected(old('status') === 'Inactivo')>Inactivo</option>
+                            <option value="Suspendido" @selected(old('status') === 'Suspendido')>Suspendido</option>
+                            <option value="Bloqueado"  @selected(old('status') === 'Bloqueado')>Bloqueado</option>
                         </select>
                         <span class="field-msg field-msg--error" id="statusClientError" aria-live="polite"></span>
                         @error('status')
                             <span class="field-msg field-msg--error">{{ $message }}</span>
                         @enderror
                     </div>
-                @endif
+                    @else
+                    <div></div>
+                    @endif
 
-                <div class="field" id="passwordField">
-                    <label class="field-label" for="password">
-                        Contraseña temporal
-                        <span id="passwordHint" style="font-weight:400;color:var(--text-muted)"></span>
-                    </label>
-                    <input
-                        class="input @error('password') is-invalid @enderror"
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Mínimo 8 caracteres"
-                        autocomplete="new-password"
-                        minlength="8"
-                        maxlength="255"
-                    >
-                    <label class="show-password-toggle" for="showInstructorPassword">
-                        <input type="checkbox" id="showInstructorPassword" class="show-password-checkbox">
-                        Ver contraseña
-                    </label>
-                    <span class="field-msg field-msg--error" id="passwordClientError" aria-live="polite"></span>
-                    @error('password')
-                        <span class="field-msg field-msg--error">{{ $message }}</span>
-                    @enderror
-                </div>
+                    <div class="field" id="passwordField" style="margin:0">
+                        <label class="field-label" for="password">
+                            Contraseña temporal
+                            <span id="passwordHint" style="font-weight:400;color:var(--text-muted)"></span>
+                        </label>
+                        <input
+                            class="input @error('password') is-invalid @enderror"
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="Mínimo 8 caracteres"
+                            autocomplete="new-password"
+                            minlength="8"
+                            maxlength="255"
+                        >
+                        <label class="show-password-toggle" for="showInstructorPassword">
+                            <input type="checkbox" id="showInstructorPassword" class="show-password-checkbox">
+                            Ver contraseña
+                        </label>
+                        <span class="field-msg field-msg--error" id="passwordClientError" aria-live="polite"></span>
+                        @error('password')
+                            <span class="field-msg field-msg--error">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                </div>{{-- /grid --}}
             </div>
 
-            <div class="modal-footer">
+            <div class="modal-footer" style="border-top:1.5px solid #f0d6e2;background:#fdf4f7;border-radius:0 0 12px 12px">
                 <button type="button" class="btn btn-ghost" onclick="closeModal('modalForm')">Cancelar</button>
                 <button type="submit" class="btn btn-primary">
                     <i class="ti ti-device-floppy" aria-hidden="true"></i>
@@ -438,7 +470,7 @@
         document.getElementById('formMethod').value = 'POST';
         document.getElementById('instructorId').value = '';
         document.getElementById('instructorForm').action = @json(route(auth()->user()->roleSlug() . '.instructores.store'));
-        document.getElementById('modalTitle').textContent = 'Nuevo instructor';
+        document.getElementById('modalTitle').innerHTML = '<i class="ti ti-user-plus" style="font-size:18px;opacity:.85"></i> Nuevo instructor';
         document.getElementById('btnText').textContent = 'Guardar';
         const pwd = document.getElementById('password');
         pwd.required = true;
@@ -457,7 +489,7 @@
 
         clearInstructorClientErrors();
 
-        document.getElementById('modalTitle').textContent = 'Editar instructor';
+        document.getElementById('modalTitle').innerHTML = '<i class="ti ti-edit" style="font-size:18px;opacity:.85"></i> Editar instructor';
         document.getElementById('btnText').textContent = 'Actualizar';
         document.getElementById('formMethod').value = 'PUT';
         document.getElementById('instructorId').value = String(id);
@@ -476,7 +508,8 @@
 
         const statusEl = document.getElementById('status');
         if (statusEl && HAS_STATUS) {
-            statusEl.value = row.dataset.status === 'Inactivo' ? 'Inactivo' : 'Activo';
+            const validStatuses = ['Activo', 'Inactivo', 'Suspendido', 'Bloqueado'];
+            statusEl.value = validStatuses.includes(row.dataset.status) ? row.dataset.status : 'Activo';
         }
 
         const pwd = document.getElementById('password');

@@ -308,7 +308,7 @@ class InstructorController extends Controller
             : ['nullable', 'string', 'min:8', 'max:255'];
 
         $statusRules = Schema::hasColumn('instructors', 'status')
-            ? ['required', 'string', Rule::in(['Activo', 'Inactivo'])]
+            ? ['required', 'string', Rule::in(['Activo', 'Inactivo', 'Suspendido', 'Bloqueado'])]
             : ['nullable'];
 
         $emailUnique = Rule::unique('users', 'email');
@@ -344,7 +344,7 @@ class InstructorController extends Controller
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'major.required' => 'Debe seleccionar la carrera.',
             'status.required' => 'Debe seleccionar el estado.',
-            'status.in' => 'El estado debe ser Activo o Inactivo.',
+            'status.in' => 'El estado debe ser Activo, Inactivo, Suspendido o Bloqueado.',
             'coordinator_id.required' => 'Debe seleccionar la coordinación a cargo del instructor.',
             'coordinator_id.exists' => 'La coordinación seleccionada no es válida.',
         ]);

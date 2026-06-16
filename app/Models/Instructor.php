@@ -5,9 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Instructor extends Model
 {
+    // ── Estados de cuenta ──────────────────────────────────────
+    public const STATUS_ACTIVE    = 'Activo';
+    public const STATUS_INACTIVE  = 'Inactivo';
+    public const STATUS_SUSPENDED = 'Suspendido';
+    public const STATUS_BLOCKED   = 'Bloqueado';
+
+    /** Estados que impiden el inicio de sesión. */
+    public const BLOCKED_STATUSES = [
+        self::STATUS_SUSPENDED,
+        self::STATUS_BLOCKED,
+        self::STATUS_INACTIVE,
+    ];
+
     protected $fillable = [
         'user_id',
         'major',
@@ -43,5 +57,25 @@ class Instructor extends Model
     public function instructorAssignments(): HasMany
     {
         return $this->hasMany(InstructorAssignment::class);
+    }
+
+    /**
+     * Solicitudes de suspensión enviadas por este instructor.
+     *
+     * @return HasMany<SuspensionRequest, $this>
+     */
+    public function suspensionRequests(): HasMany
+    {
+        return $this->hasMany(SuspensionRequest::class);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function canLogin(): bool
+    {
+        return $this->isActive();
     }
 }

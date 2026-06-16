@@ -112,8 +112,9 @@ class EvaluationController extends Controller
         if ($existing) {
             foreach ($existing->answers as $a) {
                 $previousAnswers[$a->question_template_id] = [
-                    'score' => $a->score_value,
-                    'text' => $a->text_value,
+                    // Redondear a entero para que la comparación con los radios sea exacta
+                    'score' => $a->score_value !== null ? (int) round((float) $a->score_value) : null,
+                    'text'  => $a->text_value,
                 ];
             }
         }
@@ -121,11 +122,12 @@ class EvaluationController extends Controller
         $assignment->loadMissing(['classGroup', 'instructor.user']);
 
         return view('coordinator.evaluations.create', [
-            'assignment' => $assignment,
-            'type' => $type,
-            'questions' => $questions,
-            'previousAnswers' => $previousAnswers,
-            'isEditing' => $existing !== null,
+            'assignment'     => $assignment,
+            'type'           => $type,
+            'questions'      => $questions,
+            'previousAnswers'=> $previousAnswers,
+            'isEditing'      => $existing !== null,
+            'existingResult' => $existing,
         ]);
     }
 

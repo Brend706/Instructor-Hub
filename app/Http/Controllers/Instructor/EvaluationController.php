@@ -82,8 +82,9 @@ class EvaluationController extends Controller
         if ($existing) {
             foreach ($existing->answers as $a) {
                 $previousAnswers[$a->question_template_id] = [
-                    'score' => $a->score_value,
-                    'text' => $a->text_value,
+                    // Castear a int para que coincida exactamente con los valores de los radio buttons
+                    'score' => $a->score_value !== null ? (int) round((float) $a->score_value) : null,
+                    'text'  => $a->text_value,
                 ];
             }
         }
@@ -91,11 +92,12 @@ class EvaluationController extends Controller
         $assignment->loadMissing('classGroup');
 
         return view('instructors.evaluations.create', [
-            'assignment' => $assignment,
-            'type' => $type,
-            'questions' => $questions,
-            'previousAnswers' => $previousAnswers,
-            'isEditing' => $existing !== null,
+            'assignment'     => $assignment,
+            'type'           => $type,
+            'questions'      => $questions,
+            'previousAnswers'=> $previousAnswers,
+            'isEditing'      => $existing !== null,
+            'existingResult' => $existing,
         ]);
     }
 
