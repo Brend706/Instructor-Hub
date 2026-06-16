@@ -82,6 +82,20 @@
                         <i class="ti ti-star nav-icon"></i>
                         <span class="nav-text">Evaluaciones</span>
                     </a>
+                    @php
+                        $_instId = \App\Models\Instructor::where('user_id', auth()->id())->value('id') ?? -1;
+                        $_pendingInst = \App\Models\SuspensionRequest::where('instructor_id', $_instId)
+                            ->where('status', 'pending')->count();
+                    @endphp
+                    <a href="{{ route('instructor.suspensions.index') }}"
+                       class="nav-item {{ request()->routeIs('instructor.suspensions.*') ? 'active' : '' }}"
+                       data-label="Solicitudes">
+                        <i class="ti ti-file-alert nav-icon"></i>
+                        <span class="nav-text">Mis solicitudes</span>
+                        @if($_pendingInst > 0)
+                            <span class="nav-badge" style="background:#FFFBEB;color:#92400E">{{ $_pendingInst }}</span>
+                        @endif
+                    </a>
                     <a href="{{ route('profile.index') }}"
                        class="nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}"
                        data-label="Mi perfil">

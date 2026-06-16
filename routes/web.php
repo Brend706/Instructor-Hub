@@ -282,7 +282,9 @@ Route::middleware('auth')->group(function () {
             [InstructorEvaluationController::class, 'store'])
             ->name('instructor.evaluations.store');
 
-        // Solicitud de suspensión: el instructor envía una petición a su coordinador.
+        // Solicitudes de suspensión: el instructor ve su historial y envía nuevas.
+        Route::get('/instructor/solicitudes', [SuspensionRequestController::class, 'index'])
+            ->name('instructor.suspensions.index');
         Route::post('/instructor/solicitud-suspension', [SuspensionRequestController::class, 'store'])
             ->name('instructor.suspension.store');
     });

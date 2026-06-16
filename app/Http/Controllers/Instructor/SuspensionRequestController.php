@@ -7,14 +7,39 @@ use App\Models\Instructor;
 use App\Models\SuspensionRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class SuspensionRequestController extends Controller
 {
     /**
-     * Muestra el formulario + historial de solicitudes del instructor autenticado.
-     * No tiene vista propia: se integra en el dashboard vía modal (el form es un POST directo).
-     * Este método puede usarse si en el futuro se crea una página dedicada.
+     * Historial de solicitudes del instructor + formulario para enviar una nueva.
      */
+    public function index(Request $request): View
+    {
+        $instructor = Instructor::query()
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        $requests = $instructor->suspensionRequests()
+            ->with('assignment.classGroup')
+            ->orderByDesc('requested_at')
+            ->get();
+
+        $hasPending = $requests->where('status', SuspensionRequest::STATUS_PENDING)->isNotEmpty();
+
+        $activeAssignment = $instructor->instructorAssignments()
+            ->with('classGroup')
+            ->where('status', 'Activo')
+            ->latest()
+            ->first();
+
+        return view('instructors.suspensions.index', [
+            'requests'         => $requests,
+            'hasPending'       => $hasPending,
+            'activeAssignment' => $activeAssignment,
+            'instructor'       => $instructor,
+        ]);
+    }
 
     /**
      * Crea una nueva solicitud de suspensión.
@@ -69,6 +94,8 @@ class SuspensionRequestController extends Controller
             'requested_at'  => now(),
         ]);
 
-        return back()->with('suspension_success', 'Tu solicitud fue enviada. El coordinador la revisará a la brevedad.');
+        return redirect()
+            ->route('instructor.suspensions.index')
+            ->with('suspension_success', 'Tu solicitud fue enviada. El coordinador la revisará a la brevedad.');
     }
 }
