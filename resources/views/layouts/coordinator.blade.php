@@ -236,6 +236,27 @@
                                                     {{ $when->translatedFormat('d M Y · H:i') }}
                                                 </span>
                                             </span>
+                                        @elseif($kind === 'suspension_request.submitted')
+                                            {{-- ── Nueva solicitud de suspensión enviada por un instructor ── --}}
+                                            @php
+                                                $instructorName = $data['instructor']['name'] ?? 'Instructor';
+                                                $typeLabel = $data['request']['type_label'] ?? 'Solicitud';
+                                                $groupName = $data['assignment']['group_name'] ?? null;
+                                            @endphp
+                                            <span class="notif-icon" style="background:#FEF3C7;color:#92400E">
+                                                <i class="ti ti-player-pause" aria-hidden="true"></i>
+                                            </span>
+                                            <span class="notif-body">
+                                                <span class="notif-title">
+                                                    <strong>{{ $instructorName }}</strong> envió una solicitud de suspensión
+                                                </span>
+                                                <span class="notif-meta">
+                                                    {{ $typeLabel }}@if($groupName) · Grupo: {{ $groupName }}@endif
+                                                </span>
+                                                <span class="notif-time">
+                                                    {{ $when->translatedFormat('d M Y · H:i') }}
+                                                </span>
+                                            </span>
                                         @else
                                             {{-- Fallback genérico para cualquier otra notificación futura --}}
                                             <span class="notif-icon"><i class="ti ti-bell" aria-hidden="true"></i></span>

@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Instructor;
 use App\Http\Controllers\Controller;
 use App\Models\Instructor;
 use App\Models\SuspensionRequest;
+use App\Notifications\SuspensionRequestSubmitted;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class SuspensionRequestController extends Controller
@@ -85,7 +87,7 @@ class SuspensionRequestController extends Controller
             ->latest()
             ->first();
 
-        SuspensionRequest::create([
+        $suspensionRequest = SuspensionRequest::create([
             'instructor_id' => $instructor->id,
             'assignment_id' => $activeAssignment?->id,
             'type'          => $validated['type'],
@@ -93,6 +95,17 @@ class SuspensionRequestController extends Controller
             'status'        => SuspensionRequest::STATUS_PENDING,
             'requested_at'  => now(),
         ]);
+
+        // Notifica al coordinador propietario del instructor (campanita).
+        // Si el instructor no tiene coordinador asignado, no se envía nada
+        // y la solicitud queda visible para el admin de cualquier modo.
+        $coordinatorUser = $instructor->coordinator?->user;
+        if ($coordinatorUser) {
+            Notification::send(
+                $coordinatorUser,
+                new SuspensionRequestSubmitted($instructor, $suspensionRequest),
+            );
+        }
 
         return redirect()
             ->route('instructor.suspensions.index')

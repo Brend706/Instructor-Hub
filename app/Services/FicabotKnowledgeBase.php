@@ -202,13 +202,13 @@ class FicabotKnowledgeBase
             ],
             'coordinator' => [
                 '¿Cómo creo un grupo de clase?',
-                '¿Cómo evalúo a un instructor?',
+                '¿Cómo apruebo una solicitud de suspensión?',
                 '¿Cómo importo evaluaciones de estudiantes?',
             ],
             'instructor' => [
                 '¿Cómo inicio una sesión con QR?',
                 '¿Cómo envío mi autoevaluación?',
-                '¿Cómo exporto la asistencia a Excel?',
+                '¿Cómo envío una solicitud de suspensión?',
             ],
             default => [
                 '¿Cómo creo una cuenta?',
@@ -261,9 +261,9 @@ class FicabotKnowledgeBase
     public function topicPills(?string $role): array
     {
         return match ($role) {
-            'admin' => ['Coordinadores', 'Instructores', 'Evaluaciones', 'Notificaciones'],
-            'coordinator' => ['Mis instructores', 'Grupos de clase', 'Instructorías', 'Evaluaciones'],
-            'instructor' => ['Mis grupos', 'Iniciar QR', 'Asistencia', 'Autoevaluación'],
+            'admin' => ['Coordinadores', 'Instructores', 'Evaluaciones', 'Solicitudes'],
+            'coordinator' => ['Mis instructores', 'Grupos de clase', 'Evaluaciones', 'Solicitudes'],
+            'instructor' => ['Mis grupos', 'Iniciar QR', 'Autoevaluación', 'Solicitudes'],
             default => ['Iniciar sesión', 'Asistencia QR', 'Mi perfil', 'Contactar admin'],
         };
     }
@@ -1898,6 +1898,273 @@ class FicabotKnowledgeBase
                     '¿Cómo envío mi autoevaluación?',
                     '¿Por qué no me aparece la evaluación?',
                     '¿Cómo veo el estado de mi autoevaluación?',
+                ],
+            ],
+
+            // ═══════════════════════════════════════════════════════════
+            //  MENSAJE ESPECIAL — DEFENSA / JUECES
+            //  Respuesta literal solicitada por el equipo para el cierre
+            //  de la presentación frente al jurado.
+            // ═══════════════════════════════════════════════════════════
+
+            [
+                'id' => 'message_to_judges',
+                'keywords' => [
+                    'jueces', 'a los jueces', 'a los juezes',
+                    'mensaje a los jueces', 'mensaje para los jueces',
+                    'algo a los jueces', 'algo que decirle a los jueces',
+                    'algo que decirles a los jueces', 'algo que quieras decirle a los jueces',
+                    'algo que quieras decirles a los jueces', 'algo que decir a los jueces',
+                    'hay algo que decir a los jueces', 'hay algo que decirles a los jueces',
+                    'hay algo que quieras decirles a los jueces',
+                    'unas palabras a los jueces', 'palabras a los jueces',
+                    'palabras para los jueces', 'palabras finales',
+                    'palabras finales jueces', 'mensaje final jueces',
+                    'mensaje al jurado', 'mensaje para el jurado', 'jurado',
+                    'palabras al jurado', 'palabras para el jurado',
+                    'algo al jurado', 'algo para el jurado',
+                    'decir al jurado', 'decirle al jurado', 'decirles al jurado',
+                    'cierre de la defensa', 'cierre defensa', 'cerrar defensa',
+                    'agradecimiento jueces', 'agradecimiento al jurado',
+                ],
+                'response' => "Sí. En nombre de todo el equipo, quiero agradecerles por su tiempo, atención y por evaluar nuestro proyecto. "
+                    ."Sus observaciones y recomendaciones nos ayudarán a seguir mejorando. "
+                    ."Esperamos que nuestra propuesta contribuya a resolver una necesidad real dentro del Programa de Instructores de FICA. "
+                    ."¡Muchas gracias!",
+                'suggestions' => [
+                    '¿Qué es Instructor Hub?',
+                    '¿Qué módulos tiene el sistema?',
+                    '¿Cómo funcionan las evaluaciones?',
+                ],
+            ],
+
+            // ═══════════════════════════════════════════════════════════
+            //  SOLICITUDES DE SUSPENSIÓN
+            //  (instructor pide pausa de su instructoría; coordinador/admin
+            //   aprueba o rechaza; ambos pueden descargar comprobante PDF
+            //   cuando la solicitud queda en estado "Aprobada")
+            // ═══════════════════════════════════════════════════════════
+
+            [
+                'id' => 'topic_overview_solicitudes',
+                'keywords' => [
+                    'solicitudes', 'solicitud', 'tema solicitudes',
+                    'overview solicitudes', 'como funcionan las solicitudes',
+                    'como funcionan solicitudes', 'que son las solicitudes',
+                    'modulo de solicitudes', 'modulo solicitudes',
+                ],
+                'responses' => [
+                    'instructor' => "Las solicitudes te sirven para pausar tu instructoría cuando lo necesitás:\n\n"
+                        ."1. Vas a \"Mis solicitudes\" desde el menú lateral.\n"
+                        ."2. Pulsás \"Nueva solicitud\", elegís el tipo (Voluntaria, Fuerza mayor u Otra) y explicás el motivo (mínimo 20 caracteres).\n"
+                        ."3. Tu coordinador la revisa y la aprueba o rechaza.\n"
+                        ."4. Si te la aprueban, podés descargar el comprobante PDF desde la misma tarjeta de la solicitud.\n\n"
+                        .'¿Querés que te explique cómo enviar una nueva o cómo descargar el comprobante?',
+                    'coordinator' => "Tus instructores pueden pedir suspensión y vos las resolvés:\n\n"
+                        ."1. En el menú lateral vas a \"Solicitudes\".\n"
+                        ."2. Verás todas las solicitudes de tus instructores con su estado (Pendiente, Aprobada, Rechazada).\n"
+                        ."3. Cuando un instructor envía una nueva, te llega un aviso en la campanita: al tocarlo te lleva directo a esta vista.\n"
+                        ."4. Podés aprobar (la cuenta queda Suspendida) o rechazar (escribís el motivo).\n"
+                        ."5. Si la aprobás, tanto vos como el instructor pueden descargar el comprobante PDF.\n\n"
+                        .'¿Querés que te detalle cómo aprobar o cómo descargar el comprobante?',
+                    'admin' => "El módulo de solicitudes de suspensión permite gestionar pausas de instructoría:\n\n"
+                        ."1. En el menú lateral entrás a \"Solicitudes\" y ves TODAS las del sistema (no solo las de tu coordinación).\n"
+                        ."2. Filtrás por estado: Pendientes, Aprobadas o Rechazadas.\n"
+                        ."3. Podés aprobar o rechazar igual que un coordinador; al aprobar, el instructor queda Suspendido.\n"
+                        ."4. Después de aprobada, se habilita el botón PDF para descargar el comprobante oficial.\n\n"
+                        .'¿Querés que te explique el flujo de aprobación o el del comprobante?',
+                ],
+                'suggestions_by_role' => [
+                    'instructor' => [
+                        '¿Cómo envío una solicitud de suspensión?',
+                        '¿Cómo descargo el comprobante PDF?',
+                        '¿Cuánto tarda en revisarse mi solicitud?',
+                    ],
+                    'coordinator' => [
+                        '¿Cómo apruebo una solicitud?',
+                        '¿Cómo descargo el comprobante PDF?',
+                        '¿Dónde veo la notificación de la campanita?',
+                    ],
+                    'admin' => [
+                        '¿Cómo apruebo una solicitud?',
+                        '¿Cómo descargo el comprobante PDF?',
+                        '¿Dónde veo todas las solicitudes?',
+                    ],
+                ],
+            ],
+
+            [
+                'id' => 'request_suspension',
+                'keywords' => [
+                    // Verbos comunes que después de normalize() quedan en infinitivo.
+                    'enviar solicitud suspension', 'enviar solicitud de suspension',
+                    'crear solicitud suspension', 'crear solicitud de suspension',
+                    'pedir suspension', 'solicitar suspension',
+                    'nueva solicitud suspension', 'nueva solicitud de suspension',
+                    'mandar solicitud suspension', 'mandar solicitud de suspension',
+                    'pausar mi instructoria', 'pausar instructoria',
+                    'suspender mi instructoria', 'suspender instructoria',
+                    'darme de baja temporal', 'darme baja temporal',
+                    'no puedo seguir mi instructoria', 'no puedo seguir instructoria',
+                    'fuerza mayor', 'baja por enfermedad', 'baja medica',
+                ],
+                'responses' => [
+                    'instructor' => "Para pedir pausar tu instructoría:\n\n"
+                        ."1. En el menú lateral pulsá \"Mis solicitudes\".\n"
+                        ."2. Tocá \"Nueva solicitud\" (arriba a la derecha del historial).\n"
+                        ."3. Elegí el tipo: Voluntaria, Fuerza mayor (salud, emergencia…) u Otra razón.\n"
+                        ."4. Escribí el motivo con el mayor detalle posible (mínimo 20 caracteres).\n"
+                        ."5. Pulsá \"Enviar solicitud\".\n\n"
+                        ."Mientras esté \"En revisión\" no podés enviar otra, pero tu cuenta sigue activa. Tu coordinador recibirá un aviso en su campanita y te la aprobará o rechazará. ¿Te ayudo con algo más?",
+                    'coordinator' => "Las solicitudes las envían los instructores desde su panel. Vos las recibís en la campanita y las resolvés en el menú \"Solicitudes\". ¿Querés que te explique cómo aprobarlas?",
+                    'admin' => "Las solicitudes las envían los instructores desde su panel. Tanto el admin como el coordinador a cargo pueden aprobarlas o rechazarlas desde el menú \"Solicitudes\". ¿Querés saber cómo aprobarlas?",
+                ],
+                'suggestions_by_role' => [
+                    'instructor' => [
+                        '¿Cómo descargo el comprobante PDF?',
+                        '¿Puedo enviar dos solicitudes a la vez?',
+                        '¿Qué pasa si me la aprueban?',
+                    ],
+                    'coordinator' => [
+                        '¿Cómo apruebo una solicitud?',
+                        '¿Cómo descargo el comprobante PDF?',
+                    ],
+                    'admin' => [
+                        '¿Cómo apruebo una solicitud?',
+                        '¿Cómo descargo el comprobante PDF?',
+                    ],
+                ],
+            ],
+
+            [
+                'id' => 'review_suspension_request',
+                'keywords' => [
+                    'aprobar solicitud', 'rechazar solicitud',
+                    'aprobar suspension', 'rechazar suspension',
+                    'aprobar solicitud suspension', 'rechazar solicitud suspension',
+                    'revisar solicitud', 'revisar solicitudes',
+                    'resolver solicitud', 'resolver solicitudes',
+                    'ver solicitudes', 'ver solicitudes pendientes',
+                    'donde estan las solicitudes', 'donde veo las solicitudes',
+                    'gestionar solicitudes', 'gestionar solicitud',
+                ],
+                'restricted_to' => ['coordinator', 'admin'],
+                'restricted_response' => "Solo los coordinadores y los administradores pueden aprobar o rechazar solicitudes. Como instructor podés enviar tu solicitud y consultarla en \"Mis solicitudes\". ¿Querés que te ponga en contacto con un administrador?",
+                'responses' => [
+                    'coordinator' => "Para resolver una solicitud de suspensión:\n\n"
+                        ."1. Vas al menú lateral → \"Solicitudes\" (también podés tocar la notificación de la campanita; te lleva directo).\n"
+                        ."2. Ubicás la fila con estado \"Pendiente\" del instructor.\n"
+                        ."3. Pulsás el ojo para ver el detalle (tipo y motivo completo).\n"
+                        ."4. Tocás \"Aprobar\" (opcional dejar nota interna) o \"Rechazar\" (acá el motivo es obligatorio, mínimo 5 caracteres).\n"
+                        ."5. Confirmás. Si aprobaste, la cuenta del instructor pasa a \"Suspendido\" y la asignación activa también queda suspendida.\n\n"
+                        ."Después de aprobada vas a ver un botón \"PDF\" en la misma fila para descargar el comprobante. ¿Te ayudo con algo más?",
+                    'admin' => "Para resolver una solicitud desde el panel de administración:\n\n"
+                        ."1. Menú lateral → \"Solicitudes\". Ves TODAS las del sistema.\n"
+                        ."2. Localizás la solicitud con estado \"Pendiente\".\n"
+                        ."3. Tocás el ojo para revisar el motivo y luego \"Aprobar\" o \"Rechazar\".\n"
+                        ."4. Al aprobar, el instructor queda Suspendido y la asignación activa también; al rechazar tenés que escribir el motivo.\n"
+                        ."5. Una vez aprobada aparece el botón \"PDF\" para descargar el comprobante.\n\n"
+                        .'¿Querés que te explique cómo se ve el comprobante PDF?',
+                ],
+                'suggestions_by_role' => [
+                    'coordinator' => [
+                        '¿Cómo descargo el comprobante PDF?',
+                        '¿Cómo recibo el aviso en la campanita?',
+                        '¿Puedo reactivar un instructor suspendido?',
+                    ],
+                    'admin' => [
+                        '¿Cómo descargo el comprobante PDF?',
+                        '¿Puedo reactivar un instructor suspendido?',
+                    ],
+                ],
+            ],
+
+            [
+                'id' => 'suspension_pdf_receipt',
+                'keywords' => [
+                    'comprobante pdf', 'comprobante suspension', 'comprobante de suspension',
+                    'comprobante de aprobacion', 'comprobante aprobacion',
+                    'comprobante de rechazo', 'comprobante rechazo',
+                    'descargar comprobante', 'descargar comprobante pdf',
+                    'descargar comprobante suspension', 'descargar comprobante de suspension',
+                    'descargar comprobante rechazo', 'descargar comprobante de rechazo',
+                    'descargar comprobante aprobacion', 'descargar comprobante de aprobacion',
+                    'comprobante solicitud', 'comprobante de solicitud',
+                    'pdf solicitud', 'pdf de solicitud',
+                    'pdf suspension', 'pdf de suspension',
+                    'pdf rechazo', 'pdf de rechazo',
+                    'pdf aprobacion', 'pdf de aprobacion',
+                    'descargar pdf solicitud', 'descargar pdf suspension',
+                    'descargar pdf rechazo', 'descargar pdf aprobacion',
+                    'constancia suspension', 'constancia de suspension',
+                    'constancia rechazo', 'constancia de rechazo',
+                    'documento suspension', 'documento de suspension',
+                    'documento rechazo', 'documento de rechazo',
+                ],
+                'responses' => [
+                    'instructor' => "Vas a poder descargar un comprobante PDF en cuanto tu solicitud quede resuelta, sea aprobada o rechazada:\n\n"
+                        ."1. Entrá al menú lateral → \"Mis solicitudes\".\n"
+                        ."2. Buscá la tarjeta con la etiqueta verde \"Aprobada\" o roja \"Rechazada\".\n"
+                        ."3. Al final de la tarjeta tocá el botón \"Descargar comprobante PDF\" (verde si fue aprobada, rojo si fue rechazada).\n"
+                        ."4. Se descarga un archivo con folio SUS-XXXXXX que incluye tus datos, el motivo y la firma del revisor. Si fue rechazada, también aparece el motivo del rechazo.\n\n"
+                        .'¿Te ayudo con algo más?',
+                    'coordinator' => "El comprobante PDF se descarga desde el listado de solicitudes una vez resuelta (aprobada o rechazada):\n\n"
+                        ."1. Menú lateral → \"Solicitudes\".\n"
+                        ."2. En la fila con estado \"Aprobada\" o \"Rechazada\" verás un botón \"PDF\" en la columna Acciones.\n"
+                        ."3. Lo pulsás y se descarga el comprobante: sello verde si fue aprobada o sello rojo si fue rechazada.\n\n"
+                        ."El mismo PDF lo puede descargar el instructor desde su panel; los datos coinciden. ¿Te ayudo con algo más?",
+                    'admin' => "El comprobante PDF está disponible para cualquier solicitud RESUELTA del sistema (aprobada o rechazada):\n\n"
+                        ."1. Menú lateral → \"Solicitudes\".\n"
+                        ."2. En la fila con estado \"Aprobada\" o \"Rechazada\" pulsá el botón \"PDF\" en Acciones.\n"
+                        ."3. El archivo incluye folio, datos del instructor, motivo de la solicitud, fecha de resolución, firma del revisor y un hash de verificación al pie. En los rechazos también aparece el motivo del rechazo escrito por el revisor.\n\n"
+                        ."Los coordinadores e instructores también pueden descargarlo desde sus paneles (cada uno solo los que les corresponden). ¿Te ayudo con algo más?",
+                ],
+                'suggestions_by_role' => [
+                    'instructor' => [
+                        '¿Por qué no veo el botón de PDF?',
+                        '¿Cómo envío una solicitud de suspensión?',
+                    ],
+                    'coordinator' => [
+                        '¿Cómo apruebo una solicitud?',
+                        '¿Cómo recibo el aviso en la campanita?',
+                    ],
+                    'admin' => [
+                        '¿Cómo apruebo una solicitud?',
+                        '¿Cómo reactivo a un instructor?',
+                    ],
+                ],
+            ],
+
+            [
+                'id' => 'suspension_bell_notification',
+                'keywords' => [
+                    'notificacion solicitud suspension', 'notificacion suspension',
+                    'aviso solicitud suspension', 'aviso suspension',
+                    'campanita solicitud', 'campanita solicitudes',
+                    'campanita suspension', 'campanita de suspension',
+                    'me llega solicitud campanita', 'me llega solicitud a la campanita',
+                    'donde veo aviso solicitud', 'donde veo el aviso de solicitud',
+                    'no me llega solicitud', 'no me llega aviso solicitud',
+                ],
+                'restricted_to' => ['coordinator', 'admin'],
+                'restricted_response' => "Esos avisos los reciben los coordinadores cuando un instructor envía una solicitud de suspensión. Como instructor, tu solicitud aparece en \"Mis solicitudes\" con el estado actualizado. ¿Querés que te ponga en contacto con un administrador?",
+                'responses' => [
+                    'coordinator' => "Cuando uno de tus instructores envía una solicitud de suspensión:\n\n"
+                        ."1. Te aparece un punto rojo y un contador en la campanita del encabezado.\n"
+                        ."2. Al abrirla verás una tarjeta tipo: \"<Instructor> envió una solicitud de suspensión\" con el tipo y el grupo afectado.\n"
+                        ."3. Al hacer clic, la notificación se marca como leída y te lleva directo al menú \"Solicitudes\" para que la apruebes o rechaces.\n\n"
+                        ."Si no la ves, recargá la página: el contador se refresca con cada navegación. ¿Te ayudo con algo más?",
+                    'admin' => "Como admin recibís todas las solicitudes en el panel \"Solicitudes\". El aviso en la campanita está pensado principalmente para el coordinador a cargo del instructor, pero igual podés entrar al menú \"Solicitudes\" cuando quieras: ahí ves las pendientes de todo el sistema. ¿Te ayudo con algo más?",
+                ],
+                'suggestions_by_role' => [
+                    'coordinator' => [
+                        '¿Cómo apruebo una solicitud?',
+                        '¿Cómo descargo el comprobante PDF?',
+                    ],
+                    'admin' => [
+                        '¿Dónde veo todas las solicitudes?',
+                        '¿Cómo descargo el comprobante PDF?',
+                    ],
                 ],
             ],
 

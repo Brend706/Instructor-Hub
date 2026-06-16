@@ -12,6 +12,26 @@
 
 @php
     $name = $instructor->user?->name ?? 'Instructor';
+
+    // Total de horas de instructoría: suma de duraciones de las sesiones
+    // cerradas (start_time + end_time). Las abiertas se ignoran.
+    $totalMinutes = 0;
+    foreach ($sessions as $s) {
+        if ($s->start_time && $s->end_time) {
+            $a = \Illuminate\Support\Carbon::parse($s->start_time);
+            $b = \Illuminate\Support\Carbon::parse($s->end_time);
+            $totalMinutes += (int) round(abs($b->diffInSeconds($a)) / 60);
+        }
+    }
+    if ($totalMinutes <= 0) {
+        $totalHoursLabel = '0 h';
+    } elseif ($totalMinutes < 60) {
+        $totalHoursLabel = $totalMinutes . ' min';
+    } else {
+        $h = intdiv($totalMinutes, 60);
+        $m = $totalMinutes % 60;
+        $totalHoursLabel = $m > 0 ? "{$h} h {$m} min" : "{$h} h";
+    }
 @endphp
 
 <div class="page-header">
@@ -21,7 +41,11 @@
             <h1 class="page-title">{{ $name }}</h1>
             <p class="page-sub">
                 {{ $instructor->major ?? '—' }} ·
-                {{ $sessions->count() }} sesión(es) realizadas
+                {{ $sessions->count() }} sesión(es) realizadas ·
+                <strong title="Suma de duraciones de sesiones cerradas">
+                    <i class="ti ti-clock" aria-hidden="true"></i>
+                    {{ $totalHoursLabel }} totales
+                </strong>
             </p>
         </div>
     </div>

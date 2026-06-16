@@ -350,6 +350,12 @@ class AttendanceExcelExportService
             ->map(fn ($s) => ['s' => $s, 'n' => count($attendedMap[$s->id] ?? [])])
             ->sortBy('n')->first();
 
+        // Horas totales de instructoría = suma de duraciones de las sesiones
+        // cerradas (start_time + end_time). Las abiertas se ignoran porque
+        // todavía no terminaron.
+        $totalMinutes = $this->sumMinutes($sessions);
+        $totalHoursLabel = $this->formatHoursTotal($totalMinutes);
+
         $rows = [
             ['Resumen de asistencia', ''],
             ['', ''],
@@ -357,6 +363,7 @@ class AttendanceExcelExportService
             ['Ciclo', $group?->semester ?? '—'],
             ['', ''],
             ['Sesiones realizadas', $totalSessions],
+            ['Horas totales de instructoría', $totalHoursLabel],
             ['Estudiantes inscritos', $totalStudents],
             ['Total de asistencias', $totalAttendances],
             ['Promedio de asistentes por sesión', $avgPerSession],
@@ -446,15 +453,7 @@ class AttendanceExcelExportService
             $duration = '—';
             if ($start && $end) {
                 $mins = (int) round(abs($end->diffInSeconds($start)) / 60);
-                if ($mins < 1) {
-                    $duration = '< 1 min';
-                } elseif ($mins < 60) {
-                    $duration = "{$mins} min";
-                } else {
-                    $h = intdiv($mins, 60);
-                    $m = $mins % 60;
-                    $duration = $m > 0 ? "{$h} h {$m} min" : "{$h} h";
-                }
+                $duration = $this->formatDuration($mins);
             }
 
             $sheet->setCellValue("A{$row}", $session->date ? Carbon::parse($session->date)->translatedFormat('d M Y') : '—');
@@ -511,6 +510,15 @@ class AttendanceExcelExportService
             ->map(fn ($s) => $s->instructorAssignment?->classGroup?->name)
             ->filter()->unique()->values();
 
+        // Total de horas de instructoría: suma de duraciones de las sesiones
+        // cerradas (start_time + end_time). Las sesiones abiertas se ignoran.
+        $totalMinutes = $this->sumMinutes($sessions);
+        $totalHoursLabel = $this->formatHoursTotal($totalMinutes);
+
+        // Promedio de duración por sesión (solo sobre las cerradas).
+        $closedSessions = $sessions->filter(fn ($s) => $s->start_time && $s->end_time)->count();
+        $avgSessionMinutes = $closedSessions > 0 ? (int) round($totalMinutes / $closedSessions) : 0;
+
         $rows = [
             ['Resumen', ''],
             ['', ''],
@@ -518,6 +526,8 @@ class AttendanceExcelExportService
             ['Carrera / Coordinación', $instructor->major ?? '—'],
             ['', ''],
             ['Sesiones totales', $total],
+            ['Horas totales de instructoría', $totalHoursLabel],
+            ['Promedio de duración por sesión', $avgSessionMinutes > 0 ? $this->formatDuration($avgSessionMinutes) : '—'],
             ['Asistencias totales', $totalAttendances],
             ['Promedio asistentes por sesión', $avg],
             ['Grupos atendidos', $groups->count()],
@@ -550,6 +560,63 @@ class AttendanceExcelExportService
     // ───────────────────────────────────────────────────────────
     //  Helpers compartidos
     // ───────────────────────────────────────────────────────────
+
+    /**
+     * Suma los minutos de todas las sesiones que tienen `start_time` y
+     * `end_time`. Las sesiones abiertas (sin `end_time`) se ignoran porque
+     * todavía no terminaron y no se puede saber su duración real.
+     *
+     * Devuelve el total como entero de minutos (luego se formatea con
+     * formatHoursTotal/formatDuration).
+     */
+    private function sumMinutes(Collection $sessions): int
+    {
+        $total = 0;
+        foreach ($sessions as $session) {
+            if (! $session->start_time || ! $session->end_time) {
+                continue;
+            }
+            $start = Carbon::parse($session->start_time);
+            $end = Carbon::parse($session->end_time);
+            $total += (int) round(abs($end->diffInSeconds($start)) / 60);
+        }
+
+        return $total;
+    }
+
+    /**
+     * Formato corto pensado para una celda de tabla:
+     *  - 0 min       → "—"
+     *  - <1 min      → "< 1 min"
+     *  - <60 min     → "X min"
+     *  - >=60 min    → "X h" o "X h Y min"
+     */
+    private function formatDuration(int $mins): string
+    {
+        if ($mins <= 0) {
+            return '—';
+        }
+        if ($mins < 1) {
+            return '< 1 min';
+        }
+        if ($mins < 60) {
+            return "{$mins} min";
+        }
+
+        $h = intdiv($mins, 60);
+        $m = $mins % 60;
+
+        return $m > 0 ? "{$h} h {$m} min" : "{$h} h";
+    }
+
+    /**
+     * Formato pensado para "Horas totales de instructoría" del resumen.
+     * Igual que formatDuration pero con etiqueta explícita cuando son 0.
+     */
+    private function formatHoursTotal(int $mins): string
+    {
+        return $mins > 0 ? $this->formatDuration($mins) : '0 h';
+    }
 
     /**
      * Devuelve una versión segura del texto para usar en nombres de archivo:

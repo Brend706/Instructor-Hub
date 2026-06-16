@@ -118,6 +118,15 @@
                                         onclick="openReject({{ $req->id }})">
                                         <i class="ti ti-x"></i> Rechazar
                                     </button>
+                                @elseif(in_array($req->status, ['approved','rejected'], true))
+                                    {{-- Comprobante PDF descargable una vez resuelta la solicitud
+                                         (aprobada o rechazada). El sello del PDF cambia de color
+                                         y texto según el estado. --}}
+                                    <a href="{{ route('suspensions.receipt', $req->id) }}"
+                                       class="btn btn-ghost btn-sm"
+                                       title="Descargar comprobante PDF ({{ $req->status === 'approved' ? 'aprobación' : 'rechazo' }})">
+                                        <i class="ti ti-file-download"></i> PDF
+                                    </a>
                                 @endif
                             </div>
                         </td>

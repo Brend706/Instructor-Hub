@@ -130,6 +130,34 @@
                         <span>{{ $req->coordinator_notes ?? $req->admin_notes }}</span>
                     </div>
                 @endif
+                @if(in_array($req->status, ['approved','rejected'], true))
+                    {{-- Comprobante PDF descargable cuando la solicitud propia ya fue resuelta.
+                         Se colorea verde para aprobada y rojo para rechazada para que el usuario
+                         identifique el tipo de comprobante de un vistazo. --}}
+                    @php
+                        $isApprovedReq = $req->status === 'approved';
+                        $btnBorder = $isApprovedReq ? '#16A34A' : '#B91C1C';
+                        $btnBg     = $isApprovedReq ? '#F0FDF4' : '#FEF2F2';
+                        $btnBgHov  = $isApprovedReq ? '#DCFCE7' : '#FEE2E2';
+                        $btnColor  = $isApprovedReq ? '#166534' : '#991B1B';
+                        $btnLabel  = $isApprovedReq
+                            ? 'Descargar comprobante de aprobación (PDF)'
+                            : 'Descargar comprobante de rechazo (PDF)';
+                    @endphp
+                    <div style="padding:10px 14px;border-top:1px solid var(--border);
+                                display:flex;justify-content:flex-end">
+                        <a href="{{ route('suspensions.receipt', $req->id) }}"
+                           style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+                                  border-radius:8px;border:1.5px solid {{ $btnBorder }};background:{{ $btnBg }};
+                                  color:{{ $btnColor }};font-size:12px;font-weight:600;text-decoration:none;
+                                  transition:background .15s"
+                           onmouseover="this.style.background='{{ $btnBgHov }}'"
+                           onmouseout="this.style.background='{{ $btnBg }}'">
+                            <i class="ti ti-file-download" style="font-size:14px"></i>
+                            {{ $btnLabel }}
+                        </a>
+                    </div>
+                @endif
             </div>
         @empty
             <div style="text-align:center;padding:40px 0;color:var(--text-muted)">

@@ -29,6 +29,7 @@ use App\Http\Controllers\Instructor\GroupController as InstructorGroupController
 use App\Http\Controllers\Instructor\SessionController;
 use App\Http\Controllers\Instructor\SuspensionRequestController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SuspensionReceiptController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -293,6 +294,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/mi-perfil', [ProfileController::class, 'index'])->name('profile.index');
     Route::put('/mi-perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/mi-perfil/contrasena', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+    // Comprobante PDF de aprobación de suspensión.
+    // Único endpoint compartido por admin, coordinador e instructor: el
+    // controlador hace el guard por rol y solo entrega el archivo si la
+    // solicitud está aprobada y le pertenece al usuario.
+    Route::get('/comprobantes/suspension/{suspensionRequest}/pdf', [SuspensionReceiptController::class, 'download'])
+        ->name('suspensions.receipt');
 });
 
 /*
