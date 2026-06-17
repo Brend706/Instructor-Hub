@@ -228,12 +228,15 @@
 
         {{-- Hero: datos del instructor --}}
         <div class="ia-modal-hero">
-            <button class="ia-modal-hero-close" onclick="iaCloseDetail()" aria-label="Cerrar">
-                <i class="ti ti-x"></i>
-            </button>
-            <div class="ia-modal-hero-av" id="ia_av">??</div>
-            <div class="ia-modal-hero-name"  id="ia_name">—</div>
-            <div class="ia-modal-hero-email" id="ia_email">—</div>
+            <div class="ia-modal-hero-top">
+                <div>
+                    <div class="ia-modal-hero-name" id="ia_name">—</div>
+                    <div class="ia-modal-hero-email" id="ia_email">—</div>
+                </div>
+                <button class="ia-modal-hero-close" onclick="iaCloseDetail()" aria-label="Cerrar">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
             <div class="ia-modal-hero-meta">
                 <span class="ia-modal-hero-pill" id="ia_status_pill">
                     <i class="ti ti-circle"></i> <span id="ia_status">—</span>
@@ -278,7 +281,7 @@
             {{-- Sección: Logística --}}
             <div class="ia-modal-section">
                 <div class="ia-modal-section-header">
-                    <i class="ti ti-settings" aria-hidden="true"></i> Logística de la instructoría
+                    <i class="ti ti-info-circle" aria-hidden="true"></i> Detalles
                 </div>
                 <div class="ia-modal-section-body cols-2">
                     <div class="ia-modal-field">
@@ -382,7 +385,6 @@ function _iaSkeleton() {
         const el = document.getElementById(id);
         if (el) el.innerHTML = '<span class="ia-skeleton" style="width:70%;display:inline-block">&nbsp;</span>';
     });
-    document.getElementById('ia_av').textContent = '…';
     document.getElementById('ia_sessions_wrap').innerHTML =
         '<p style="font-size:13px;color:var(--text-muted)">Cargando sesiones…</p>';
 }
@@ -397,10 +399,6 @@ function _iaPopulate(data) {
     const email = instr.email || '—';
     const status = asgn.status || '—';
 
-    // Iniciales
-    const initials = name.split(' ').filter(Boolean).slice(0, 2)
-        .map(w => w[0].toUpperCase()).join('');
-    document.getElementById('ia_av').textContent    = initials || '?';
     document.getElementById('ia_name').textContent  = name;
     document.getElementById('ia_email').textContent = email;
 
