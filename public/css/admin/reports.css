@@ -268,16 +268,18 @@
 }
 
 .coord-card-name {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
-    color: var(--text-main, #111827);
-    margin-bottom: 2px;
+    color: var(--text, #111827);
+    margin-bottom: 3px;
+    display: flex; align-items: center; gap: 6px;
 }
 
 .coord-card-person {
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--text-muted, #9CA3AF);
     margin-bottom: 14px;
+    display: flex; align-items: center; gap: 5px;
 }
 
 .coord-card-stats {

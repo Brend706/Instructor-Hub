@@ -21,7 +21,7 @@
            style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);padding:8px 14px;border-radius:8px;font-size:13px;text-decoration:none;transition:background .15s"
            onmouseover="this.style.background='rgba(255,255,255,.25)'"
            onmouseout="this.style.background='rgba(255,255,255,.15)'">
-            <i class="ti ti-building"></i> Ver coordinaciones
+            <i class="ti ti-building"></i> Ver coordinadores
         </a>
     </div>
 </div>
@@ -34,7 +34,7 @@
     </a>
     <a href="{{ route('admin.reportes.coordinaciones') }}"
        class="rpt-nav-link">
-        <i class="ti ti-building"></i> Resumen por coordinación
+        <i class="ti ti-building"></i> Coordinadores
     </a>
 </nav>
 
