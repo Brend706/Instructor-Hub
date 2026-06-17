@@ -268,13 +268,13 @@
     display: grid; gap: 10px;
 }
 .ia-modal-section-body.cols-2 {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* Campo dentro del modal */
-.ia-modal-field { display: flex; flex-direction: column; gap: 3px; }
+.ia-modal-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .ia-modal-field-label { font-size: 10px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
-.ia-modal-field-val   { font-size: 13px; color: var(--text); font-weight: 500; }
+.ia-modal-field-val   { font-size: 13px; color: var(--text); font-weight: 500; word-break: break-word; overflow-wrap: break-word; }
 .ia-modal-field-val.muted { color: var(--text-muted); font-weight: 400; }
 
 /* Enlace virtual */

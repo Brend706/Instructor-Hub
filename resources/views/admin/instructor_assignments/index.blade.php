@@ -307,7 +307,7 @@
                     Sesiones
                     <span style="margin-left:auto;font-size:11px;color:var(--accent);font-weight:500" id="ia_sessions_count"></span>
                 </div>
-                <div style="padding:14px" id="ia_sessions_wrap">
+                <div style="padding:14px;overflow-x:auto" id="ia_sessions_wrap">
                     <p class="ia-td-muted" style="font-size:13px">Cargando sesiones…</p>
                 </div>
             </div>
