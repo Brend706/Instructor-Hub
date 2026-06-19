@@ -286,7 +286,8 @@
 .sage-contact-field label {
   font-size: 11px; color: var(--fica-text-dim); font-weight: 500;
 }
-.sage-contact-field input {
+.sage-contact-field input,
+.sage-contact-field textarea {
   background: rgba(255,255,255,.05);
   border: 0.5px solid rgba(255,255,255,.12);
   border-radius: 9px; padding: 8px 12px;
@@ -294,9 +295,13 @@
   font-family: inherit; outline: none;
   transition: border-color .2s;
 }
-.sage-contact-field input::placeholder { color: var(--fica-text-dim); }
-.sage-contact-field input:focus { border-color: rgba(127,119,221,.5); }
-.sage-contact-field input.has-error { border-color: rgba(239,68,68,.5); }
+.sage-contact-field textarea { resize: vertical; min-height: 56px; line-height: 1.4; }
+.sage-contact-field input::placeholder,
+.sage-contact-field textarea::placeholder { color: var(--fica-text-dim); }
+.sage-contact-field input:focus,
+.sage-contact-field textarea:focus { border-color: rgba(127,119,221,.5); }
+.sage-contact-field input.has-error,
+.sage-contact-field textarea.has-error { border-color: rgba(239,68,68,.5); }
 .sage-contact-error { font-size: 11px; color: #f87171; min-height: 14px; }
 
 .sage-contact-actions { display: flex; gap: 8px; margin-top: 4px; }

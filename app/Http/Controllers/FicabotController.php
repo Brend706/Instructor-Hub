@@ -84,22 +84,26 @@ class FicabotController extends Controller
      * usamos solo los datos de contacto del formulario.
      *
      * Request body:
-     *  - contact_name  (string, requerido): nombre con el que quiere ser contactado.
-     *  - contact_email (string, requerido): correo donde recibir la respuesta.
-     *  - question      (string, requerido): la duda original del usuario.
-     *  - bot_reply     (string, opcional):  última respuesta del bot, para contexto.
+     *  - contact_name   (string, requerido): nombre con el que quiere ser contactado.
+     *  - contact_email  (string, requerido): correo donde recibir la respuesta.
+     *  - contact_reason (string, requerido): motivo escrito por el usuario en el formulario.
+     *  - question       (string, requerido): la duda original del usuario / contexto de la conversación.
+     *  - bot_reply      (string, opcional):  última respuesta del bot, para contexto.
      */
     public function escalate(Request $request): JsonResponse
     {
         $data = $request->validate([
             'contact_name' => ['required', 'string', 'max:120'],
             'contact_email' => ['required', 'email', 'max:180'],
+            'contact_reason' => ['required', 'string', 'min:5', 'max:1000'],
             'question' => ['required', 'string', 'max:2000'],
             'bot_reply' => ['sometimes', 'nullable', 'string', 'max:2000'],
         ], [
             'contact_name.required' => 'Debes ingresar tu nombre.',
             'contact_email.required' => 'Debes ingresar un correo de contacto.',
             'contact_email.email' => 'El correo de contacto no es válido.',
+            'contact_reason.required' => 'Debes describir el motivo.',
+            'contact_reason.min' => 'El motivo es muy corto.',
             'question.required' => 'No hay una pregunta para enviar al administrador.',
         ]);
 
@@ -121,6 +125,7 @@ class FicabotController extends Controller
             botReply: $data['bot_reply'] ?? null,
             contactName: $data['contact_name'],
             contactEmail: $data['contact_email'],
+            reason: $data['contact_reason'],
         ));
 
         return response()->json([

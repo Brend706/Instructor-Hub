@@ -105,6 +105,8 @@ Route::middleware('auth')->group(function () {
         // Ambas viven detrás de role:admin, así que solo administradores pueden invocarlas.
         Route::post('/notifications/{id}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
         Route::post('/notifications/read-all', [AdminNotificationController::class, 'markAllRead'])->name('notifications.read-all');
+        // GET /admin/notifications/feed → polling AJAX de la campanita (conteo + HTML).
+        Route::get('/notifications/feed', [AdminNotificationController::class, 'feed'])->name('notifications.feed');
 
         // Evaluaciones (admin): vista global de TODAS las evaluaciones del sistema.
         // Index lista instructorías con evaluaciones (filtrable por instructor y ciclo);
@@ -233,6 +235,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/notificaciones/leer-todas',
             [CoordinatorNotificationController::class, 'markAllRead'])
             ->name('notifications.read-all');
+        // GET /coordinator/notificaciones/feed → polling AJAX de la campanita (conteo + HTML).
+        Route::get('/notificaciones/feed',
+            [CoordinatorNotificationController::class, 'feed'])
+            ->name('notifications.feed');
 
         // Solicitudes de suspensión: listado, aprobación y rechazo.
         Route::get('/solicitudes', [CoordinatorSuspensionController::class, 'index'])

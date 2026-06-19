@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Instructor;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -65,5 +66,28 @@ class NotificationController extends Controller
         $request->user()->unreadNotifications->markAsRead();
 
         return redirect()->back();
+    }
+
+    /**
+     * Endpoint de polling (AJAX). Devuelve el conteo de no leídas y el HTML
+     * de la lista ya renderizado con el mismo partial que usa el layout, para
+     * que la campanita se actualice sin recargar la página.
+     */
+    public function feed(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $notifications = $user->notifications()->limit(15)->get();
+        $unreadCount = $user->unreadNotifications()->count();
+
+        $html = view('partials.notifications.admin-list', [
+            'notifications' => $notifications,
+        ])->render();
+
+        return response()->json([
+            'count' => $unreadCount,
+            'html' => $html,
+        ]);
     }
 }

@@ -127,6 +127,12 @@
              value="{{ auth()->user()?->email ?? '' }}" maxlength="180">
       <span class="sage-contact-error" id="sage-contact-email-err"></span>
     </div>
+    <div class="sage-contact-field">
+      <label for="sage-contact-reason">Motivo</label>
+      <textarea id="sage-contact-reason" rows="3" maxlength="1000"
+                placeholder="Cuéntanos brevemente en qué necesitas ayuda…"></textarea>
+      <span class="sage-contact-error" id="sage-contact-reason-err"></span>
+    </div>
     <div class="sage-contact-actions">
       <button type="button" class="sage-contact-cancel" id="sage-contact-cancel">Cancelar</button>
       <button type="button" class="sage-contact-submit" id="sage-contact-submit">Enviar solicitud</button>
@@ -169,13 +175,15 @@
     const conv       = document.getElementById('sage-conversation');
 
     // Form de contacto que aparece al pulsar "Contactar administrador".
-    const contactForm    = document.getElementById('sage-contact-form');
-    const contactName    = document.getElementById('sage-contact-name');
-    const contactEmail   = document.getElementById('sage-contact-email');
-    const contactNameErr = document.getElementById('sage-contact-name-err');
-    const contactEmailErr= document.getElementById('sage-contact-email-err');
-    const contactCancel  = document.getElementById('sage-contact-cancel');
-    const contactSubmit  = document.getElementById('sage-contact-submit');
+    const contactForm     = document.getElementById('sage-contact-form');
+    const contactName     = document.getElementById('sage-contact-name');
+    const contactEmail    = document.getElementById('sage-contact-email');
+    const contactReason   = document.getElementById('sage-contact-reason');
+    const contactNameErr  = document.getElementById('sage-contact-name-err');
+    const contactEmailErr = document.getElementById('sage-contact-email-err');
+    const contactReasonErr= document.getElementById('sage-contact-reason-err');
+    const contactCancel   = document.getElementById('sage-contact-cancel');
+    const contactSubmit   = document.getElementById('sage-contact-submit');
 
     // Endpoints expuestos por FicabotController. Se generan vía route() en Blade.
     const ASK_URL     = @json(route('ficabot.ask'));
@@ -475,8 +483,10 @@
       // Limpiamos errores previos.
       contactNameErr.textContent = '';
       contactEmailErr.textContent = '';
+      contactReasonErr.textContent = '';
       contactName.classList.remove('has-error');
       contactEmail.classList.remove('has-error');
+      contactReason.classList.remove('has-error');
       // El botón de escalado de la conversación queda quitado mientras se llena el form.
       removeEscalateButton();
       contactForm.hidden = false;
@@ -493,8 +503,10 @@
       let ok = true;
       contactNameErr.textContent = '';
       contactEmailErr.textContent = '';
+      contactReasonErr.textContent = '';
       contactName.classList.remove('has-error');
       contactEmail.classList.remove('has-error');
+      contactReason.classList.remove('has-error');
 
       if (!contactName.value.trim()) {
         contactNameErr.textContent = 'Ingresa tu nombre.';
@@ -509,6 +521,16 @@
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         contactEmailErr.textContent = 'Correo inválido.';
         contactEmail.classList.add('has-error');
+        ok = false;
+      }
+      const reason = contactReason.value.trim();
+      if (!reason) {
+        contactReasonErr.textContent = 'Describe el motivo.';
+        contactReason.classList.add('has-error');
+        ok = false;
+      } else if (reason.length < 5) {
+        contactReasonErr.textContent = 'El motivo es muy corto.';
+        contactReason.classList.add('has-error');
         ok = false;
       }
       return ok;
@@ -537,6 +559,8 @@
           body: JSON.stringify({
             contact_name: contactName.value.trim(),
             contact_email: contactEmail.value.trim(),
+            // Motivo escrito explícitamente por el usuario en el formulario.
+            contact_reason: contactReason.value.trim(),
             // Si hay una pregunta "congelada" del momento en que el bot
             // ofreció escalar, esa es la que necesita el admin (no el "sí"
             // o el último turno corto que disparó el formulario).
@@ -553,8 +577,9 @@
         if (res.status === 422) {
           const body = await res.json();
           const errs = body?.errors || {};
-          if (errs.contact_name?.[0])  { contactNameErr.textContent  = errs.contact_name[0];  contactName.classList.add('has-error'); }
-          if (errs.contact_email?.[0]) { contactEmailErr.textContent = errs.contact_email[0]; contactEmail.classList.add('has-error'); }
+          if (errs.contact_name?.[0])   { contactNameErr.textContent   = errs.contact_name[0];   contactName.classList.add('has-error'); }
+          if (errs.contact_email?.[0])  { contactEmailErr.textContent  = errs.contact_email[0];  contactEmail.classList.add('has-error'); }
+          if (errs.contact_reason?.[0]) { contactReasonErr.textContent = errs.contact_reason[0]; contactReason.classList.add('has-error'); }
           contactSubmit.disabled = false;
           contactCancel.disabled = false;
           contactSubmit.textContent = originalText;
@@ -572,6 +597,7 @@
 
         const data = await res.json();
         hideContactForm();
+        contactReason.value = '';
         pendingEscalation = null;
         appendMessage('assistant', data.message || 'Solicitud enviada al administrador.');
       } catch (err) {
@@ -591,11 +617,16 @@
     // Listeners del formulario.
     contactCancel.addEventListener('click', hideContactForm);
     contactSubmit.addEventListener('click', submitContact);
-    [contactName, contactEmail].forEach((el) => {
+    const contactErrMap = new Map([
+      [contactName, contactNameErr],
+      [contactEmail, contactEmailErr],
+      [contactReason, contactReasonErr],
+    ]);
+    [contactName, contactEmail, contactReason].forEach((el) => {
       el.addEventListener('input', () => {
         el.classList.remove('has-error');
-        const err = el === contactName ? contactNameErr : contactEmailErr;
-        err.textContent = '';
+        const err = contactErrMap.get(el);
+        if (err) err.textContent = '';
       });
     });
 

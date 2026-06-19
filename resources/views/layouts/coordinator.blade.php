@@ -184,101 +184,32 @@
                     <button type="button" class="icon-btn" aria-label="Notificaciones" id="notifBtn"
                             onclick="toggleNotifications(event)">
                         <i class="ti ti-bell" aria-hidden="true"></i>
-                        @if(($notifCount ?? 0) > 0)
-                            <span class="notif-dot" aria-label="{{ $notifCount }} notificaciones"></span>
-                            <span class="notif-count">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
-                        @endif
+                        {{-- #notifBadge está SIEMPRE en el DOM para que el polling JS pueda
+                             actualizar el punto y el contador sin recargar la página. --}}
+                        <span id="notifBadge">
+                            @if(($notifCount ?? 0) > 0)
+                                <span class="notif-dot" aria-label="{{ $notifCount }} notificaciones"></span>
+                                <span class="notif-count">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
+                            @endif
+                        </span>
                     </button>
 
                     <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Lista de notificaciones">
                         <div class="notif-header">
                             <span>Notificaciones</span>
-                            @if(($notifCount ?? 0) > 0)
-                                <form method="POST" action="{{ route('coordinator.notifications.read-all') }}" style="margin:0">
-                                    @csrf
-                                    <button type="submit" class="notif-mark-all">Marcar todas como leídas</button>
-                                </form>
-                            @endif
+                            {{-- El form vive SIEMPRE en el DOM (id #notifMarkAll); el polling JS
+                                 lo muestra u oculta según haya notificaciones sin leer. --}}
+                            <form method="POST" action="{{ route('coordinator.notifications.read-all') }}"
+                                  id="notifMarkAll" style="margin:0;{{ ($notifCount ?? 0) > 0 ? '' : 'display:none' }}">
+                                @csrf
+                                <button type="submit" class="notif-mark-all">Marcar todas como leídas</button>
+                            </form>
                         </div>
 
-                        <div class="notif-list">
-                            @forelse(($notifications ?? collect()) as $notif)
-                                @php
-                                    $data = $notif->data;
-                                    $isUnread = is_null($notif->read_at);
-                                    $kind = $data['kind'] ?? '';
-                                    $when = \Illuminate\Support\Carbon::parse($data['created_at'] ?? $notif->created_at);
-                                @endphp
-                                <form method="POST"
-                                      action="{{ route('coordinator.notifications.read', $notif->id) }}"
-                                      class="notif-item-form">
-                                    @csrf
-                                    <button type="submit" class="notif-item {{ $isUnread ? 'is-unread' : '' }}">
-                                        @if($kind === 'self_evaluation.submitted')
-                                            {{-- ── Autoevaluación enviada por un instructor ── --}}
-                                            @php
-                                                $instructorName = $data['instructor']['name'] ?? 'Instructor';
-                                                $groupName = $data['assignment']['group_name'] ?? 'Sin grupo';
-                                                $score = $data['result']['total_score'] ?? null;
-                                            @endphp
-                                            <span class="notif-icon" style="background:#DBEAFE;color:#1D4ED8">
-                                                <i class="ti ti-clipboard-check" aria-hidden="true"></i>
-                                            </span>
-                                            <span class="notif-body">
-                                                <span class="notif-title">
-                                                    <strong>{{ $instructorName }}</strong> envió su autoevaluación
-                                                </span>
-                                                <span class="notif-meta">
-                                                    Grupo: {{ $groupName }}
-                                                    @if($score !== null) · Puntaje: {{ number_format((float) $score, 2) }}/10 @endif
-                                                </span>
-                                                <span class="notif-time">
-                                                    {{ $when->translatedFormat('d M Y · H:i') }}
-                                                </span>
-                                            </span>
-                                        @elseif($kind === 'suspension_request.submitted')
-                                            {{-- ── Nueva solicitud de suspensión enviada por un instructor ── --}}
-                                            @php
-                                                $instructorName = $data['instructor']['name'] ?? 'Instructor';
-                                                $typeLabel = $data['request']['type_label'] ?? 'Solicitud';
-                                                $groupName = $data['assignment']['group_name'] ?? null;
-                                            @endphp
-                                            <span class="notif-icon" style="background:#FEF3C7;color:#92400E">
-                                                <i class="ti ti-player-pause" aria-hidden="true"></i>
-                                            </span>
-                                            <span class="notif-body">
-                                                <span class="notif-title">
-                                                    <strong>{{ $instructorName }}</strong> envió una solicitud de suspensión
-                                                </span>
-                                                <span class="notif-meta">
-                                                    {{ $typeLabel }}@if($groupName) · Grupo: {{ $groupName }}@endif
-                                                </span>
-                                                <span class="notif-time">
-                                                    {{ $when->translatedFormat('d M Y · H:i') }}
-                                                </span>
-                                            </span>
-                                        @else
-                                            {{-- Fallback genérico para cualquier otra notificación futura --}}
-                                            <span class="notif-icon"><i class="ti ti-bell" aria-hidden="true"></i></span>
-                                            <span class="notif-body">
-                                                <span class="notif-title">Nueva notificación</span>
-                                                <span class="notif-time">
-                                                    {{ $when->translatedFormat('d M Y · H:i') }}
-                                                </span>
-                                            </span>
-                                        @endif
-
-                                        @if($isUnread)
-                                            <span class="notif-pill">Nuevo</span>
-                                        @endif
-                                    </button>
-                                </form>
-                            @empty
-                                <div class="notif-empty">
-                                    <i class="ti ti-bell-off" aria-hidden="true"></i>
-                                    <p>No tienes notificaciones</p>
-                                </div>
-                            @endforelse
+                        {{-- Contenido de la lista en un partial reutilizable: render inicial
+                             y render del polling AJAX usan exactamente el mismo Blade. --}}
+                        <div class="notif-list" id="notifList">
+                            @include('partials.notifications.coordinator-list', ['notifications' => $notifications ?? collect()])
                         </div>
                     </div>
                 </div>
@@ -360,6 +291,51 @@
                 wrap.classList.remove('open');
             }
         });
+
+        // ── Polling de notificaciones (sin recargar la página) ──────
+        // Consulta el feed cada cierto tiempo y actualiza el punto/contador.
+        // La lista solo se reemplaza con el panel cerrado para no interrumpir.
+        (function () {
+            const FEED_URL = @json(route('coordinator.notifications.feed'));
+            const POLL_MS = 25000;
+
+            function renderBadge(count) {
+                const badge = document.getElementById('notifBadge');
+                if (!badge) return;
+                if (count > 0) {
+                    const label = count > 9 ? '9+' : count;
+                    badge.innerHTML =
+                        '<span class="notif-dot" aria-label="' + count + ' notificaciones"></span>' +
+                        '<span class="notif-count">' + label + '</span>';
+                } else {
+                    badge.innerHTML = '';
+                }
+                const markAll = document.getElementById('notifMarkAll');
+                if (markAll) markAll.style.display = count > 0 ? '' : 'none';
+            }
+
+            async function poll() {
+                try {
+                    const res = await fetch(FEED_URL, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    renderBadge(data.count ?? 0);
+
+                    const wrap = document.getElementById('notifWrap');
+                    const list = document.getElementById('notifList');
+                    if (list && wrap && !wrap.classList.contains('open') && typeof data.html === 'string') {
+                        list.innerHTML = data.html;
+                    }
+                } catch (e) {
+                    // Silencioso: reintenta en el próximo ciclo.
+                }
+            }
+
+            setInterval(poll, POLL_MS);
+        })();
     </script>
 
     @stack('scripts')

@@ -193,12 +193,15 @@
                     <button type="button" class="icon-btn" aria-label="Notificaciones" id="notifBtn"
                             onclick="toggleNotifications(event)">
                         <i class="ti ti-bell" aria-hidden="true"></i>
-                        {{-- Punto rojo + contador: solo si hay no leídas (notifCount > 0). --}}
-                        @if(($notifCount ?? 0) > 0)
-                            <span class="notif-dot" aria-label="{{ $notifCount }} notificaciones"></span>
-                            {{-- "9+" cuando hay más de 9 para no romper el badge visualmente. --}}
-                            <span class="notif-count">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
-                        @endif
+                        {{-- Punto rojo + contador. El span #notifBadge está SIEMPRE en el DOM
+                             (aunque esté vacío) para que el polling JS pueda actualizarlo sin
+                             recargar la página. --}}
+                        <span id="notifBadge">
+                            @if(($notifCount ?? 0) > 0)
+                                <span class="notif-dot" aria-label="{{ $notifCount }} notificaciones"></span>
+                                <span class="notif-count">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
+                            @endif
+                        </span>
                     </button>
 
                     {{-- Panel flotante con la lista de notificaciones.
@@ -206,95 +209,20 @@
                     <div class="notif-dropdown" id="notifDropdown" role="menu" aria-label="Lista de notificaciones">
                         <div class="notif-header">
                             <span>Notificaciones</span>
-                            {{-- "Marcar todas como leídas": solo aparece si hay alguna no leída.
-                                 Hace POST a admin.notifications.read-all → markAllRead(). --}}
-                            @if(($notifCount ?? 0) > 0)
-                                <form method="POST" action="{{ route('admin.notifications.read-all') }}" style="margin:0">
-                                    @csrf
-                                    <button type="submit" class="notif-mark-all">Marcar todas como leídas</button>
-                                </form>
-                            @endif
+                            {{-- "Marcar todas como leídas": el form vive SIEMPRE en el DOM
+                                 (id #notifMarkAll) y el polling JS lo muestra/oculta según
+                                 haya o no notificaciones sin leer. --}}
+                            <form method="POST" action="{{ route('admin.notifications.read-all') }}"
+                                  id="notifMarkAll" style="margin:0;{{ ($notifCount ?? 0) > 0 ? '' : 'display:none' }}">
+                                @csrf
+                                <button type="submit" class="notif-mark-all">Marcar todas como leídas</button>
+                            </form>
                         </div>
 
-                        <div class="notif-list">
-                            {{-- @forelse: itera $notifications; @empty se ejecuta si la colección está vacía. --}}
-                            @forelse(($notifications ?? collect()) as $notif)
-                                @php
-                                    // data está casteado a array por Laravel (columna `notifications.data`).
-                                    $data = $notif->data;
-                                    // read_at NULL = no leída → se resalta con la clase is-unread.
-                                    $isUnread = is_null($notif->read_at);
-                                    // 'kind' identifica el tipo lógico de la notificación.
-                                    // Las viejas (sin 'kind') son del flujo "instructor creado".
-                                    $kind = $data['kind'] ?? 'instructor.created';
-                                    // Carbon::parse acepta el formato ISO 8601 guardado en toArray().
-                                    $when = \Illuminate\Support\Carbon::parse($data['created_at'] ?? $notif->created_at);
-                                @endphp
-                                {{-- Cada notificación es un mini-form POST que llama a markRead($notif->id).
-                                     El controlador la marca como leída y decide si redirige según el tipo. --}}
-                                <form method="POST"
-                                      action="{{ route('admin.notifications.read', $notif->id) }}"
-                                      class="notif-item-form">
-                                    @csrf
-                                    <button type="submit" class="notif-item {{ $isUnread ? 'is-unread' : '' }}">
-                                        @if($kind === 'ficabot.support')
-                                            {{-- ── Solicitud de soporte desde FICABOT ── --}}
-                                            @php
-                                                // Datos de contacto preferidos por el usuario (pueden diferir de su cuenta).
-                                                $contactName = $data['contact']['name'] ?? ($data['requester']['name'] ?? 'Usuario');
-                                                $contactEmail = $data['contact']['email'] ?? ($data['requester']['email'] ?? '');
-                                                $roleLabel = $data['requester']['role_label'] ?? 'Usuario';
-                                                $question = $data['question'] ?? '';
-                                            @endphp
-                                            <span class="notif-icon" style="background:#FEF3C7;color:#92400E">
-                                                <i class="ti ti-lifebuoy" aria-hidden="true"></i>
-                                            </span>
-                                            <span class="notif-body">
-                                                <span class="notif-title">
-                                                    Soporte solicitado por <strong>{{ $contactName }}</strong>
-                                                </span>
-                                                <span class="notif-meta">
-                                                    {{ $roleLabel }}
-                                                    @if($contactEmail) · <a href="mailto:{{ $contactEmail }}" style="color:inherit;text-decoration:underline">{{ $contactEmail }}</a> @endif
-                                                </span>
-                                                <span class="notif-meta">
-                                                    "{{ \Illuminate\Support\Str::limit($question, 70) }}"
-                                                </span>
-                                                <span class="notif-time">
-                                                    {{ $when->translatedFormat('d M Y · H:i') }}
-                                                </span>
-                                            </span>
-                                        @else
-                                            {{-- ── Instructor creado (notificación por defecto) ── --}}
-                                            @php
-                                                $instructorName = $data['instructor']['name'] ?? 'Instructor';
-                                                $creatorName = $data['creator']['name'] ?? 'Coordinador';
-                                            @endphp
-                                            <span class="notif-icon"><i class="ti ti-user-plus" aria-hidden="true"></i></span>
-                                            <span class="notif-body">
-                                                <span class="notif-title">Nuevo instructor: <strong>{{ $instructorName }}</strong></span>
-                                                <span class="notif-meta">
-                                                    Creado por <strong>{{ $creatorName }}</strong>
-                                                </span>
-                                                <span class="notif-time">
-                                                    {{ $when->translatedFormat('d M Y · H:i') }}
-                                                </span>
-                                            </span>
-                                        @endif
-
-                                        {{-- Pill "Nuevo" solo si aún no se leyó. --}}
-                                        @if($isUnread)
-                                            <span class="notif-pill">Nuevo</span>
-                                        @endif
-                                    </button>
-                                </form>
-                            @empty
-                                {{-- Estado vacío: no hay notificaciones en BD para este admin. --}}
-                                <div class="notif-empty">
-                                    <i class="ti ti-bell-off" aria-hidden="true"></i>
-                                    <p>No tienes notificaciones</p>
-                                </div>
-                            @endforelse
+                        {{-- El contenido de la lista vive en un partial reutilizable para que
+                             el render inicial y el del polling AJAX sean idénticos. --}}
+                        <div class="notif-list" id="notifList">
+                            @include('partials.notifications.admin-list', ['notifications' => $notifications ?? collect()])
                         </div>
                     </div>
                 </div>
@@ -394,6 +322,53 @@
         }
         // Se expone en window para que el onclick inline del botón pueda llamarla.
         window.toggleNotifications = toggleNotifications;
+
+        // ── Polling de notificaciones (sin recargar la página) ──────
+        // Cada cierto tiempo consulta el feed y actualiza el punto/contador.
+        // La lista solo se reemplaza cuando el dropdown está cerrado, para no
+        // interrumpir al usuario si lo tiene abierto.
+        (function () {
+            const FEED_URL = @json(route('admin.notifications.feed'));
+            const POLL_MS = 25000;
+
+            function renderBadge(count) {
+                const badge = document.getElementById('notifBadge');
+                if (!badge) return;
+                if (count > 0) {
+                    const label = count > 9 ? '9+' : count;
+                    badge.innerHTML =
+                        '<span class="notif-dot" aria-label="' + count + ' notificaciones"></span>' +
+                        '<span class="notif-count">' + label + '</span>';
+                } else {
+                    badge.innerHTML = '';
+                }
+                const markAll = document.getElementById('notifMarkAll');
+                if (markAll) markAll.style.display = count > 0 ? '' : 'none';
+            }
+
+            async function poll() {
+                try {
+                    const res = await fetch(FEED_URL, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    renderBadge(data.count ?? 0);
+
+                    // Solo refrescamos la lista si el panel está cerrado.
+                    const wrap = document.getElementById('notifWrap');
+                    const list = document.getElementById('notifList');
+                    if (list && wrap && !wrap.classList.contains('open') && typeof data.html === 'string') {
+                        list.innerHTML = data.html;
+                    }
+                } catch (e) {
+                    // Silencioso: si falla una vez, lo reintenta en el próximo ciclo.
+                }
+            }
+
+            setInterval(poll, POLL_MS);
+        })();
     </script>
 
     {{-- Scripts adicionales por vista --}}

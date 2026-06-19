@@ -29,6 +29,7 @@ class FicabotSupportRequested extends Notification
      * @param  ?string $botReply      Última respuesta del bot, para dar contexto al admin.
      * @param  ?string $contactName   Nombre con el que el usuario quiere ser contactado (puede no coincidir con su cuenta).
      * @param  ?string $contactEmail  Correo de contacto preferido para la respuesta.
+     * @param  ?string $reason        Motivo que el usuario escribió en el formulario de contacto.
      */
     public function __construct(
         public ?User $requester,
@@ -36,6 +37,7 @@ class FicabotSupportRequested extends Notification
         public ?string $botReply = null,
         public ?string $contactName = null,
         public ?string $contactEmail = null,
+        public ?string $reason = null,
     ) {}
 
     /**
@@ -74,6 +76,8 @@ class FicabotSupportRequested extends Notification
                 'name' => $this->contactName ?? $this->requester?->name ?? 'Sin nombre',
                 'email' => $this->contactEmail ?? $this->requester?->email ?? 'sin-correo@local',
             ],
+            // Motivo escrito por el usuario en el formulario de contacto.
+            'reason' => $this->reason !== null ? mb_substr($this->reason, 0, 1000) : null,
             // Truncamos el texto para evitar JSONs gigantes en la tabla notifications.
             'question' => mb_substr($this->question, 0, 1000),
             'bot_reply' => $this->botReply !== null
