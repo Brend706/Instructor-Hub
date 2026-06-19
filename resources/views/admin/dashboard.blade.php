@@ -310,7 +310,7 @@
     document.addEventListener('DOMContentLoaded', function () {
 
         // ── Gráfica de barras ──────────────────────────────
-        const maxVal   = Math.max(...semanas);
+        const maxVal   = Math.max(...semanas, 1);
         const chart    = document.getElementById('barChart');
         const labelsEl = document.getElementById('barLabels');
 
