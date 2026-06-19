@@ -130,7 +130,8 @@
     <div class="sage-contact-field">
       <label for="sage-contact-reason">Motivo</label>
       <textarea id="sage-contact-reason" rows="3" maxlength="1000"
-                placeholder="Cuéntanos brevemente en qué necesitas ayuda…"></textarea>
+                placeholder="Cuéntanos brevemente en qué necesitas ayuda…"
+                style="background:rgba(255,255,255,.05)!important;background-color:rgba(255,255,255,.05)!important;color:var(--fica-text,#f1efe8)!important;border:0.5px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 12px;font-size:13px;font-family:inherit;resize:vertical;min-height:70px;line-height:1.5;width:100%;box-sizing:border-box;outline:none"></textarea>
       <span class="sage-contact-error" id="sage-contact-reason-err"></span>
     </div>
     <div class="sage-contact-actions">
