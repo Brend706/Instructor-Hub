@@ -91,7 +91,7 @@
                     <th>Coordinación</th>
                     <th>Estado</th>
                     <th title="Sesiones impartidas">Sesiones</th>
-                    <th title="Asistencia promedio de estudiantes">Asistencia</th>
+                    <th title="Promedio de asistentes por clase">Asist./clase</th>
                     <th title="Autoevaluación">Self</th>
                     <th title="Evaluación del coordinador">Coord.</th>
                     <th title="Evaluación de estudiantes">Estud.</th>
@@ -122,15 +122,8 @@
                             default    => 'low',
                         };
 
-                        $sessions = (int) ($inst->sessions_count ?? 0);
-                        $attRate  = $attendanceRates[$inst->id] ?? null;
-
-                        $attCss = match(true) {
-                            $attRate === null => '',
-                            $attRate >= 75    => 'high',
-                            $attRate >= 50    => 'mid',
-                            default           => 'low',
-                        };
+                        $sessions   = (int) ($inst->sessions_count ?? 0);
+                        $avgAtt     = $avgAttendees[$inst->id] ?? null;
 
                         $statusCss = match($inst->status) {
                             'Activo'     => 'activo',
@@ -161,17 +154,10 @@
                         <td style="text-align:center;font-weight:600">
                             {{ $sessions > 0 ? $sessions : '—' }}
                         </td>
-                        <td>
-                            @if($attRate !== null)
-                                <div class="att-bar-wrap">
-                                    <div class="att-bar-bg">
-                                        <div class="att-bar-fill {{ $attCss }}"
-                                             style="width:{{ $attRate }}%"></div>
-                                    </div>
-                                    <span class="att-bar-val" style="color:{{ $attCss === 'high' ? '#166534' : ($attCss === 'mid' ? '#854D0E' : '#B91C1C') }}">
-                                        {{ $attRate }}%
-                                    </span>
-                                </div>
+                        <td style="text-align:center">
+                            @if($avgAtt !== null)
+                                <span style="font-size:13px;font-weight:600;color:var(--text-main)">{{ $avgAtt }}</span>
+                                <span style="font-size:11px;color:var(--text-muted)"> est.</span>
                             @else
                                 <span class="no-data">—</span>
                             @endif

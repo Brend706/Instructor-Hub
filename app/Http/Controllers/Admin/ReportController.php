@@ -80,20 +80,22 @@ class ReportController extends Controller
             ->groupBy('instructor_id')
             ->map(fn ($rows) => $rows->keyBy('slug'));
 
-        // ── Tasa de asistencia promedio por instructor ────────────
-        $attendanceRates = DB::table('student_attendances')
+        // ── Promedio de asistentes por sesión ─────────────────────
+        // total de registros attended=1 / número de sesiones distintas
+        $avgAttendees = DB::table('student_attendances')
             ->join('class_sessions', 'student_attendances.session_id', '=', 'class_sessions.id')
             ->join('instructor_assignments', 'class_sessions.instructor_assignment_id', '=', 'instructor_assignments.id')
+            ->where('student_attendances.attended', 1)
             ->whereIn('instructor_assignments.instructor_id', $instructorIds)
             ->select(
                 'instructor_assignments.instructor_id',
-                DB::raw('ROUND(AVG(CASE WHEN student_attendances.attended = 1 THEN 100.0 ELSE 0 END), 1) as rate')
+                DB::raw('ROUND(COUNT(student_attendances.id) / COUNT(DISTINCT class_sessions.id), 1) as avg_per_session')
             )
             ->groupBy('instructor_assignments.instructor_id')
-            ->pluck('rate', 'instructor_id');
+            ->pluck('avg_per_session', 'instructor_id');
 
         return view('admin.reports.instructors', compact(
-            'instructors', 'coordinators', 'evalAvgs', 'attendanceRates', 'sort'
+            'instructors', 'coordinators', 'evalAvgs', 'avgAttendees', 'sort'
         ));
     }
 
