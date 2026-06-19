@@ -5,7 +5,7 @@
 @endpush
 
 @section('content')
-
+<!-- ESTA VISTA ES SOLO DEL ADMINISTRADOR PARA GESTIONAR TODOS LOS INSTRUCTORES -->
 <div class="page-header">
     <div>
         <h1 class="page-title">Instructores</h1>
@@ -224,7 +224,7 @@
                 <div style="display:flex;align-items:flex-start;gap:10px;background:#fdf4f7;border:1px solid #e8b4c8;border-radius:8px;padding:10px 14px;margin-bottom:16px">
                     <i class="ti ti-info-circle" style="color:var(--primary,#5A1533);font-size:16px;margin-top:1px;flex-shrink:0" aria-hidden="true"></i>
                     <p style="margin:0;font-size:12.5px;color:#6B2245;line-height:1.5">
-                        Solo instructores previamente evaluados y aprobados por la coordinación son registrados en el sistema.
+                        Solo instructores previamente evaluados y aprobados son registrados en el sistema.
                     </p>
                 </div>
 

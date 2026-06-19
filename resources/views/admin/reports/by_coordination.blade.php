@@ -12,8 +12,8 @@
             <i class="ti ti-building" style="font-size:26px;color:#fff"></i>
         </div>
         <div>
-            <h1 style="font-size:20px;font-weight:700;color:#fff;margin:0 0 4px">Resumen por coordinación</h1>
-            <p style="font-size:13px;color:rgba(255,255,255,.7);margin:0">Instructores, instructorías y evaluaciones agrupados por coordinación</p>
+            <h1 style="font-size:20px;font-weight:700;color:#fff;margin:0 0 4px">Resumen por coordinadores</h1>
+            <p style="font-size:13px;color:rgba(255,255,255,.7);margin:0">Instructores, instructorías y evaluaciones agrupados por coordinador</p>
         </div>
     </div>
     <div style="display:flex;gap:8px">
@@ -32,7 +32,7 @@
         <i class="ti ti-chart-bar"></i> Desempeño de instructores
     </a>
     <a href="{{ route('admin.reportes.coordinaciones') }}" class="rpt-nav-link active">
-        <i class="ti ti-building"></i> Resumen por coordinación
+        <i class="ti ti-building"></i> Coordinadores
     </a>
 </nav>
 
@@ -56,7 +56,7 @@
         <div class="rpt-stat-icon accent"><i class="ti ti-building"></i></div>
         <div>
             <div class="rpt-stat-val">{{ $globalStats['total_coordinators'] }}</div>
-            <div class="rpt-stat-lbl">Coordinaciones</div>
+            <div class="rpt-stat-lbl">Coordinadores</div>
         </div>
     </div>
     <div class="rpt-stat">
@@ -84,119 +84,52 @@
     </div>
 </div>
 
-{{-- Tarjetas por coordinación --}}
-<div class="rpt-section-header">
-    <div class="rpt-section-title">
-        <i class="ti ti-layout-grid"></i>
-        Detalle por coordinación
+@php
+    $schools = $coordinators->map(fn($c) => $c->school_name ?? null)->filter()->unique()->sort()->values();
+@endphp
+
+{{-- Toolbar: filtro por escuela + contador --}}
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+    <div style="position:relative;flex:1;min-width:180px;max-width:280px">
+        <i class="ti ti-building" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px;pointer-events:none"></i>
+        <select id="schoolFilter" onchange="coordFilter()"
+            style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 32px;
+                   font-size:13px;color:var(--text-soft);font-family:inherit;background:var(--surface);
+                   outline:none;cursor:pointer;appearance:none">
+            <option value="">Todas las escuelas</option>
+            @foreach($schools as $school)
+                <option value="{{ $school }}">{{ $school }}</option>
+            @endforeach
+        </select>
     </div>
-    <span style="font-size:12px;color:var(--text-muted)">{{ $coordinators->count() }} coordinación{{ $coordinators->count() !== 1 ? 'es' : '' }}</span>
+    <span id="coordCount" style="font-size:12px;color:var(--text-muted);margin-left:auto">
+        {{ $coordinators->count() }} coordinador{{ $coordinators->count() !== 1 ? 'es' : '' }}
+    </span>
 </div>
 
 @if($coordinators->isEmpty())
-    <div class="rpt-empty" style="background:#fff;border:1px solid var(--border);border-radius:12px">
+    <div class="rpt-empty" style="background:var(--surface);border:1px solid var(--border);border-radius:12px">
         <i class="ti ti-building-off"></i>
-        No hay coordinaciones registradas.
+        No hay coordinadores registrados.
     </div>
 @else
-    <div class="coord-grid">
-        @foreach($coordinators as $coord)
-            @php
-                $stats     = $instructorStats[$coord->id]     ?? null;
-                $total     = $stats->total       ?? 0;
-                $activos   = $stats->activos     ?? 0;
-                $susp      = $stats->suspendidos ?? 0;
-                $bloq      = $stats->bloqueados  ?? 0;
-                $asign     = $activeAssignments[$coord->id]   ?? 0;
-                $avgScore  = $avgScores[$coord->id]           ?? null;
-                $pendSusp  = $pendingSuspensions[$coord->id]  ?? 0;
-
-                $areaName  = $coord->school_name ?? $coord->catedra ?? $coord->coordination_name ?? '—';
-                $person    = $coord->user?->name ?? 'Sin coordinador';
-
-                $scoreColor = match(true) {
-                    $avgScore === null => 'none',
-                    $avgScore >= 8.0   => 'high',
-                    $avgScore >= 6.0   => 'mid',
-                    default            => 'low',
-                };
-            @endphp
-            <div class="coord-card">
-                <div class="coord-card-name">{{ $areaName }}</div>
-                <div class="coord-card-person">
-                    <i class="ti ti-user" style="font-size:11px"></i> {{ $person }}
-                </div>
-
-                <div class="coord-card-stats">
-                    <div class="coord-mini-stat">
-                        <div class="coord-mini-stat-val">{{ $total }}</div>
-                        <div class="coord-mini-stat-lbl">Instructores</div>
-                    </div>
-                    <div class="coord-mini-stat">
-                        <div class="coord-mini-stat-val">{{ $asign }}</div>
-                        <div class="coord-mini-stat-lbl">Instructorías activas</div>
-                    </div>
-                </div>
-
-                {{-- Estado de instructores --}}
-                <div class="coord-status-row">
-                    @if($activos > 0)
-                        <span class="status-dot activo">{{ $activos }} activo{{ $activos !== 1 ? 's' : '' }}</span>
-                    @endif
-                    @if($susp > 0)
-                        <span class="status-dot suspendido">{{ $susp }} susp.</span>
-                    @endif
-                    @if($bloq > 0)
-                        <span class="status-dot bloqueado">{{ $bloq }} bloq.</span>
-                    @endif
-                    @if($total === 0)
-                        <span class="no-data">Sin instructores</span>
-                    @endif
-                </div>
-
-                {{-- Promedio de evaluaciones --}}
-                <div class="coord-score-row">
-                    <span>Promedio evaluaciones</span>
-                    <div style="display:flex;align-items:center;gap:8px">
-                        @if($pendSusp > 0)
-                            <span style="font-size:11px;background:#FFFBEB;color:#854D0E;padding:1px 7px;border-radius:20px">
-                                <i class="ti ti-clock" style="font-size:10px"></i> {{ $pendSusp }} pend.
-                            </span>
-                        @endif
-                        <span class="score-pill {{ $scoreColor }} coord-score-val">
-                            {{ $avgScore !== null ? number_format($avgScore, 1) : '—' }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
-
-    {{-- Tabla comparativa --}}
-    <div class="rpt-section-header" style="margin-top:8px">
-        <div class="rpt-section-title">
-            <i class="ti ti-table"></i>
-            Vista comparativa
-        </div>
-    </div>
-
     <div class="rpt-table-card">
         <div class="rpt-table-wrap">
-            <table class="rpt-table">
+            <table class="rpt-table" id="coordTable">
                 <thead>
                     <tr>
-                        <th>Coordinación</th>
                         <th>Coordinador</th>
+                        <th>Cátedra</th>
                         <th style="text-align:center">Total instr.</th>
                         <th style="text-align:center">Activos</th>
                         <th style="text-align:center">Suspendidos</th>
                         <th style="text-align:center">Bloqueados</th>
                         <th style="text-align:center">Instructorías activas</th>
                         <th style="text-align:center">Promedio eval.</th>
-                        <th style="text-align:center">Solicitudes pend.</th>
+                        <th style="text-align:center">Sol. pendientes</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="coordTableBody">
                     @foreach($coordinators as $coord)
                         @php
                             $stats    = $instructorStats[$coord->id]    ?? null;
@@ -208,7 +141,8 @@
                             $avgScore = $avgScores[$coord->id]          ?? null;
                             $pendSusp = $pendingSuspensions[$coord->id] ?? 0;
 
-                            $areaName = $coord->school_name ?? $coord->catedra ?? $coord->coordination_name ?? '—';
+                            $catedra  = $coord->catedra ?? $coord->coordination_name ?? '—';
+                            $school   = $coord->school_name ?? '—';
                             $person   = $coord->user?->name ?? '—';
 
                             $scoreColor = match(true) {
@@ -218,29 +152,29 @@
                                 default            => 'low',
                             };
                         @endphp
-                        <tr>
-                            <td style="font-weight:600">{{ $areaName }}</td>
-                            <td style="font-size:12px;color:var(--text-soft)">{{ $person }}</td>
+                        <tr data-school="{{ $school }}">
+                            <td style="font-weight:600;color:var(--text)">{{ $person }}</td>
+                            <td>
+                                <div style="font-size:13px;color:var(--text-soft)">{{ $catedra }}</div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:1px">{{ $school }}</div>
+                            </td>
                             <td style="text-align:center;font-weight:600">{{ $total }}</td>
                             <td style="text-align:center">
                                 @if($activos > 0)
                                     <span class="status-dot activo">{{ $activos }}</span>
-                                @else
-                                    <span class="no-data">0</span>
+                                @else <span class="no-data">0</span>
                                 @endif
                             </td>
                             <td style="text-align:center">
                                 @if($susp > 0)
                                     <span class="status-dot suspendido">{{ $susp }}</span>
-                                @else
-                                    <span class="no-data">0</span>
+                                @else <span class="no-data">0</span>
                                 @endif
                             </td>
                             <td style="text-align:center">
                                 @if($bloq > 0)
                                     <span class="status-dot bloqueado">{{ $bloq }}</span>
-                                @else
-                                    <span class="no-data">0</span>
+                                @else <span class="no-data">0</span>
                                 @endif
                             </td>
                             <td style="text-align:center;font-weight:600">{{ $asign }}</td>
@@ -254,8 +188,7 @@
                                     <span style="font-size:12px;background:#FFFBEB;color:#854D0E;padding:2px 10px;border-radius:20px;font-weight:600">
                                         {{ $pendSusp }}
                                     </span>
-                                @else
-                                    <span class="no-data">0</span>
+                                @else <span class="no-data">0</span>
                                 @endif
                             </td>
                         </tr>
@@ -264,15 +197,32 @@
             </table>
         </div>
     </div>
+
+    {{-- Leyenda --}}
+    <div style="margin-top:14px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-soft)">
+        <span>Promedio evaluaciones (1–10):</span>
+        <span><span class="score-pill high" style="display:inline-flex">≥ 8.0</span> Destacado</span>
+        <span><span class="score-pill mid"  style="display:inline-flex">6.0–7.9</span> Aceptable</span>
+        <span><span class="score-pill low"  style="display:inline-flex">< 6.0</span> Bajo</span>
+        <span><span class="score-pill none" style="display:inline-flex">—</span> Sin evaluaciones</span>
+    </div>
 @endif
 
-{{-- Leyenda --}}
-<div style="margin-top:14px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-soft)">
-    <span>Promedio evaluaciones (1–10):</span>
-    <span><span class="score-pill high" style="display:inline-flex">≥ 8.0</span> Destacado</span>
-    <span><span class="score-pill mid"  style="display:inline-flex">6.0–7.9</span> Aceptable</span>
-    <span><span class="score-pill low"  style="display:inline-flex">< 6.0</span> Bajo</span>
-    <span><span class="score-pill none" style="display:inline-flex">—</span> Sin evaluaciones</span>
-</div>
+@push('scripts')
+<script>
+function coordFilter() {
+    const school = document.getElementById('schoolFilter').value.toLowerCase();
+    const rows   = document.querySelectorAll('#coordTableBody tr');
+    let visible  = 0;
+    rows.forEach(tr => {
+        const match = !school || (tr.dataset.school ?? '').toLowerCase() === school;
+        tr.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    document.getElementById('coordCount').textContent =
+        visible + ' coordinador' + (visible !== 1 ? 'es' : '');
+}
+</script>
+@endpush
 
 @endsection

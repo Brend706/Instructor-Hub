@@ -192,26 +192,30 @@
 .ia-modal {
     background: var(--surface);
     border-radius: 16px;
-    width: 100%; max-width: 620px;
+    width: 100%; max-width: 660px;
     box-shadow: 0 24px 64px rgba(0,0,0,.18);
     transform: translateY(16px) scale(.98);
     transition: transform .22s cubic-bezier(.4,0,.2,1), opacity .22s;
     opacity: 0;
-    max-height: 88vh;
+    max-height: 90vh;
     display: flex; flex-direction: column;
     overflow: hidden;
 }
 .ia-modal-overlay.open .ia-modal { transform: translateY(0) scale(1); opacity: 1; }
 
-/* Modal header */
+/* Modal hero — compacto sin avatar */
 .ia-modal-hero {
     background: var(--primary);
-    padding: 20px 22px 18px;
-    position: relative;
+    padding: 16px 20px 14px;
     flex-shrink: 0;
 }
+.ia-modal-hero-top {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 12px;
+    margin-bottom: 10px;
+}
 .ia-modal-hero-close {
-    position: absolute; top: 14px; right: 14px;
+    flex-shrink: 0;
     width: 28px; height: 28px; border-radius: 6px;
     background: rgba(255,255,255,.15);
     border: none; cursor: pointer; color: rgba(255,255,255,.8);
@@ -219,62 +223,55 @@
     font-size: 16px; transition: background .15s;
 }
 .ia-modal-hero-close:hover { background: rgba(255,255,255,.25); }
-
-.ia-modal-hero-av {
-    width: 48px; height: 48px; border-radius: 12px;
-    background: rgba(255,255,255,.2);
-    border: 2px solid rgba(255,255,255,.35);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 700; color: #fff;
-    margin-bottom: 10px;
-}
-.ia-modal-hero-name  { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 2px; }
-.ia-modal-hero-email { font-size: 12px; color: rgba(255,255,255,.7); margin-bottom: 10px; }
-.ia-modal-hero-meta  { display: flex; gap: 8px; flex-wrap: wrap; }
+.ia-modal-hero-name  { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+.ia-modal-hero-email { font-size: 12px; color: rgba(255,255,255,.7); }
+.ia-modal-hero-meta  { display: flex; gap: 6px; flex-wrap: wrap; }
 .ia-modal-hero-pill {
     display: inline-flex; align-items: center; gap: 5px;
     background: rgba(255,255,255,.15);
     border: 1px solid rgba(255,255,255,.25);
     color: rgba(255,255,255,.9);
     font-size: 11px; font-weight: 500;
-    padding: 4px 10px; border-radius: 20px;
+    padding: 3px 9px; border-radius: 20px;
+    white-space: nowrap;
 }
 
 /* Modal scrollable body */
 .ia-modal-body {
-    padding: 20px 22px;
+    padding: 16px 18px;
     overflow-y: auto;
     flex: 1;
-    display: flex; flex-direction: column; gap: 16px;
+    display: flex; flex-direction: column; gap: 12px;
 }
 
 /* Sección dentro del modal */
 .ia-modal-section {
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
+    border-radius: 10px;
+    overflow: visible;
 }
 .ia-modal-section-header {
     display: flex; align-items: center; gap: 8px;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border-bottom: 1px solid var(--border);
-    font-size: 11px; font-weight: 600; color: var(--accent);
+    font-size: 10px; font-weight: 600; color: var(--accent);
     text-transform: uppercase; letter-spacing: .06em;
     background: var(--accent-50);
+    border-radius: 10px 10px 0 0;
 }
 .ia-modal-section-body {
-    padding: 14px;
+    padding: 12px;
     display: grid; gap: 10px;
 }
 .ia-modal-section-body.cols-2 {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* Campo dentro del modal */
-.ia-modal-field { display: flex; flex-direction: column; gap: 3px; }
+.ia-modal-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .ia-modal-field-label { font-size: 10px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
-.ia-modal-field-val   { font-size: 13px; color: var(--text); font-weight: 500; }
+.ia-modal-field-val   { font-size: 13px; color: var(--text); font-weight: 500; word-break: break-word; overflow-wrap: break-word; white-space: normal; }
 .ia-modal-field-val.muted { color: var(--text-muted); font-weight: 400; }
 
 /* Enlace virtual */
