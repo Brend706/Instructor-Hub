@@ -288,14 +288,21 @@
 }
 .sage-contact-field input,
 .sage-contact-field textarea {
-  background: rgba(255,255,255,.05);
+  background: rgba(255,255,255,.05) !important;
+  background-color: rgba(255,255,255,.05) !important;
   border: 0.5px solid rgba(255,255,255,.12);
   border-radius: 9px; padding: 8px 12px;
-  font-size: 13px; color: var(--fica-text);
+  font-size: 13px; color: var(--fica-text) !important;
   font-family: inherit; outline: none;
   transition: border-color .2s;
+  width: 100%; box-sizing: border-box;
 }
-.sage-contact-field textarea { resize: vertical; min-height: 56px; line-height: 1.4; }
+.sage-contact-field textarea {
+  resize: vertical; min-height: 70px; line-height: 1.5;
+  background: rgba(255,255,255,.05) !important;
+  background-color: rgba(255,255,255,.05) !important;
+  color: var(--fica-text) !important;
+}
 .sage-contact-field input::placeholder,
 .sage-contact-field textarea::placeholder { color: var(--fica-text-dim); }
 .sage-contact-field input:focus,
