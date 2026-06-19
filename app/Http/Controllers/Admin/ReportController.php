@@ -17,23 +17,34 @@ class ReportController extends Controller
      */
     public function instructors(Request $request): View
     {
+        $sort = in_array($request->get('sort'), ['sessions_desc', 'sessions_asc'], true)
+            ? $request->get('sort')
+            : 'name';
+
         $coordinators = Coordinator::with('user:id,name')->orderBy('id')->get();
 
-        // ── Instructores (filtrable) ──────────────────────────────
+        // Subquery: sesiones totales por instructor
+        $sessionSub = DB::table('class_sessions')
+            ->join('instructor_assignments as ia_sc', 'class_sessions.instructor_assignment_id', '=', 'ia_sc.id')
+            ->select('ia_sc.instructor_id', DB::raw('COUNT(*) as session_count'))
+            ->groupBy('ia_sc.instructor_id');
+
+        // ── Instructores (filtrable + ordenable) ──────────────────
         $instructorQuery = DB::table('instructors')
             ->join('users', 'instructors.user_id', '=', 'users.id')
             ->leftJoin('coordinators', 'instructors.coordinator_id', '=', 'coordinators.id')
             ->leftJoin('users as cu', 'coordinators.user_id', '=', 'cu.id')
+            ->leftJoinSub($sessionSub, 'sc', fn ($j) => $j->on('sc.instructor_id', '=', 'instructors.id'))
             ->select(
                 'instructors.id',
                 'users.name',
                 'users.email',
                 'instructors.major',
-                'instructors.category',
                 'instructors.status',
                 'instructors.coordinator_id',
                 DB::raw('COALESCE(coordinators.school_name, coordinators.catedra, cu.name) as coord_label'),
-                DB::raw('cu.name as coord_person')
+                DB::raw('cu.name as coord_person'),
+                DB::raw('COALESCE(sc.session_count, 0) as sessions_count')
             );
 
         if ($request->filled('coordinator_id')) {
@@ -43,7 +54,13 @@ class ReportController extends Controller
             $instructorQuery->where('instructors.status', $request->status);
         }
 
-        $instructors = $instructorQuery->orderBy('instructors.status')->orderBy('users.name')->get();
+        match ($sort) {
+            'sessions_desc' => $instructorQuery->orderByDesc('sessions_count')->orderBy('users.name'),
+            'sessions_asc'  => $instructorQuery->orderBy('sessions_count')->orderBy('users.name'),
+            default         => $instructorQuery->orderBy('instructors.status')->orderBy('users.name'),
+        };
+
+        $instructors = $instructorQuery->paginate(20)->withQueryString();
 
         $instructorIds = $instructors->pluck('id')->all();
 
@@ -61,18 +78,7 @@ class ReportController extends Controller
             ->groupBy('evaluation_results.instructor_id', 'evaluation_types.id', 'evaluation_types.slug')
             ->get()
             ->groupBy('instructor_id')
-            ->map(fn($rows) => $rows->keyBy('slug'));
-
-        // ── Sesiones impartidas por instructor ────────────────────
-        $sessionCounts = DB::table('class_sessions')
-            ->join('instructor_assignments', 'class_sessions.instructor_assignment_id', '=', 'instructor_assignments.id')
-            ->whereIn('instructor_assignments.instructor_id', $instructorIds)
-            ->select(
-                'instructor_assignments.instructor_id',
-                DB::raw('COUNT(*) as session_count')
-            )
-            ->groupBy('instructor_assignments.instructor_id')
-            ->pluck('session_count', 'instructor_id');
+            ->map(fn ($rows) => $rows->keyBy('slug'));
 
         // ── Tasa de asistencia promedio por instructor ────────────
         $attendanceRates = DB::table('student_attendances')
@@ -87,7 +93,7 @@ class ReportController extends Controller
             ->pluck('rate', 'instructor_id');
 
         return view('admin.reports.instructors', compact(
-            'instructors', 'coordinators', 'evalAvgs', 'sessionCounts', 'attendanceRates'
+            'instructors', 'coordinators', 'evalAvgs', 'attendanceRates', 'sort'
         ));
     }
 

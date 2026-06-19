@@ -43,7 +43,7 @@
         >
     </div>
     <select class="filter-select" id="filterMajor" onchange="filterTable()">
-        <option value="">Todas las coordinaciones</option>
+        <option value="">Todas las carreras</option>
         @foreach(($carreras ?? []) as $c)
             <option value="{{ $c }}">{{ $c }}</option>
         @endforeach

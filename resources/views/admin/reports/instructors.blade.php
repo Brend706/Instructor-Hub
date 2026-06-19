@@ -64,14 +64,21 @@
         <option value="Inactivo"   @selected(request('status') === 'Inactivo')>Inactivo</option>
     </select>
 
-    @if(request()->hasAny(['coordinator_id', 'status']))
+    <label>Ordenar sesiones:</label>
+    <select name="sort" onchange="this.form.submit()">
+        <option value="name"          @selected($sort === 'name')>Por nombre</option>
+        <option value="sessions_desc" @selected($sort === 'sessions_desc')>Más sesiones primero ↓</option>
+        <option value="sessions_asc"  @selected($sort === 'sessions_asc')>Menos sesiones primero ↑</option>
+    </select>
+
+    @if(request()->hasAny(['coordinator_id', 'status']) || $sort !== 'name')
         <a href="{{ route('admin.reportes.instructores') }}" class="btn btn-ghost btn-sm">
             <i class="ti ti-x"></i> Limpiar
         </a>
-        <span class="rpt-filter-badge">
-            {{ $instructors->count() }} resultado{{ $instructors->count() !== 1 ? 's' : '' }}
-        </span>
     @endif
+    <span class="rpt-filter-badge" style="margin-left:auto">
+        {{ $instructors->total() }} resultado{{ $instructors->total() !== 1 ? 's' : '' }}
+    </span>
 </form>
 
 {{-- Tabla principal --}}
@@ -81,7 +88,6 @@
             <thead>
                 <tr>
                     <th>Instructor</th>
-                    <th>Categoría</th>
                     <th>Coordinación</th>
                     <th>Estado</th>
                     <th title="Sesiones impartidas">Sesiones</th>
@@ -102,7 +108,6 @@
                         $stud   = $evals['student']     ?? null;
                         $teach  = $evals['teacher']     ?? null;
 
-                        // Promedio general
                         $scores = collect([$self?->avg_score, $coord?->avg_score,
                                            $stud?->avg_score, $teach?->avg_score])
                                     ->filter()->values();
@@ -110,16 +115,15 @@
                             ? round($scores->average(), 2)
                             : null;
 
-                        // Color del score (base 10)
                         $scoreCss = fn(?float $v) => match(true) {
-                            $v === null       => 'none',
-                            $v >= 8.0         => 'high',
-                            $v >= 6.0         => 'mid',
-                            default           => 'low',
+                            $v === null => 'none',
+                            $v >= 8.0  => 'high',
+                            $v >= 6.0  => 'mid',
+                            default    => 'low',
                         };
 
-                        $sessions   = $sessionCounts[$inst->id]   ?? 0;
-                        $attRate    = $attendanceRates[$inst->id]  ?? null;
+                        $sessions = (int) ($inst->sessions_count ?? 0);
+                        $attRate  = $attendanceRates[$inst->id] ?? null;
 
                         $attCss = match(true) {
                             $attRate === null => '',
@@ -140,9 +144,6 @@
                             <div style="font-weight:600;font-size:13px">{{ $inst->name }}</div>
                             <div style="font-size:11.5px;color:var(--text-muted)">{{ $inst->email }}</div>
                             <div style="font-size:11px;color:var(--text-soft);margin-top:1px">{{ $inst->major }}</div>
-                        </td>
-                        <td style="font-size:12px;color:var(--text-soft)">
-                            {{ $inst->category ?? '—' }}
                         </td>
                         <td style="font-size:12px;color:var(--text-soft)">
                             @if($inst->coord_label)
@@ -175,31 +176,26 @@
                                 <span class="no-data">—</span>
                             @endif
                         </td>
-                        {{-- Self --}}
                         <td style="text-align:center">
                             <span class="score-pill {{ $scoreCss($self?->avg_score) }}">
                                 {{ $self ? number_format($self->avg_score, 1) : '—' }}
                             </span>
                         </td>
-                        {{-- Coordinador --}}
                         <td style="text-align:center">
                             <span class="score-pill {{ $scoreCss($coord?->avg_score) }}">
                                 {{ $coord ? number_format($coord->avg_score, 1) : '—' }}
                             </span>
                         </td>
-                        {{-- Estudiantes --}}
                         <td style="text-align:center">
                             <span class="score-pill {{ $scoreCss($stud?->avg_score) }}">
                                 {{ $stud ? number_format($stud->avg_score, 1) : '—' }}
                             </span>
                         </td>
-                        {{-- Docente --}}
                         <td style="text-align:center">
                             <span class="score-pill {{ $scoreCss($teach?->avg_score) }}">
                                 {{ $teach ? number_format($teach->avg_score, 1) : '—' }}
                             </span>
                         </td>
-                        {{-- Promedio general --}}
                         <td style="text-align:center">
                             <span class="score-pill {{ $scoreCss($overall) }}"
                                   style="font-size:13px;padding:3px 10px">
@@ -209,7 +205,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="rpt-empty">
+                        <td colspan="10" class="rpt-empty">
                             <i class="ti ti-chart-bar-off"></i>
                             No hay instructores que coincidan con los filtros aplicados.
                         </td>
@@ -218,6 +214,13 @@
             </tbody>
         </table>
     </div>
+
+    {{-- Paginación --}}
+    @if($instructors->hasPages())
+        <div style="padding:14px 16px;border-top:1px solid var(--border)">
+            {{ $instructors->links() }}
+        </div>
+    @endif
 </div>
 
 {{-- Leyenda de colores --}}

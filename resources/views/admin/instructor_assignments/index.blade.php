@@ -250,68 +250,75 @@
             </div>
         </div>
 
-        {{-- Body con secciones --}}
-        <div class="ia-modal-body">
+        {{-- Body: 2 columnas --}}
+        <div class="ia-modal-body ia-modal-split">
 
-            {{-- Sección: Grupo / Materia --}}
-            <div class="ia-modal-section">
-                <div class="ia-modal-section-header">
-                    <i class="ti ti-school" aria-hidden="true"></i> Grupo / Materia
+            {{-- Columna izquierda: info grupo + detalles --}}
+            <div class="ia-modal-left">
+
+                {{-- Sección: Grupo / Materia --}}
+                <div class="ia-modal-section">
+                    <div class="ia-modal-section-header">
+                        <i class="ti ti-school" aria-hidden="true"></i> Grupo / Materia
+                    </div>
+                    <div class="ia-modal-section-body">
+                        <div class="ia-modal-field">
+                            <span class="ia-modal-field-label">Nombre del grupo</span>
+                            <span class="ia-modal-field-val" id="ia_group">—</span>
+                        </div>
+                        <div class="ia-modal-field">
+                            <span class="ia-modal-field-label">Docente titular</span>
+                            <span class="ia-modal-field-val" id="ia_professor">—</span>
+                        </div>
+                        <div class="ia-modal-field">
+                            <span class="ia-modal-field-label">Ciclo</span>
+                            <span class="ia-modal-field-val" id="ia_semester_field">—</span>
+                        </div>
+                        <div class="ia-modal-field">
+                            <span class="ia-modal-field-label">Estudiantes inscritos</span>
+                            <span class="ia-modal-field-val" id="ia_students_field">—</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="ia-modal-section-body cols-2">
-                    <div class="ia-modal-field">
-                        <span class="ia-modal-field-label">Nombre del grupo</span>
-                        <span class="ia-modal-field-val" id="ia_group">—</span>
+
+                {{-- Sección: Detalles --}}
+                <div class="ia-modal-section" style="margin-top:10px">
+                    <div class="ia-modal-section-header">
+                        <i class="ti ti-info-circle" aria-hidden="true"></i> Detalles
                     </div>
-                    <div class="ia-modal-field">
-                        <span class="ia-modal-field-label">Docente titular</span>
-                        <span class="ia-modal-field-val" id="ia_professor">—</span>
-                    </div>
-                    <div class="ia-modal-field">
-                        <span class="ia-modal-field-label">Ciclo</span>
-                        <span class="ia-modal-field-val" id="ia_semester_field">—</span>
-                    </div>
-                    <div class="ia-modal-field">
-                        <span class="ia-modal-field-label">Estudiantes inscritos</span>
-                        <span class="ia-modal-field-val" id="ia_students_field">—</span>
+                    <div class="ia-modal-section-body">
+                        <div class="ia-modal-field">
+                            <span class="ia-modal-field-label">Horario</span>
+                            <span class="ia-modal-field-val" id="ia_schedule">—</span>
+                        </div>
+                        <div class="ia-modal-field">
+                            <span class="ia-modal-field-label">Modalidad</span>
+                            <span class="ia-modal-field-val" id="ia_modality">—</span>
+                        </div>
+                        <div class="ia-modal-field" id="ia_classroom_wrap">
+                            <span class="ia-modal-field-label">Aula</span>
+                            <span class="ia-modal-field-val" id="ia_classroom">—</span>
+                        </div>
+                        <div class="ia-modal-field" id="ia_link_wrap" style="display:none">
+                            <span class="ia-modal-field-label">Enlace virtual</span>
+                            <a class="ia-modal-link" id="ia_link" href="#" target="_blank" rel="noopener">—</a>
+                        </div>
                     </div>
                 </div>
+
             </div>
 
-            {{-- Sección: Logística --}}
-            <div class="ia-modal-section">
-                <div class="ia-modal-section-header">
-                    <i class="ti ti-info-circle" aria-hidden="true"></i> Detalles
-                </div>
-                <div class="ia-modal-section-body cols-2">
-                    <div class="ia-modal-field">
-                        <span class="ia-modal-field-label">Horario</span>
-                        <span class="ia-modal-field-val" id="ia_schedule">—</span>
+            {{-- Columna derecha: clases de instructoría con scroll --}}
+            <div class="ia-modal-right">
+                <div class="ia-modal-section ia-modal-sessions-section">
+                    <div class="ia-modal-section-header">
+                        <i class="ti ti-calendar-event" aria-hidden="true"></i>
+                        Clases de instructoría
+                        <span class="ia-sessions-badge" id="ia_sessions_count"></span>
                     </div>
-                    <div class="ia-modal-field">
-                        <span class="ia-modal-field-label">Modalidad</span>
-                        <span class="ia-modal-field-val" id="ia_modality">—</span>
+                    <div class="ia-sessions-scroll" id="ia_sessions_wrap">
+                        <p class="ia-td-muted" style="font-size:13px;padding:14px">Cargando clases…</p>
                     </div>
-                    <div class="ia-modal-field" id="ia_classroom_wrap">
-                        <span class="ia-modal-field-label">Aula</span>
-                        <span class="ia-modal-field-val" id="ia_classroom">—</span>
-                    </div>
-                    <div class="ia-modal-field" id="ia_link_wrap" style="display:none">
-                        <span class="ia-modal-field-label">Enlace virtual</span>
-                        <a class="ia-modal-link" id="ia_link" href="#" target="_blank" rel="noopener">—</a>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Sección: Sesiones --}}
-            <div class="ia-modal-section">
-                <div class="ia-modal-section-header">
-                    <i class="ti ti-calendar-event" aria-hidden="true"></i>
-                    Sesiones
-                    <span style="margin-left:auto;font-size:11px;color:var(--accent);font-weight:500" id="ia_sessions_count"></span>
-                </div>
-                <div style="padding:14px;overflow-x:auto" id="ia_sessions_wrap">
-                    <p class="ia-td-muted" style="font-size:13px">Cargando sesiones…</p>
                 </div>
             </div>
 
@@ -386,7 +393,7 @@ function _iaSkeleton() {
         if (el) el.innerHTML = '<span class="ia-skeleton" style="width:70%;display:inline-block">&nbsp;</span>';
     });
     document.getElementById('ia_sessions_wrap').innerHTML =
-        '<p style="font-size:13px;color:var(--text-muted)">Cargando sesiones…</p>';
+        '<p style="font-size:13px;color:var(--text-muted);padding:14px">Cargando clases…</p>';
 }
 
 // ── Poblar modal con datos ─────────────────────────────────

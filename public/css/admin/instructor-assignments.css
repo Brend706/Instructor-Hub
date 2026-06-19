@@ -192,7 +192,7 @@
 .ia-modal {
     background: var(--surface);
     border-radius: 16px;
-    width: 100%; max-width: 660px;
+    width: 100%; max-width: 960px;
     box-shadow: 0 24px 64px rgba(0,0,0,.18);
     transform: translateY(16px) scale(.98);
     transition: transform .22s cubic-bezier(.4,0,.2,1), opacity .22s;
@@ -236,12 +236,51 @@
     white-space: nowrap;
 }
 
-/* Modal scrollable body */
+/* Modal body: split layout */
 .ia-modal-body {
-    padding: 16px 18px;
+    padding: 14px 16px;
     overflow-y: auto;
     flex: 1;
     display: flex; flex-direction: column; gap: 12px;
+}
+.ia-modal-split {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: 12px;
+    overflow: hidden;
+    padding: 14px 16px;
+    flex: 1;
+    min-height: 0;
+}
+.ia-modal-left {
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+    min-height: 0;
+}
+.ia-modal-right {
+    display: flex; flex-direction: column;
+    min-height: 0;
+}
+.ia-modal-sessions-section {
+    display: flex; flex-direction: column;
+    flex: 1; min-height: 0;
+    overflow: hidden;
+}
+.ia-sessions-scroll {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    max-height: calc(90vh - 200px);
+    overflow-x: auto;
+}
+.ia-sessions-badge {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+    background: rgba(127,119,221,.12);
+    padding: 2px 8px;
+    border-radius: 10px;
 }
 
 /* Sección dentro del modal */
@@ -259,6 +298,7 @@
     text-transform: uppercase; letter-spacing: .06em;
     background: var(--accent-50);
     border-radius: 10px 10px 0 0;
+    flex-shrink: 0;
 }
 .ia-modal-section-body {
     padding: 12px;
@@ -284,15 +324,18 @@
 /* ── Tabla de sesiones dentro del modal ───────────────────── */
 .ia-sessions-table {
     width: 100%; border-collapse: collapse; font-size: 12px;
+    min-width: 320px;
 }
-.ia-sessions-table th {
+.ia-sessions-table thead th {
+    position: sticky; top: 0; z-index: 1;
+    background: var(--bg);
     text-align: left; font-size: 9px; font-weight: 600;
     text-transform: uppercase; letter-spacing: .06em;
-    color: var(--text-muted); padding: 0 8px 8px;
+    color: var(--text-muted); padding: 10px 10px 8px;
     border-bottom: 1px solid var(--border);
 }
 .ia-sessions-table td {
-    padding: 8px;
+    padding: 8px 10px;
     border-bottom: 1px solid var(--border);
     color: var(--text-soft);
     vertical-align: middle;
@@ -348,10 +391,16 @@
 .ia-active-filter button:hover { color: var(--primary); }
 
 /* ── Responsive ───────────────────────────────────────────── */
-@media (max-width: 640px) {
+@media (max-width: 700px) {
     .ia-stats { grid-template-columns: repeat(2, 1fr); }
     .ia-modal-section-body.cols-2 { grid-template-columns: 1fr; }
-    .ia-modal { border-radius: 12px; }
+    .ia-modal { border-radius: 12px; max-width: 100%; }
+    .ia-modal-split {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+    }
+    .ia-modal-left, .ia-modal-right { overflow: visible; }
+    .ia-sessions-scroll { max-height: 300px; }
     .ia-modal-hero { padding: 16px; }
     .ia-toolbar { flex-direction: column; align-items: stretch; }
     .ia-search-wrap { max-width: 100%; }

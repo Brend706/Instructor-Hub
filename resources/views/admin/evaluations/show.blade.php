@@ -36,7 +36,7 @@
             );
             if ($q->question_type === 'score') {
                 $sAnswers = $answers->whereNotNull('score_value');
-                $maxScore = $q->max_score ?? 5;
+                $maxScore = $q->max_score ?? 10;
                 $avg      = $sAnswers->isNotEmpty()
                     ? round((float) $sAnswers->avg('score_value'), 1)
                     : null;
@@ -98,7 +98,7 @@
             <div class="ev-summary-label">{{ $type->name }}</div>
             <div class="ev-summary-value">
                 @if($m['avg'] !== null)
-                    {{ number_format($m['avg'], 2) }} <small>/ 5</small>
+                    {{ number_format($m['avg'], 2) }} <small>/ 10</small>
                 @else
                     <span class="ev-muted">—</span>
                 @endif
@@ -115,7 +115,7 @@
         <div class="ev-summary-label">Promedio general</div>
         <div class="ev-summary-value">
             @if($overallAvg !== null)
-                {{ number_format($overallAvg, 2) }} <small>/ 5</small>
+                {{ number_format($overallAvg, 2) }} <small>/ 10</small>
             @else
                 <span class="ev-muted">—</span>
             @endif
@@ -316,7 +316,7 @@
                                 : 'Sin evaluador'));
                     $evalInitials = collect(explode(' ', $evalName))
                         ->filter()->take(2)->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
-                    $maxScore = $type->questions->where('question_type', 'score')->first()?->max_score ?? 5;
+                    $maxScore = $type->questions->where('question_type', 'score')->first()?->max_score ?? 10;
                 @endphp
 
                 <details class="ev-result" {{ $loop->first ? 'open' : '' }}>
@@ -366,7 +366,7 @@
                                         @elseif($q->question_type === 'score')
                                             @php
                                                 $val    = $a->score_value !== null ? (float) $a->score_value : null;
-                                                $maxQ   = $q->max_score ?? 5;
+                                                $maxQ   = $q->max_score ?? 10;
                                                 $barPct = $val !== null ? round(($val / $maxQ) * 100) : 0;
                                             @endphp
                                             <span class="ev-score-pill-v2">
