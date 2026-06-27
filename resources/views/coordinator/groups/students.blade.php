@@ -66,6 +66,17 @@
         No se importan filas con el mismo carnet o correo repetidos en el archivo, ni si ya existen en este grupo.
     </p>
 
+    {{-- Paso 1: descargar la plantilla .xlsx lista para llenar y volver a subir. --}}
+    <div class="template-download">
+        <div class="template-download-text">
+            <i class="ti ti-file-download" aria-hidden="true"></i>
+            <span>¿No tienes un archivo? Descarga la plantilla, llénala con tus estudiantes y vuelve a subirla aquí.</span>
+        </div>
+        <a href="{{ route('coordinator.groups.students.template', $group) }}" class="browse-btn">
+            <i class="ti ti-download" aria-hidden="true"></i> Descargar plantilla
+        </a>
+    </div>
+
     <div class="drop-zone" id="dropZone"
          onclick="document.getElementById('fileInput').click()"
          ondragover="onDragOver(event)"

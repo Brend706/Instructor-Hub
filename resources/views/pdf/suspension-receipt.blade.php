@@ -180,9 +180,26 @@
             font-family: DejaVu Sans Mono, monospace;
             color: #6B7280;
         }
+
+        /* ── Logo institucional ───────────────────────────────────── */
+        .pdf-logo-wrap {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .pdf-logo {
+            max-height: 110px;
+            max-width: 480px;
+        }
     </style>
 </head>
 <body>
+
+    {{-- Logo institucional (UTEC) embebido como base64 desde el controlador. --}}
+    @if(!empty($logoSrc))
+        <div class="pdf-logo-wrap">
+            <img src="{{ $logoSrc }}" alt="Universidad Tecnológica de El Salvador" class="pdf-logo">
+        </div>
+    @endif
 
     {{-- Encabezado con logo textual + folio --}}
     <div class="header">

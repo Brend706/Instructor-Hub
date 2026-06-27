@@ -182,6 +182,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/groups/{group}/estudiantes', [GroupStudentsController::class, 'index'])->name('groups.enrolled');
         Route::get('/groups/{group}/students', [StudentImportController::class, 'show'])->name('groups.students');
+        Route::get('/groups/{group}/students/plantilla', [StudentImportController::class, 'template'])->name('groups.students.template');
         Route::post('/groups/{group}/students/preview', [StudentImportController::class, 'preview'])->name('groups.students.preview');
         Route::post('/groups/{group}/students/preview-matrix', [StudentImportController::class, 'previewMatrix'])->name('groups.students.preview-matrix');
         Route::post('/groups/{group}/students/import', [StudentImportController::class, 'import'])->name('groups.students.import');

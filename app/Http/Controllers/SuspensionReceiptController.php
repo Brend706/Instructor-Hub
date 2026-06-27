@@ -155,6 +155,15 @@ class SuspensionReceiptController extends Controller
             12,
         ));
 
+        // Logo institucional embebido como data URI (base64). Lo embebemos
+        // en vez de usar una ruta para que dompdf lo muestre sin depender de
+        // permisos/rutas del servidor (funciona igual en local y en Hostinger).
+        $logoSrc = null;
+        $logoPath = public_path('images/utec-logo.png');
+        if (is_file($logoPath)) {
+            $logoSrc = 'data:image/png;base64,'.base64_encode((string) file_get_contents($logoPath));
+        }
+
         // Diferencias visuales y de redacción según resolución.
         $isApproved = $req->status === SuspensionRequest::STATUS_APPROVED;
 
@@ -208,6 +217,7 @@ class SuspensionReceiptController extends Controller
             'typeLabel'        => $req->typeLabel(),
             'generatedAt'      => now()->translatedFormat('j \d\e F \d\e Y \a \l\a\s H:i'),
             'verificationHash' => $verificationHash,
+            'logoSrc'          => $logoSrc,
             // Estado y branding adaptable.
             'isApproved'       => $isApproved,
             'stampLabel'       => $stampLabel,

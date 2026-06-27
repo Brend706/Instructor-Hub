@@ -9,9 +9,12 @@ use App\Services\StudentExcelImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class StudentImportController extends Controller
 {
@@ -32,6 +35,77 @@ class StudentImportController extends Controller
             'group' => $group,
             'instructorName' => $instructor?->user?->name,
             'instructorMajor' => $instructor?->major,
+        ]);
+    }
+
+    /**
+     * Descarga una plantilla .xlsx lista para llenar con los estudiantes.
+     *
+     * Trae la fila de encabezado con las TRES columnas que el importador
+     * reconoce (Carnet, Nombre completo, Correo) + una hoja de instrucciones.
+     * No incluye filas de ejemplo para que no se importe data de relleno por
+     * error: el coordinador escribe desde la fila 2 y vuelve a subir el archivo.
+     */
+    public function template(ClassGroup $group): Response
+    {
+        $spreadsheet = new Spreadsheet();
+
+        // ── Hoja 1: Estudiantes (la que se llena) ──────────────────
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Estudiantes');
+
+        $headers = ['Carnet', 'Nombre completo', 'Correo'];
+        foreach ($headers as $i => $label) {
+            $cell = chr(65 + $i).'1'; // A1, B1, C1
+            $sheet->setCellValue($cell, $label);
+        }
+
+        // Estilo del encabezado: negrita + fondo institucional.
+        $sheet->getStyle('A1:C1')->getFont()->setBold(true)->getColor()->setRGB('FFFFFF');
+        $sheet->getStyle('A1:C1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setRGB('7A1B47');
+
+        $sheet->getColumnDimension('A')->setWidth(20);
+        $sheet->getColumnDimension('B')->setWidth(38);
+        $sheet->getColumnDimension('C')->setWidth(38);
+        $sheet->freezePane('A2');
+
+        // ── Hoja 2: Instrucciones ──────────────────────────────────
+        $help = $spreadsheet->createSheet();
+        $help->setTitle('Instrucciones');
+        $lines = [
+            'Cómo llenar esta plantilla',
+            '',
+            '1. Escribe un estudiante por fila, a partir de la fila 2 de la hoja "Estudiantes".',
+            '2. No borres ni cambies los nombres de la fila de encabezado (Carnet, Nombre completo, Correo).',
+            '3. Carnet: obligatorio. Debe ser único dentro del grupo.',
+            '4. Nombre completo: obligatorio.',
+            '5. Correo: obligatorio y con formato válido (ejemplo: nombre@dominio.com). Debe ser único.',
+            '6. No se importan filas con carnet o correo repetidos, ni los que ya existen en el grupo.',
+            '7. Guarda el archivo y vuelve a subirlo en la pantalla "Agregar estudiantes".',
+        ];
+        foreach ($lines as $i => $text) {
+            $help->setCellValue('A'.($i + 1), $text);
+        }
+        $help->getColumnDimension('A')->setWidth(90);
+        $help->getStyle('A1')->getFont()->setBold(true)->setSize(13);
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        // Serializa el .xlsx a memoria.
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        ob_start();
+        $writer->save('php://output');
+        $content = ob_get_clean() ?: '';
+
+        $filename = 'plantilla_estudiantes_'.
+            preg_replace('/[^A-Za-z0-9_-]+/', '_', $group->name ?? 'grupo').'.xlsx';
+
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Cache-Control' => 'no-store, no-cache',
         ]);
     }
 
